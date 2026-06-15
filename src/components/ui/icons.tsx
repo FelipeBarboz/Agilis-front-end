@@ -1,6 +1,13 @@
 import { type SVGProps } from "react";
+import type React from "react";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
+
+type LogoProps = {
+  size?: number;
+  style?: React.CSSProperties;
+  className?: string;
+};
 
 const defaultProps = (size: number): SVGProps<SVGSVGElement> => ({
   width: size,
@@ -89,15 +96,32 @@ export const IconUser = ({ size = 22, ...props }: IconProps) => (
   </svg>
 );
 
-export const IconLogo = ({ size = 22, ...props }: IconProps) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    {...props}
+export const IconLogo = ({ size = 22, style, className }: LogoProps) => (
+  <span
+    className={className}
+    style={{
+      display: "inline-flex",
+      width: size,
+      height: size,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#00A86B",
+      borderRadius: 6,
+      overflow: "hidden",
+      padding: 4,
+      ...style,
+    }}
   >
-    <path d="M12 2L2 19h4l6-10 6 10h4L12 2z" />
-    <path d="M7.5 15h9l-1.5-2.5h-6L7.5 15z" opacity="0.4" />
-  </svg>
+    <img
+      src="/img/side-bar-logo.png"
+      alt="Agilis"
+      width={size}
+      height={size}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "contain",
+      }}
+    />
+  </span>
 );

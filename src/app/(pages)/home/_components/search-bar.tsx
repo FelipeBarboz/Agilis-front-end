@@ -15,7 +15,7 @@ export function SearchBar() {
   }
 
   return (
-    <div className="mt-6 w-full max-w-[500px]">
+    <div className="mt-6 w-full max-w-125">
       <form onSubmit={handleSearch}>
         <Input
           type="search"

@@ -35,7 +35,7 @@ const SidebarRoot = forwardRef<HTMLElement, SidebarProps>(
   ({ className = "", children, ...props }, ref) => (
     <aside
       ref={ref}
-      className={`flex h-screen w-[72px] flex-col items-center border-r border-[#E5E7EB] bg-white py-4 ${className}`}
+      className={`flex h-screen w-18 flex-col items-center border-r border-[#E5E7EB] bg-white py-4 ${className}`}
       {...props}
     >
       {children}
@@ -47,7 +47,7 @@ SidebarRoot.displayName = "Sidebar";
 const SidebarLogo = ({ href = "/", children }: SidebarLogoProps) => (
   <Link
     href={href}
-    className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-[#1A1A1A] text-white"
+    className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg] text-white"
   >
     {children}
   </Link>
