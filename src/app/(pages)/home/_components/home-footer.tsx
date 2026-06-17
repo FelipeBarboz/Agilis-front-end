@@ -4,13 +4,13 @@ export function HomeFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="flex items-center justify-between border-t border-[#E5E7EB] bg-white px-6 py-4 text-xs text-[#6B7280]">
+    <footer className="flex items-center justify-between border-t border-border bg-background px-6 py-4 text-xs text-muted-foreground">
       <p>© Copyright {year} – Agilis Services – Todos os direitos reservados</p>
       <nav className="flex gap-6">
-        <Link href="/terms" className="hover:text-[#1A1A1A] hover:underline">
+        <Link href="/terms" className="hover:text-foreground hover:underline">
           Termos de Uso
         </Link>
-        <Link href="/privacy" className="hover:text-[#1A1A1A] hover:underline">
+        <Link href="/privacy" className="hover:text-foreground hover:underline">
           Política de Privacidade
         </Link>
       </nav>

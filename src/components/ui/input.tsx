@@ -8,14 +8,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ leftIcon, className = "", ...props }, ref) => {
     return (
       <div className="relative flex items-center">
+
+        {/* Ícone opcional à esquerda */}
         {leftIcon && (
-          <span className="absolute left-3 text-[#9CA3AF]">{leftIcon}</span>
+          <span className="absolute left-3 text-muted-foreground">
+            {leftIcon}
+          </span>
         )}
+
         <input
           ref={ref}
-          className={`w-full rounded-lg border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#1A1A1A] placeholder-[#9CA3AF] shadow-sm transition-colors focus:border-[#00A86B] focus:ring-2 focus:ring-[#00A86B]/20 focus:outline-none ${leftIcon ? "pl-10" : ""} ${className}`}
+          className={`
+            w-full rounded-lg border border-input bg-background
+            px-4 py-3 text-sm text-foreground
+            placeholder:text-muted-foreground
+            shadow-sm transition-colors
+            focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
+            disabled:cursor-not-allowed disabled:opacity-50
+            ${leftIcon ? "pl-10" : ""}
+            ${className}
+          `}
           {...props}
         />
+
       </div>
     );
   },

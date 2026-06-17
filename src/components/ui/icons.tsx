@@ -1,5 +1,8 @@
 import { type SVGProps } from "react";
 import type React from "react";
+import Image from "next/image";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -8,6 +11,8 @@ type LogoProps = {
   style?: React.CSSProperties;
   className?: string;
 };
+
+// ─── Default SVG props ────────────────────────────────────────────────────────
 
 const defaultProps = (size: number): SVGProps<SVGSVGElement> => ({
   width: size,
@@ -19,6 +24,8 @@ const defaultProps = (size: number): SVGProps<SVGSVGElement> => ({
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 });
+
+// ─── Ícones de navegação (herdam currentColor do pai) ─────────────────────────
 
 export const IconHome = ({ size = 20, ...props }: IconProps) => (
   <svg {...defaultProps(size)} {...props}>
@@ -47,41 +54,6 @@ export const IconHistory = ({ size = 20, ...props }: IconProps) => (
   </svg>
 );
 
-export const IconTech = ({ size = 40, ...props }: IconProps) => (
-  <svg {...defaultProps(size)} {...props} stroke="#00A86B">
-    <rect x="2" y="3" width="20" height="14" rx="2" />
-    <path d="M8 21h8M12 17v4" />
-    <path d="M9 9l2 2 4-4" />
-  </svg>
-);
-
-export const IconElectric = ({ size = 40, ...props }: IconProps) => (
-  <svg {...defaultProps(size)} {...props} stroke="#00A86B">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-  </svg>
-);
-
-export const IconCleaning = ({ size = 40, ...props }: IconProps) => (
-  <svg {...defaultProps(size)} {...props} stroke="#00A86B">
-    <path d="M3 22V12l9-9 9 9v10H3z" />
-    <path d="M9 22V16h6v6" />
-    <path d="M8 9h.01M12 6h.01M16 9h.01" />
-  </svg>
-);
-
-export const IconPlumbing = ({ size = 40, ...props }: IconProps) => (
-  <svg {...defaultProps(size)} {...props} stroke="#00A86B">
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-  </svg>
-);
-
-export const IconPainting = ({ size = 40, ...props }: IconProps) => (
-  <svg {...defaultProps(size)} {...props} stroke="#00A86B">
-    <path d="M19 3H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />
-    <path d="M3 9l9 13 9-13" />
-  </svg>
-);
-
 export const IconSearch = ({ size = 18, ...props }: IconProps) => (
   <svg {...defaultProps(size)} {...props}>
     <circle cx="11" cy="11" r="8" />
@@ -96,32 +68,56 @@ export const IconUser = ({ size = 22, ...props }: IconProps) => (
   </svg>
 );
 
-export const IconLogo = ({ size = 22, style, className }: LogoProps) => (
+// ─── Ícones de categoria (sempre verdes via text-primary no pai) ──────────────
+
+export const IconTech = ({ size = 40, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M8 21h8M12 17v4" />
+    <path d="M9 9l2 2 4-4" />
+  </svg>
+);
+
+export const IconElectric = ({ size = 40, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+
+export const IconCleaning = ({ size = 40, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <path d="M3 22V12l9-9 9 9v10H3z" />
+    <path d="M9 22V16h6v6" />
+    <path d="M8 9h.01M12 6h.01M16 9h.01" />
+  </svg>
+);
+
+export const IconPlumbing = ({ size = 40, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+  </svg>
+);
+
+export const IconPainting = ({ size = 40, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <path d="M19 3H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />
+    <path d="M3 9l9 13 9-13" />
+  </svg>
+);
+
+// ─── Logo ─────────────────────────────────────────────────────────────────────
+
+export const IconLogo = ({ size = 22, className }: LogoProps) => (
   <span
-    className={className}
-    style={{
-      display: "inline-flex",
-      width: size,
-      height: size,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "#00A86B",
-      borderRadius: 6,
-      overflow: "hidden",
-      padding: 4,
-      ...style,
-    }}
+    className={`inline-flex items-center justify-center rounded-md bg-primary overflow-hidden p-1 ${className ?? ""}`}
+    style={{ width: size, height: size }}
   >
-    <img
+    <Image
       src="/img/side-bar-logo.png"
       alt="Agilis"
       width={size}
       height={size}
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "contain",
-      }}
+      className="object-contain"
     />
   </span>
 );

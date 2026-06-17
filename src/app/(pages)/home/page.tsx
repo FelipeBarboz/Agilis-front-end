@@ -6,14 +6,15 @@ import { HomeFooter } from "./_components/home-footer";
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Scrollable content area */}
-      <main className="flex flex-1 flex-col gap-8 overflow-y-auto bg-[#F5F5F5] p-6">
+
+      <main className="flex flex-1 flex-col gap-8 overflow-y-auto bg-muted p-6">
         <HeroSection />
         <PopularServices />
         <CorporateBanner />
       </main>
 
       <HomeFooter />
+
     </div>
   );
 }

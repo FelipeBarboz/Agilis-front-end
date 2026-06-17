@@ -35,7 +35,7 @@ const SidebarRoot = forwardRef<HTMLElement, SidebarProps>(
   ({ className = "", children, ...props }, ref) => (
     <aside
       ref={ref}
-      className={`flex h-screen w-18 flex-col items-center border-r border-[#E5E7EB] bg-white py-4 ${className}`}
+      className={`flex h-screen w-18 flex-col items-center border-r border-border bg-background py-4 ${className}`}
       {...props}
     >
       {children}
@@ -47,7 +47,7 @@ SidebarRoot.displayName = "Sidebar";
 const SidebarLogo = ({ href = "/", children }: SidebarLogoProps) => (
   <Link
     href={href}
-    className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg] text-white"
+    className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground"
   >
     {children}
   </Link>
@@ -58,7 +58,7 @@ const SidebarGroup = forwardRef<HTMLDivElement, SidebarGroupProps>(
   ({ className = "", children, ...props }, ref) => (
     <div
       ref={ref}
-      className={`flex w-full flex-col items-center gap-1 border-t border-[#E5E7EB] pt-3 ${className}`}
+      className={`flex w-full flex-col items-center gap-1 border-t border-border pt-3 ${className}`}
       {...props}
     >
       {children}
@@ -79,8 +79,8 @@ const SidebarNavItem = ({
     aria-label={label}
     className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
       isActive
-        ? "bg-[#00A86B]/10 text-[#00A86B]"
-        : "text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#1A1A1A]"
+        ? "bg-primary/10 text-primary"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground"
     }`}
   >
     {icon}

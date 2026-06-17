@@ -43,7 +43,7 @@ const services = [
 export function PopularServices() {
   return (
     <section>
-      <h2 className="mb-4 text-lg font-bold text-[#1A1A1A]">
+      <h2 className="mb-4 text-lg font-bold text-foreground">
         Serviços Populares
       </h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">

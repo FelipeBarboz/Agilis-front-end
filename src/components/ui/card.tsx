@@ -1,15 +1,14 @@
 import { type HTMLAttributes, forwardRef } from "react";
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {}
-interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
-interface CardBodyProps extends HTMLAttributes<HTMLDivElement> {}
-interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {}
-
+type CardProps    = HTMLAttributes<HTMLDivElement>;
+type CardHeaderProps = HTMLAttributes<HTMLDivElement>;
+type CardBodyProps   = HTMLAttributes<HTMLDivElement>;
+type CardFooterProps = HTMLAttributes<HTMLDivElement>;
 const CardRoot = forwardRef<HTMLDivElement, CardProps>(
   ({ className = "", children, ...props }, ref) => (
     <div
       ref={ref}
-      className={`rounded-xl border border-[#E5E7EB] bg-white ${className}`}
+      className={`rounded-xl border border-border bg-card text-card-foreground ${className}`}
       {...props}
     >
       {children}
@@ -40,7 +39,7 @@ const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className = "", children, ...props }, ref) => (
     <div
       ref={ref}
-      className={`border-t border-[#E5E7EB] px-4 py-3 ${className}`}
+      className={`border-t border-border px-4 py-3 ${className}`}
       {...props}
     >
       {children}
