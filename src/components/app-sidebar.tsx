@@ -17,18 +17,18 @@ import {
 } from "@/components/ui/icons";
 
 const mainNavItems = [
-  { href: "/home", icon: <IconHome />, label: "Início" },
-  { href: "/services", icon: <IconServices />, label: "Serviços" },
-  { href: "/support", icon: <IconSupport />, label: "Suporte" },
-  { href: "/history", icon: <IconHistory />, label: "Histórico" },
+  { href: "/home",    icon: <IconHome />,    label: "Início"    },
+  { href: "/services", icon: <IconServices />, label: "Serviços"  },
+  { href: "/support", icon: <IconSupport />,  label: "Suporte"   },
+  { href: "/history", icon: <IconHistory />,  label: "Histórico" },
 ];
 
 const categoryNavItems = [
-  { href: "/services/tech", icon: <IconTech size={20} />, label: "Tecnologia e TV" },
-  { href: "/services/electric", icon: <IconElectric size={20} />, label: "Elétrica" },
-  { href: "/services/cleaning", icon: <IconCleaning size={20} />, label: "Limpeza" },
-  { href: "/services/plumbing", icon: <IconPlumbing size={20} />, label: "Hidráulica" },
-  { href: "/services/painting", icon: <IconPainting size={20} />, label: "Pintura" },
+  { href: "/services/tech",     icon: <IconTech size={20} />,     label: "Tecnologia e TV" },
+  { href: "/services/electric", icon: <IconElectric size={20} />, label: "Elétrica"        },
+  { href: "/services/cleaning", icon: <IconCleaning size={20} />, label: "Limpeza"         },
+  { href: "/services/plumbing", icon: <IconPlumbing size={20} />, label: "Hidráulica"      },
+  { href: "/services/painting", icon: <IconPainting size={20} />, label: "Pintura"         },
 ];
 
 export function AppSidebar() {
@@ -41,7 +41,7 @@ export function AppSidebar() {
       </Sidebar.Logo>
 
       {/* Main nav */}
-      <div className="flex w-full flex-col items-center gap-1 px-2 pt-2">
+      <div className="flex w-full flex-col gap-1 px-2">
         {mainNavItems.map((item) => (
           <Sidebar.NavItem
             key={item.href}
@@ -67,8 +67,13 @@ export function AppSidebar() {
       </Sidebar.Group>
 
       {/* User profile */}
-      <Sidebar.Footer className="pb-2">
-        <Sidebar.NavItem href="/profile" icon={<IconUser />} label="Perfil" />
+      <Sidebar.Footer className="px-2 pb-2">
+        <Sidebar.NavItem
+          href="/register"
+          icon={<IconUser />}
+          label="Perfil"
+          isActive={pathname === "/profile"}
+        />
       </Sidebar.Footer>
     </Sidebar>
   );

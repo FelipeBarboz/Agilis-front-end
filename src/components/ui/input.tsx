@@ -2,10 +2,11 @@ import { type InputHTMLAttributes, forwardRef } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ leftIcon, className = "", ...props }, ref) => {
+  ({ leftIcon, rightIcon, className = "", ...props }, ref) => {
     return (
       <div className="relative flex items-center">
 
@@ -26,10 +27,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none
             disabled:cursor-not-allowed disabled:opacity-50
             ${leftIcon ? "pl-10" : ""}
+            ${rightIcon ? "pr-10" : ""}
             ${className}
           `}
           {...props}
         />
+
+        {/* Ícone opcional à direita */}
+        {rightIcon && (
+          <span className="absolute right-3 text-muted-foreground">
+            {rightIcon}
+          </span>
+        )}
 
       </div>
     );
