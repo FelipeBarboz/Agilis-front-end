@@ -6,14 +6,20 @@ export const registerSchema = z.object({
     .min(1, "E-mail obrigatório")
     .email("E-mail inválido"),
   phone: z
-    .string()
-    .min(10, "Telefone inválido")
-    .max(11, "Telefone inválido")
-    .regex(/^\d+$/, "Apenas números"),
+  .string()
+  .transform((val) => val.replace(/\D/g, ""))
+  .pipe(
+    z
+      .string()
+      .min(10, "Telefone inválido")
+      .max(11, "Telefone inválido")
+      .regex(/^\d+$/, "Apenas números"),
+  ),
   name: z
     .string()
     .min(2, "Nome deve ter ao menos 2 caracteres")
-    .max(100, "Nome muito longo"),
+    .max(100, "Nome muito longo")
+    .regex(/^[\p{L}\s'-]+$/u, "Nome inválido"),
   password: z
     .string()
     .min(8, "Senha deve ter ao menos 8 caracteres"),

@@ -1,28 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { GoogleButton } from "./google-button";
-import { PhoneInput } from "./phone-input";
-import { TermsCheckbox } from "./terms-checkbox";
-import { registerSchema, type RegisterFormData } from "@/lib/validations/register";
+import { GoogleButton } from "../../register/_components/google-button";
+import { loginSchema, type LoginFormData } from "@/lib/validations/login";
 
-export function RegisterForm() {
+export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<LoginFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    resolver: zodResolver(loginSchema) as Resolver<LoginFormData>,
   });
 
-  async function onSubmit(data: RegisterFormData) {
+  async function onSubmit(data: LoginFormData) {
+    // TODO: integrar com backend
     console.log(data);
   }
 
@@ -41,48 +41,17 @@ export function RegisterForm() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
 
-        {/* E-mail */} 
-        <div className="flex flex-col gap-1"> 
-          <label className="text-xs font-medium text-white">E-mail</label> 
-          <Input 
-            type="email" 
-            autoComplete="email" 
-            className="border-white/20 bg-white text-foreground" 
-            {...register("email")} 
-            /> 
-            {errors.email && ( 
-              <p className="text-xs text-red-200">{errors.email.message}</p> 
-              )} 
-        </div>
-
-        {/* Telefone */}
+        {/* E-mail */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-white">DDD + número</label>
-          <PhoneInput
-            className="bg-white"
-            {...register("phone")}
-          />
-          {errors.phone && (
-            <p className="text-xs text-red-200">{errors.phone.message}</p>
-          )}
-        </div>
-
-        {/* Nome */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-white">Nome</label>
+          <label className="text-xs font-medium text-white">E-mail</label>
           <Input
-            type="text"
-            autoComplete="name"
-            inputMode="text"
+            type="email"
+            autoComplete="email"
             className="border-white/20 bg-white text-foreground"
-            {...register("name")}
-            onInput={(e) => {
-              const input = e.currentTarget;
-              input.value = input.value.replace(/[^\p{L}\s'-]/gu, "");
-            }}
+            {...register("email")}
           />
-          {errors.name && (
-            <p className="text-xs text-red-200">{errors.name.message}</p>
+          {errors.email && (
+            <p className="text-xs text-red-200">{errors.email.message}</p>
           )}
         </div>
 
@@ -91,7 +60,7 @@ export function RegisterForm() {
           <label className="text-xs font-medium text-white">Senha</label>
           <Input
             type={showPassword ? "text" : "password"}
-            autoComplete="new-password"
+            autoComplete="current-password"
             className="border-white/20 bg-white text-foreground"
             rightIcon={
               <button
@@ -110,15 +79,14 @@ export function RegisterForm() {
           )}
         </div>
 
-        {/* Termos */}
-        <div className="flex flex-col gap-1">
-          <TermsCheckbox
-            className="border-white/40"
-            {...register("terms")}
-          />
-          {errors.terms && (
-            <p className="text-xs text-red-200">{errors.terms.message}</p>
-          )}
+        {/* Esqueci a senha */}
+        <div className="flex justify-end">
+            
+            <a href="/auth/forgot-password"
+            className="text-xs text-white/70 hover:text-white hover:underline"
+            >
+            Esqueci minha senha
+          </a>
         </div>
 
         {/* Submit */}
@@ -129,7 +97,7 @@ export function RegisterForm() {
           className="mt-1 w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Aguarde..." : "Continuar"}
+          {isSubmitting ? "Aguarde..." : "Entrar"}
         </Button>
 
       </form>

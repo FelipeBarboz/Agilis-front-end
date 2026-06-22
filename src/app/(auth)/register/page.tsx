@@ -24,8 +24,8 @@ export default function RegisterPage() {
       <div className="py-8 text-center text-sm text-muted-foreground">
         Já possui uma conta?{" "}
         <Link
-          href="/auth/login"
-          className="font-medium text-primary-foreground hover:underline"
+          href="/login"
+          className="font-medium text-primary hover:underline"
         >
           Entrar
         </Link>
