@@ -4,12 +4,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
+import { motion } from "motion/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GoogleButton } from "./google-button";
 import { PhoneInput } from "./phone-input";
 import { TermsCheckbox } from "./terms-checkbox";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/register";
+
+const fieldVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 },
+};
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +25,7 @@ export function RegisterForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     resolver: zodResolver(registerSchema),
   });
 
@@ -30,45 +37,73 @@ export function RegisterForm() {
     <div className="flex flex-col gap-4">
 
       {/* Google */}
-      <GoogleButton />
+      <motion.div
+        variants={fieldVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        <GoogleButton />
+      </motion.div>
 
       {/* Divider */}
-      <div className="flex items-center gap-3">
+      <motion.div
+        className="flex items-center gap-3"
+        variants={fieldVariants}
+        initial="hidden"
+        animate="visible"
+        transition={{ duration: 0.3, delay: 0.25 }}
+      >
         <div className="h-px flex-1 bg-white/30" />
         <span className="text-xs text-white/70">Ou Digite seu e-mail</span>
         <div className="h-px flex-1 bg-white/30" />
-      </div>
+      </motion.div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
 
-        {/* E-mail */} 
-        <div className="flex flex-col gap-1"> 
-          <label className="text-xs font-medium text-white">E-mail</label> 
-          <Input 
-            type="email" 
-            autoComplete="email" 
-            className="border-white/20 bg-white text-foreground" 
-            {...register("email")} 
-            /> 
-            {errors.email && ( 
-              <p className="text-xs text-red-200">{errors.email.message}</p> 
-              )} 
-        </div>
+        {/* E-mail */}
+        <motion.div
+          className="flex flex-col gap-1"
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <label className="text-xs font-medium text-white">E-mail</label>
+          <Input
+            type="email"
+            autoComplete="email"
+            className="border-white/20 bg-white text-foreground"
+            {...register("email")}
+          />
+          {errors.email && (
+            <p className="text-xs text-red-200">{errors.email.message}</p>
+          )}
+        </motion.div>
 
         {/* Telefone */}
-        <div className="flex flex-col gap-1">
+        <motion.div
+          className="flex flex-col gap-1"
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.35 }}
+        >
           <label className="text-xs font-medium text-white">DDD + número</label>
-          <PhoneInput
-            className="bg-white"
-            {...register("phone")}
-          />
+          <PhoneInput className="bg-white" {...register("phone")} />
           {errors.phone && (
             <p className="text-xs text-red-200">{errors.phone.message}</p>
           )}
-        </div>
+        </motion.div>
 
         {/* Nome */}
-        <div className="flex flex-col gap-1">
+        <motion.div
+          className="flex flex-col gap-1"
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.4 }}
+        >
           <label className="text-xs font-medium text-white">Nome</label>
           <Input
             type="text"
@@ -84,10 +119,16 @@ export function RegisterForm() {
           {errors.name && (
             <p className="text-xs text-red-200">{errors.name.message}</p>
           )}
-        </div>
+        </motion.div>
 
         {/* Senha */}
-        <div className="flex flex-col gap-1">
+        <motion.div
+          className="flex flex-col gap-1"
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.45 }}
+        >
           <label className="text-xs font-medium text-white">Senha</label>
           <Input
             type={showPassword ? "text" : "password"}
@@ -108,29 +149,39 @@ export function RegisterForm() {
           {errors.password && (
             <p className="text-xs text-red-200">{errors.password.message}</p>
           )}
-        </div>
+        </motion.div>
 
         {/* Termos */}
-        <div className="flex flex-col gap-1">
-          <TermsCheckbox
-            className="border-white/40"
-            {...register("terms")}
-          />
+        <motion.div
+          className="flex flex-col gap-1"
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.5 }}
+        >
+          <TermsCheckbox className="border-white/40" {...register("terms")} />
           {errors.terms && (
             <p className="text-xs text-red-200">{errors.terms.message}</p>
           )}
-        </div>
+        </motion.div>
 
         {/* Submit */}
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          className="mt-1 w-full"
-          disabled={isSubmitting}
+        <motion.div
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.55 }}
         >
-          {isSubmitting ? "Aguarde..." : "Continuar"}
-        </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            className="mt-1 w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Aguarde..." : "Continuar"}
+          </Button>
+        </motion.div>
 
       </form>
     </div>

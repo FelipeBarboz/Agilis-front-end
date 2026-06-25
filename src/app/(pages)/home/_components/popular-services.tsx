@@ -1,4 +1,7 @@
+"use client";
+
 import { ServiceCard } from "./service-card";
+import { FadeInSection } from "@/components/ui/motion";
 import {
   IconTech,
   IconElectric,
@@ -42,15 +45,19 @@ const services = [
 
 export function PopularServices() {
   return (
-    <section>
-      <h2 className="mb-4 text-lg font-bold text-foreground">
-        Serviços Populares
-      </h2>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        {services.map((service) => (
-          <ServiceCard key={service.href} {...service} />
-        ))}
-      </div>
-    </section>
+    <FadeInSection>
+      <section>
+        <h2 className="mb-4 text-lg font-bold text-foreground">
+          Serviços Populares
+        </h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {services.map((service, index) => (
+            <FadeInSection key={service.href} delay={index * 0.05}>
+              <ServiceCard {...service} />
+            </FadeInSection>
+          ))}
+        </div>
+      </section>
+    </FadeInSection>
   );
 }
