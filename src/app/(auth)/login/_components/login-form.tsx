@@ -7,7 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "motion/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { GoogleButton } from "../../register/_components/google-button";
+import { GoogleButton } from "../../register/user/_components/google-button";
 import { loginSchema, type LoginFormData } from "@/lib/validations/login";
 
 const fieldVariants = {

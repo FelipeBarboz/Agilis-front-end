@@ -69,7 +69,7 @@ export function AppSidebar() {
       {/* User profile */}
       <Sidebar.Footer className="px-2 pb-2">
         <Sidebar.NavItem
-          href="/register"
+          href="/register/user"
           icon={<IconUser />}
           label="Perfil"
           isActive={pathname === "/profile"}
