@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "motion/react";
-import { LoginForm } from "./_components/login-form";
+import { StoreForm } from "./_components/store-form";
 
-export default function LoginPage() {
+export default function StoreRegisterPage() {
   return (
     <>
       {/* Hero */}
@@ -15,7 +14,9 @@ export default function LoginPage() {
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
         <h1 className="text-xl font-bold text-primary-foreground">
-          Bem-vindo de volta
+          Preencha os dados para criar
+          <br />
+          sua conta
         </h1>
       </motion.div>
 
@@ -27,22 +28,9 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 }}
         >
-          <LoginForm />
+          <StoreForm />
         </motion.div>
       </div>
-
-      {/* Footer */}
-      <motion.div
-        className="py-8 text-center text-sm text-muted-foreground"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, ease: "easeOut", delay: 0.3 }}
-      >
-        Não possui uma conta?{" "}
-        <Link href="/register/user" className="font-medium text-primary hover:underline">
-          Cadastre-se
-        </Link>
-      </motion.div>
     </>
   );
 }

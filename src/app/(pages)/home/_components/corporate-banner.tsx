@@ -33,7 +33,7 @@ export function CorporateBanner() {
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
         >
           <Button asChild variant="primary" size="lg">
-            <Link href="/register">Cadastre-se</Link>
+            <Link href="/register/user">Cadastre-se</Link>
           </Button>
         </motion.div>
 
