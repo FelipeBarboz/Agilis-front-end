@@ -11,6 +11,7 @@ import {
   Sparkles,
   Droplets,
   PaintBucket,
+  LayoutGrid,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ export const IconUser       = ({ size = 22, ...props }) => <User       size={siz
 
 // ─── Ícones de categoria ──────────────────────────────────────────────────────
 
+export const IconAll        = ({ size = 40, ...props }) => <LayoutGrid  size={size} {...props} />;
 export const IconTech       = ({ size = 40, ...props }) => <Monitor     size={size} {...props} />;
 export const IconElectric   = ({ size = 40, ...props }) => <Zap         size={size} {...props} />;
 export const IconCleaning   = ({ size = 40, ...props }) => <Sparkles    size={size} {...props} />;
