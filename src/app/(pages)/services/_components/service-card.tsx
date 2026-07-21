@@ -6,7 +6,7 @@ import { Star, Heart, CalendarClock } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { type Service } from "@/lib/mocks/services";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ServiceCardProps {
   service: Service;
@@ -51,7 +51,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
             </button>
           </div>
 
-          <Card.Body className="flex flex-col gap-2 p-3">
+          <CardContent className="flex flex-col gap-2 p-3">
 
             {/* Título + avaliação */}
             <div className="flex items-start justify-between gap-2">
@@ -88,7 +88,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
               {service.availability}
             </div>
 
-          </Card.Body>
+          </CardContent>
         </Card>
       </Link>
     </motion.div>
