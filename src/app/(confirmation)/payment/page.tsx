@@ -1,4 +1,4 @@
-import { AppointmentConfirmationCard } from "./_components/appointment-confirmation-card";
+import { AppointmentConfirmationCard } from "../../(confirmation)/payment/_components/appointment-confirmation-card";
 import { PageTransition } from "@/components/ui/motion";
 
 export default function ConfirmAppointmentPage({
