@@ -28,30 +28,32 @@ export function PreferredNameForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex w-full max-w-sm flex-col gap-3 rounded-2xl bg-primary p-6"
+      className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-primary p-6 shadow-lg"
     >
-      <label
-        htmlFor="preferredName"
-        className="text-left text-xs font-medium text-primary-foreground"
-      >
-        Nome de preferência
-      </label>
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="preferredName"
+          className="text-left text-xs font-medium text-white"
+        >
+          Nome de preferência
+        </label>
 
-      <Input
-        id="preferredName"
-        value={preferredName}
-        onChange={(event) => setPreferredName(event.target.value)}
-        placeholder="Digite seu nome"
-        className="border-none bg-white text-foreground placeholder:text-muted-foreground"
-      />
+        <Input
+          id="preferredName"
+          value={preferredName}
+          onChange={(event) => setPreferredName(event.target.value)}
+          placeholder="Digite seu nome"
+          className="h-10 w-full rounded-md border-none bg-white px-3 text-foreground outline-none placeholder:text-muted-foreground"
+        />
+      </div>
 
       <Button
         type="submit"
         disabled={!preferredName.trim() || isSubmitting}
-        className="w-full rounded-xl bg-black py-6 text-base font-semibold text-white hover:bg-black/90"
-        >
-     Continuar
-    </Button>
+        className="mt-2 h-11 w-full rounded-md bg-black font-medium text-white transition-colors hover:bg-neutral-800"
+      >
+        Continuar
+      </Button>
     </form>
   );
 }
