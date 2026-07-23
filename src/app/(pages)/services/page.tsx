@@ -40,8 +40,8 @@ export default function ServicesPage() {
         category === "todos" || s.category === category;
 
       const matchesPrice =
-        s.price >= appliedFilters.priceRange[0] &&
-        s.price <= appliedFilters.priceRange[1];
+        s.price.inicial >= appliedFilters.priceRange[0] &&
+        s.price.inicial <= appliedFilters.priceRange[1];
 
       const matchesRating =
         appliedFilters.rating === 0 || s.rating >= appliedFilters.rating;

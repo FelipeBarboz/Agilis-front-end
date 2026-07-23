@@ -6,7 +6,7 @@ import { Star, Heart, CalendarClock } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { type Service } from "@/lib/mocks/services";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 interface ServiceCardProps {
   service: Service;
@@ -22,7 +22,10 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
-      <Link href={`/services/${service.id}`} className="group block focus-visible:outline-none">
+      <Link
+        href={`/services/${service.id}?storeId=${service.storeId}`}
+        className="group block focus-visible:outline-none"
+      >
         <Card className="overflow-hidden transition-shadow group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-primary">
 
           {/* Imagem */}
@@ -51,9 +54,8 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
             </button>
           </div>
 
-          <CardContent className="flex flex-col gap-2 p-3">
+          <div className="flex flex-col gap-2 p-3">
 
-            {/* Título + avaliação */}
             <div className="flex items-start justify-between gap-2">
               <h3 className="text-sm font-semibold leading-snug text-foreground">
                 {service.title}
@@ -64,7 +66,6 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
               </div>
             </div>
 
-            {/* Empresa */}
             <div className="flex items-center gap-1.5">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                 {service.company[0]}
@@ -72,23 +73,21 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
               <span className="text-xs text-muted-foreground">{service.company}</span>
             </div>
 
-            {/* Preço */}
             <div>
               <p className="text-xs text-muted-foreground">
                 {service.priceType === "FROM" ? "A partir de" : "Por"}
               </p>
               <p className="text-xl font-bold text-foreground">
-                R$ {service.price}
+                R$ {service.price.inicial}
               </p>
             </div>
 
-            {/* Disponibilidade */}
             <div className="flex items-center gap-1.5 text-xs text-primary">
               <CalendarClock size={12} />
               {service.availability}
             </div>
 
-          </CardContent>
+          </div>
         </Card>
       </Link>
     </motion.div>
