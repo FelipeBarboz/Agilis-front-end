@@ -1,24 +1,44 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "motion/react";
+import EmailValidationCode from "./email-validation-code";
 
 export default function ChangeEmailPage() {
+  const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
+  const confirmEmailRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
     if (email !== confirmEmail) {
-      // TODO: exibir erro de validação
+      if (confirmEmailRef.current) {
+        confirmEmailRef.current.setCustomValidity("Os e-mails informados não coincidem.");
+        confirmEmailRef.current.reportValidity();
+      }
       return;
     }
 
-    // TODO: chamar service/API para atualizar o e-mail
+    // Move para a tela de validação de código
+    setStep(2);
+  }
+
+  if (step === 2) {
+    return (
+      <EmailValidationCode 
+        email={email}
+        onBack={() => setStep(1)}
+        onConfirm={(code) => {
+          console.log("Código confirmado:", code);
+          // TODO: validar código e redirecionar
+        }}
+      />
+    );
   }
 
   return (
@@ -71,7 +91,10 @@ export default function ChangeEmailPage() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  confirmEmailRef.current?.setCustomValidity("");
+                }}
                 className="h-10 w-full rounded-md bg-white px-3 text-foreground outline-none"
               />
             </div>
@@ -82,9 +105,13 @@ export default function ChangeEmailPage() {
               </label>
               <input
                 id="confirmEmail"
+                ref={confirmEmailRef}
                 type="email"
                 value={confirmEmail}
-                onChange={(e) => setConfirmEmail(e.target.value)}
+                onChange={(e) => {
+                  setConfirmEmail(e.target.value);
+                  e.target.setCustomValidity("");
+                }}
                 className="h-10 w-full rounded-md bg-white px-3 text-foreground outline-none"
               />
             </div>
