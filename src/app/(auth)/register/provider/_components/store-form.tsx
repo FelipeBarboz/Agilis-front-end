@@ -24,7 +24,10 @@ function slugify(value: string): string {
     .replace(/-+/g, "-"); // remove hífens duplicados
 }
 
+import { useRouter } from "next/navigation";
+
 export function StoreForm() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -36,6 +39,7 @@ export function StoreForm() {
 
   async function onSubmit(data: StoreFormData) {
     console.log(data);
+    router.push("/provider");
   }
 
   return (
