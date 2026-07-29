@@ -27,19 +27,18 @@ export default function ProviderDashboardPage() {
   }, []);
 
   const StatusButton = ({ isCompleted, href }: { isCompleted: boolean; href: string }) => {
-    if (!mounted) return null; // Avoid hydration mismatch
-    
-    if (isCompleted) {
+    // Antes de montar: exibe "Pendente" como padrão seguro (evita flash de "Alterar")
+    if (!mounted || !isCompleted) {
       return (
-        <Link href={href} className="rounded-lg bg-[#d9d9d9] px-4 py-1.5 text-xs font-bold text-black hover:bg-[#c0c0c0] transition-colors">
-          Alterar
+        <Link href={href} className="text-sm font-bold text-red-500 hover:text-red-600 transition-colors">
+          Pendente
         </Link>
       );
     }
-    
+
     return (
-      <Link href={href} className="text-sm font-bold text-red-500 hover:text-red-600 transition-colors">
-        Pendente
+      <Link href={href} className="rounded-lg bg-[#d9d9d9] px-4 py-1.5 text-xs font-bold text-black hover:bg-[#c0c0c0] transition-colors">
+        Alterar
       </Link>
     );
   };
