@@ -122,13 +122,13 @@ export default function ProviderDashboardPage() {
               </div>
             </Link>
             
-            <button className="flex items-center justify-center gap-3 rounded-xl border p-3 hover:bg-muted/50 transition-colors text-left">
+            <Link href="/provider/scheduling-provider" className="flex items-center justify-center gap-3 rounded-xl border p-3 hover:bg-muted/50 transition-colors text-left">
               <CalendarDays className="size-5 sm:size-6 text-foreground" strokeWidth={1.5} />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">Agenda</span>
                 <span className="text-[10px] sm:text-xs text-muted-foreground">Gerencie seus horários</span>
               </div>
-            </button>
+            </Link>
           </div>
         </div>
 
