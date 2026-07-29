@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { PageTransition } from "@/components/ui/motion";
-import { ChatHeader } from "@/app/(pages)/chats/_components/chat-header/chat-header";
-import { ChatFilterBar } from "@/app/(pages)/chats/_components/chat-filter-bar/chat-filter-bar";
-import { ChatList } from "@/app/(pages)/chats/_components/chat-list/chat-list";
-import type { ChatConversation } from "@/app/(pages)/chats/_components/chat-list-item/chat-list-item";
+import { ChatHeader } from "./_components/chat-header/chat-header";
+import { ChatFilterBar } from "./_components/chat-filter-bar/chat-filter-bar";
+import { ChatList } from "./_components/chat-list/chat-list";
+import type { ChatConversation } from "./_components/chat-list-item/chat-list-item";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 // Substitua por dados reais vindos da API
@@ -13,19 +13,19 @@ import type { ChatConversation } from "@/app/(pages)/chats/_components/chat-list
 const MOCK_CONVERSATIONS: ChatConversation[] = [
   {
     id: "1",
-    providerName: "Maria Souza",
+    providerName: "Carlos Elétrica",
     serviceName: "Instalação de tomadas",
-    lastMessage: "Ótimo! Te aguardo amanhã então.",
-    lastMessageAt: "11:05",
-    unreadCount: 3,
+    lastMessage: "Ok! Passarei amanhã às 14h para avaliar.",
+    lastMessageAt: "10:32",
+    unreadCount: 2,
     isFinished: false,
     isRead: false,
   },
   {
     id: "2",
-    providerName: "Pedro Alves",
+    providerName: "Ana Limpeza",
     serviceName: "Limpeza residencial",
-    lastMessage: "Serviço concluído, muito obrigado!",
+    lastMessage: "Obrigada pela avaliação! 😊",
     lastMessageAt: "Ontem",
     unreadCount: 0,
     isFinished: true,
@@ -33,10 +33,10 @@ const MOCK_CONVERSATIONS: ChatConversation[] = [
   },
   {
     id: "3",
-    providerName: "Lucia Ferreira",
+    providerName: "João Hidráulica",
     serviceName: "Reparo de encanamento",
-    lastMessage: "Qual o melhor horário para você?",
-    lastMessageAt: "Ter",
+    lastMessage: "Pode me mandar o endereço completo?",
+    lastMessageAt: "Seg",
     unreadCount: 1,
     isFinished: false,
     isRead: false,
@@ -47,7 +47,7 @@ const MOCK_CONVERSATIONS: ChatConversation[] = [
 
 type FilterType = "todos" | "nao_lidos" | "finalizados";
 
-export default function ChatCorporativePage() {
+export default function ChatsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -57,11 +57,9 @@ export default function ChatCorporativePage() {
       <ChatHeader />
 
       <PageTransition className="flex flex-1 flex-col overflow-hidden">
-        {/* Page title — texto do provedor */}
+        {/* Page title */}
         <div className="bg-background px-4 pt-4 pb-2">
-          <h1 className="text-xl font-bold text-foreground">
-            Converse com seus clientes
-          </h1>
+          <h1 className="text-xl font-bold text-foreground">Seus Chats</h1>
         </div>
 
         {/* Filter + search bar */}
@@ -77,7 +75,6 @@ export default function ChatCorporativePage() {
             conversations={MOCK_CONVERSATIONS}
             filter={activeFilter}
             search={searchQuery}
-            emptyDescription={"Quando um cliente falar com você\na conversa aparecerá aqui"}
           />
         </div>
       </PageTransition>
