@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export function HomeFooter() {
+export function HomeFooterDesktop() {
   const year = new Date().getFullYear();
 
   return (

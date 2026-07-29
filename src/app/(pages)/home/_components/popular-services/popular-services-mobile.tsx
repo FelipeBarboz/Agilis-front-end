@@ -1,6 +1,6 @@
 "use client";
 
-import { ServiceCard } from "./service-card";
+import { ServiceCard } from "../service-card";
 import { FadeInSection } from "@/components/ui/motion";
 import {
   IconTech,
@@ -18,7 +18,7 @@ const services = [
   { href: "/services?category=pintura",    icon: <IconPainting />, title: "Pintura",           description: "Transforme seus ambientes com acabamento profissional" },
 ] as const;
 
-export function PopularServices() {
+export function PopularServicesMobile() {
   return (
     <FadeInSection>
       <section>

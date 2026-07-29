@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { FadeInSection } from "@/components/ui/motion";
 
-export function CorporateBanner() {
+export function CorporateBannerMobile() {
   return (
     <FadeInSection>
       <div className="relative flex min-h-32.5 items-center overflow-hidden rounded-2xl bg-primary px-10">

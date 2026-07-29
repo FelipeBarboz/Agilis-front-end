@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { SearchBar } from "./search-bar";
+import { SearchBar } from "../search-bar";
 
-export function HeroSection() {
+export function HeroSectionDesktop() {
   return (
     <div className="relative flex min-h-65 items-center justify-between overflow-hidden rounded-2xl bg-secondary px-12 py-10">
 

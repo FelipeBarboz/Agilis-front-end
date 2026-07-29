@@ -1,7 +1,7 @@
-import { HeroSection } from "./_components/hero-section";
-import { PopularServices } from "./_components/popular-services";
-import { CorporateBanner } from "./_components/corporate-banner";
-import { HomeFooter } from "./_components/home-footer";
+import { HeroSection } from "./_components/hero-section/hero-section";
+import { PopularServices } from "./_components/popular-services/popular-services";
+import { CorporateBanner } from "./_components/corporate-banner/corporate-banner";
+import { HomeFooter } from "./_components/home-footer/home-footer";
 import { PageTransition } from "@/components/ui/motion";
 
 export default function HomePage() {
