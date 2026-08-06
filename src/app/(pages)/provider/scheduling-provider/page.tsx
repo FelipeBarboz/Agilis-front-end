@@ -103,7 +103,7 @@ export default function SchedulingProviderPage() {
     .sort((a, b) => a.time.localeCompare(b.time));
 
   const pending = dayAppointments.filter((a) => a.status === "pending").length;
-  const cancelled = dayAppointments.filter((a) => a.status === "cancelled").length;
+  const confirmed = dayAppointments.filter((a) => a.status === "confirmed").length;
 
   function handleConfirm(id: string) {
     setAppointments((prev) =>
@@ -112,9 +112,7 @@ export default function SchedulingProviderPage() {
   }
 
   function handleCancel(id: string) {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a))
-    );
+    setAppointments((prev) => prev.filter((a) => a.id !== id));
   }
 
   return (
@@ -145,7 +143,7 @@ export default function SchedulingProviderPage() {
               <SchedulingStats
                 total={dayAppointments.length}
                 pending={pending}
-                cancelled={cancelled}
+                confirmed={confirmed}
               />
             )}
 

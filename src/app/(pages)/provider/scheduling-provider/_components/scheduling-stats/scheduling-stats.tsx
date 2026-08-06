@@ -1,12 +1,12 @@
-import { CalendarCheck2, Hourglass, XCircle } from "lucide-react";
+import { CalendarCheck2, Hourglass, CheckCircle2 } from "lucide-react";
 
 interface SchedulingStatsProps {
   total: number;
   pending: number;
-  cancelled: number;
+  confirmed: number;
 }
 
-export function SchedulingStats({ total, pending, cancelled }: SchedulingStatsProps) {
+export function SchedulingStats({ total, pending, confirmed }: SchedulingStatsProps) {
   return (
     <div className="grid grid-cols-3 gap-3">
       <div className="flex flex-col items-center gap-1 rounded-2xl border bg-white p-3 shadow-sm text-center">
@@ -20,9 +20,9 @@ export function SchedulingStats({ total, pending, cancelled }: SchedulingStatsPr
         <span className="text-[10px] text-muted-foreground font-medium">Pendentes</span>
       </div>
       <div className="flex flex-col items-center gap-1 rounded-2xl border bg-white p-3 shadow-sm text-center">
-        <XCircle className="size-5 text-red-400" strokeWidth={1.5} />
-        <span className="text-lg font-bold text-foreground leading-none">{cancelled}</span>
-        <span className="text-[10px] text-muted-foreground font-medium">Cancelados</span>
+        <CheckCircle2 className="size-5 text-green-500" strokeWidth={1.5} />
+        <span className="text-lg font-bold text-foreground leading-none">{confirmed}</span>
+        <span className="text-[10px] text-muted-foreground font-medium">Confirmados</span>
       </div>
     </div>
   );
