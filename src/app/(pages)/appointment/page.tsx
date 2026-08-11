@@ -29,7 +29,7 @@ const mockAppointments: Appointment[] = [
   },
 ];
 
-export default function HistoryPage() {
+export default function AppointmentPage() {
   const appointments = mockAppointments;
 
   return (
