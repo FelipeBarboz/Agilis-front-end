@@ -12,7 +12,7 @@ export function ServicesList() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">Serviços da Loja</h2>
-        <Button className="gap-2 rounded-xl bg-brand-dark text-white hover:bg-brand-dark-2">
+        <Button className="gap-2 rounded-xl bg-brand-green-dark text-white hover:bg-brand-green">
           <Plus className="size-4" />
           <span className="hidden sm:inline">Novo Serviço</span>
         </Button>
