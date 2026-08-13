@@ -1,11 +1,8 @@
 import { Clock, User } from "lucide-react";
+import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
 
 export function AppointmentsList() {
-  const appointments = [
-    { id: 1, client: "Jonathan", time: "14:00", service: "Limpeza de Piscina", date: "13 de Agosto" },
-    { id: 2, client: "Maria Silva", time: "15:30", service: "Manutenção de Filtro", date: "13 de Agosto" },
-    { id: 3, client: "Carlos Eduardo", time: "17:00", service: "Troca de Areia", date: "13 de Agosto" },
-  ];
+  const appointments = mockProfileAppointments;
 
   return (
     <div className="flex flex-col gap-4">

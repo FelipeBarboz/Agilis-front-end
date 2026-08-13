@@ -1,11 +1,12 @@
 import { Plus, Scissors, Droplet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { mockProfileServices } from "@/lib/mocks/profile-services";
 
 export function ServicesList() {
-  const services = [
-    { id: 1, name: "Limpeza Completa", price: "R$ 150,00", duration: "2h", icon: Droplet },
-    { id: 2, name: "Manutenção", price: "R$ 80,00", duration: "1h", icon: Scissors },
-  ];
+  const services = mockProfileServices.map((svc) => ({
+    ...svc,
+    icon: svc.id === 1 ? Droplet : Scissors,
+  }));
 
   return (
     <div className="flex flex-col gap-4">
