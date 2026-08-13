@@ -69,7 +69,7 @@ export default function ProviderDashboardPage() {
       <main className="flex flex-col px-4 py-8 sm:px-6 lg:px-8 mx-auto w-full max-w-3xl space-y-6">
         
         <div>
-          <h1 className="text-2xl font-bold md:text-3xl text-foreground">Minha loja</h1>
+          <h1 className="text-2xl font-bold md:text-3xl text-foreground">Meu Perfil</h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
             Gerencie e personalize sua loja
           </p>
