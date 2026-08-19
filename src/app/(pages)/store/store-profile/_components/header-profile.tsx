@@ -1,4 +1,5 @@
-import { Settings, Users } from "lucide-react";
+import Link from "next/link";
+import { Settings, Users, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function HeaderProfile() {
@@ -17,16 +18,27 @@ export function HeaderProfile() {
         </div>
         
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-2">
-          <Button variant="outline" className="gap-2 rounded-xl border-gray-300">
-            <Users className="size-4" />
-            Funcionários
+          <Button asChild variant="outline" className="gap-2 rounded-xl border-gray-300 hover:bg-muted">
+            <Link href="/store/employees">
+              <Users className="size-4" />
+              Funcionários
+            </Link>
           </Button>
-          <Button variant="outline" className="gap-2 rounded-xl border-gray-300">
-            <Settings className="size-4" />
-            Configurações
+          <Button asChild variant="outline" className="gap-2 rounded-xl border-gray-300 hover:bg-muted">
+            <Link href="/store/store-positions">
+              <Briefcase className="size-4" />
+              Cargos
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2 rounded-xl border-gray-300 hover:bg-muted">
+            <Link href="/store/store-settings">
+              <Settings className="size-4" />
+              Configurações
+            </Link>
           </Button>
         </div>
       </div>
     </div>
   );
 }
+

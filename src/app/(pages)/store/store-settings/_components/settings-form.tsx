@@ -1,144 +1,294 @@
 "use client";
 
-import { UploadCloud, Check } from "lucide-react";
+import { useState } from "react";
+import { UploadCloud, Check, Sparkles, Globe, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function SettingsForm() {
+function InstagramIcon({ className = "size-4" }: { className?: string }) {
   return (
-    <form className="flex flex-col divide-y divide-border w-full" onSubmit={(e) => e.preventDefault()}>
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect width="4" height="12" x="2" y="9" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
+export function SettingsForm() {
+  const [reportsChecked, setReportsChecked] = useState(true);
+  const [emailsChecked, setEmailsChecked] = useState(true);
+  const [savedFeedback, setSavedFeedback] = useState(false);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavedFeedback(true);
+    setTimeout(() => {
+      setSavedFeedback(false);
+    }, 3000);
+  };
+
+  return (
+    <form className="flex flex-col divide-y divide-border w-full" onSubmit={handleSave}>
       
-      {/* Public profile */}
-      <div className="flex flex-col sm:flex-row gap-6 py-6 first:pt-0">
+      {/* Top Action Bar */}
+      <div className="flex items-center justify-between pb-6">
+        <div className="flex items-center gap-2">
+          {savedFeedback && (
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 text-xs font-medium animate-fade-in">
+              <Check className="size-3.5 text-emerald-600" />
+              <span>Alterações salvas com sucesso!</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="rounded-xl px-4 py-2 h-auto text-sm font-medium border-border hover:bg-muted text-foreground transition-colors"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            className="rounded-xl px-5 py-2 h-auto text-sm font-medium bg-brand-dark text-white hover:bg-brand-dark-2 transition-colors shadow-xs"
+          >
+            Salvar alterações
+          </Button>
+        </div>
+      </div>
+
+      {/* Perfil Público */}
+      <div className="flex flex-col sm:flex-row gap-6 py-6">
         <div className="sm:w-1/3">
-          <h3 className="text-sm font-bold text-foreground">Public profile</h3>
-          <p className="text-sm text-muted-foreground mt-1">This will be displayed on your profile.</p>
+          <h3 className="text-sm font-bold text-foreground">Perfil público</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Estas informações ficarão visíveis para os clientes no aplicativo e catálogo do Agilis.
+          </p>
         </div>
         <div className="sm:w-2/3 flex flex-col gap-4 max-w-2xl">
-          <input
-            type="text"
-            placeholder="Sisyphus Ventures"
-            defaultValue="Sisyphus Ventures"
-            className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-          <div className="flex rounded-lg shadow-sm">
-            <span className="inline-flex items-center rounded-l-lg border border-r-0 border-input bg-muted px-4 text-sm text-muted-foreground">
-              untitledui.com/
-            </span>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Nome comercial da loja</label>
             <input
               type="text"
-              defaultValue="sisyphus"
-              className="w-full rounded-r-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder="Ex: Carlão Piscinas & Serviços"
+              defaultValue="Carlão Piscinas"
+              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
+          </div>
+          
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-muted-foreground">Link personalizado da loja</label>
+            <div className="flex rounded-xl shadow-xs overflow-hidden border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+              <span className="inline-flex items-center bg-muted/80 px-4 text-sm font-medium text-muted-foreground border-r border-input select-none">
+                agilis.com.br/loja/
+              </span>
+              <input
+                type="text"
+                defaultValue="carlao-piscinas"
+                placeholder="nome-da-sua-loja"
+                className="w-full bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Company logo */}
+      {/* Logotipo da Empresa */}
       <div className="flex flex-col sm:flex-row gap-6 py-6">
         <div className="sm:w-1/3">
-          <h3 className="text-sm font-bold text-foreground">Company logo</h3>
-          <p className="text-sm text-muted-foreground mt-1">Update your company logo and then choose where you want it to display.</p>
+          <h3 className="text-sm font-bold text-foreground">Logotipo da loja</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Envie a imagem da sua marca. Ela será usada no cabeçalho do perfil, nas buscas e nos orçamentos.
+          </p>
         </div>
         <div className="sm:w-2/3 flex flex-col sm:flex-row items-center sm:items-start gap-6 max-w-2xl">
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-white">
-            {/* mock logo text or icon */}
-            <span className="text-2xl font-light">S</span>
-            <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-black">
-              <Check className="size-3 text-white" strokeWidth={3} />
+          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-brand-dark text-white shadow-xs border border-border">
+            <span className="text-2xl font-bold tracking-tight">CP</span>
+            <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-primary text-white shadow-xs" title="Verificado Agilis">
+              <Check className="size-3.5" strokeWidth={3} />
             </div>
           </div>
           
-          <div className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 py-6 px-4 hover:bg-gray-100 transition-colors cursor-pointer">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm border border-gray-100">
-              <UploadCloud className="size-5 text-gray-600" />
+          <div className="group flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/60 py-6 px-4 transition-all cursor-pointer">
+            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xs border border-border text-primary group-hover:scale-105 transition-transform">
+              <UploadCloud className="size-5" />
             </div>
-            <p className="text-sm font-semibold text-primary">
-              <span className="text-black">Click to upload</span> or drag and drop
+            <p className="text-sm font-medium text-foreground">
+              <span className="font-semibold text-primary group-hover:underline">Clique para enviar</span> ou arraste o arquivo aqui
             </p>
-            <p className="text-xs text-muted-foreground mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              SVG, PNG, JPG ou WebP (máx. 800x400px - até 5MB)
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Branding */}
+      {/* Identidade Visual & Aplicação */}
       <div className="flex flex-col sm:flex-row gap-6 py-6">
         <div className="sm:w-1/3">
-          <h3 className="text-sm font-bold text-foreground">Branding</h3>
-          <p className="text-sm text-muted-foreground mt-1">Add your logo to reports and emails.</p>
-          <a href="#" className="mt-2 text-sm font-bold text-black hover:underline inline-block">View examples</a>
+          <h3 className="text-sm font-bold text-foreground">Personalização de marca</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Defina onde seu logotipo e dados da loja serão aplicados automaticamente nos documentos.
+          </p>
+          <a href="#" className="mt-2 text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1">
+            <Sparkles className="size-3.5" />
+            Ver exemplos práticos
+          </a>
         </div>
         <div className="sm:w-2/3 flex flex-col gap-4 max-w-2xl">
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <div className="mt-0.5 flex h-4 w-4 items-center justify-center rounded border border-input bg-black text-white group-hover:bg-gray-800 transition-colors">
-              <Check className="size-3" />
+          <div 
+            onClick={() => setReportsChecked(!reportsChecked)}
+            className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border bg-white hover:bg-muted/30 cursor-pointer transition-colors"
+          >
+            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
+              reportsChecked 
+                ? "bg-primary border-primary text-white shadow-xs" 
+                : "border-input bg-background"
+            }`}>
+              {reportsChecked && <Check className="size-3.5" strokeWidth={3} />}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground">Reports</span>
-              <span className="text-sm text-muted-foreground">Include my logo in summary reports.</span>
+              <span className="text-sm font-bold text-foreground">Relatórios e Comprovantes</span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                Exibir o logotipo da sua loja nos comprovantes em PDF e relatórios de execução de serviço.
+              </span>
             </div>
-          </label>
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <div className="mt-0.5 flex h-4 w-4 items-center justify-center rounded border border-input bg-black text-white group-hover:bg-gray-800 transition-colors">
-              <Check className="size-3" />
+          </div>
+
+          <div 
+            onClick={() => setEmailsChecked(!emailsChecked)}
+            className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border bg-white hover:bg-muted/30 cursor-pointer transition-colors"
+          >
+            <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
+              emailsChecked 
+                ? "bg-primary border-primary text-white shadow-xs" 
+                : "border-input bg-background"
+            }`}>
+              {emailsChecked && <Check className="size-3.5" strokeWidth={3} />}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground">Emails</span>
-              <span className="text-sm text-muted-foreground">Include my logo in customer emails.</span>
+              <span className="text-sm font-bold text-foreground">E-mails e Notificações</span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                Incluir sua marca nos e-mails de confirmação e lembretes de agendamento enviados aos clientes.
+              </span>
             </div>
-          </label>
+          </div>
         </div>
       </div>
 
-      {/* Social profiles */}
+      {/* Redes Sociais & Contatos */}
       <div className="flex flex-col sm:flex-row gap-6 py-6">
         <div className="sm:w-1/3">
-          <h3 className="text-sm font-bold text-foreground">Social profiles</h3>
-          <p className="text-sm text-muted-foreground mt-1">Add your social profiles.</p>
+          <h3 className="text-sm font-bold text-foreground">Canais e redes sociais</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Conecte suas redes para aumentar o engajamento e a credibilidade com seus clientes.
+          </p>
         </div>
-        <div className="sm:w-2/3 flex flex-col gap-4 max-w-2xl">
-          <div className="flex rounded-lg shadow-sm">
-            <span className="inline-flex items-center rounded-l-lg border border-r-0 border-input bg-muted px-4 text-sm text-muted-foreground">
-              twitter.com/
+        <div className="sm:w-2/3 flex flex-col gap-3.5 max-w-2xl">
+          {/* Instagram */}
+          <div className="flex rounded-xl shadow-xs overflow-hidden border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <span className="inline-flex items-center gap-1.5 bg-muted/80 px-3.5 text-sm font-medium text-muted-foreground border-r border-input select-none min-w-[150px]">
+              <InstagramIcon className="size-4 text-pink-600" />
+              instagram.com/
             </span>
             <input
               type="text"
-              defaultValue="sisyphusvc"
-              className="w-full rounded-r-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              defaultValue="carlaopiscinas"
+              placeholder="seu_usuario"
+              className="w-full bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none"
             />
           </div>
-          <div className="flex rounded-lg shadow-sm">
-            <span className="inline-flex items-center rounded-l-lg border border-r-0 border-input bg-muted px-4 text-sm text-muted-foreground">
+
+          {/* WhatsApp */}
+          <div className="flex rounded-xl shadow-xs overflow-hidden border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <span className="inline-flex items-center gap-1.5 bg-muted/80 px-3.5 text-sm font-medium text-muted-foreground border-r border-input select-none min-w-[150px]">
+              <Phone className="size-4 text-emerald-600" />
+              wa.me/55
+            </span>
+            <input
+              type="text"
+              defaultValue="11999998888"
+              placeholder="11999998888"
+              className="w-full bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none"
+            />
+          </div>
+
+          {/* Facebook */}
+          <div className="flex rounded-xl shadow-xs overflow-hidden border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <span className="inline-flex items-center gap-1.5 bg-muted/80 px-3.5 text-sm font-medium text-muted-foreground border-r border-input select-none min-w-[150px]">
+              <FacebookIcon className="size-4 text-blue-600" />
               facebook.com/
             </span>
             <input
               type="text"
-              defaultValue="sisyphusvc"
-              className="w-full rounded-r-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              defaultValue="carlaopiscinasoficial"
+              placeholder="sua_pagina"
+              className="w-full bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none"
             />
           </div>
-          <div className="flex rounded-lg shadow-sm">
-            <span className="inline-flex items-center rounded-l-lg border border-r-0 border-input bg-muted px-4 text-sm text-muted-foreground">
-              linkedin.com/company/
+
+          {/* LinkedIn / Site */}
+          <div className="flex rounded-xl shadow-xs overflow-hidden border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <span className="inline-flex items-center gap-1.5 bg-muted/80 px-3.5 text-sm font-medium text-muted-foreground border-r border-input select-none min-w-[150px]">
+              <LinkedinIcon className="size-4 text-sky-700" />
+              linkedin.com/in/
             </span>
             <input
               type="text"
-              defaultValue="sisyphusvc"
-              className="w-full rounded-r-lg border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              defaultValue="carlaopiscinas"
+              placeholder="perfil"
+              className="w-full bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none"
             />
           </div>
         </div>
       </div>
       
       {/* Footer Actions */}
-      <div className="flex items-center justify-end gap-3 pt-6 last:pb-0">
-        <Button variant="outline" className="px-4 py-2 h-auto text-sm font-bold text-black border-gray-300">
-          Cancel
-        </Button>
-        <Button className="px-4 py-2 h-auto text-sm font-bold bg-black text-white hover:bg-gray-800">
-          Save changes
-        </Button>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 last:pb-0">
+        <div>
+          {savedFeedback && (
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 text-xs font-medium animate-fade-in">
+              <Check className="size-3.5 text-emerald-600" />
+              <span>Alterações salvas com sucesso!</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="rounded-xl px-4 py-2 h-auto text-sm font-medium border-border hover:bg-muted text-foreground transition-colors"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            className="rounded-xl px-6 py-2.5 h-auto text-sm font-semibold bg-brand-dark text-white hover:bg-brand-dark-2 transition-colors shadow-xs"
+          >
+            Salvar alterações
+          </Button>
+        </div>
       </div>
 
     </form>
   );
 }
+

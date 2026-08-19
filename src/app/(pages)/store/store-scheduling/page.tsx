@@ -4,7 +4,7 @@ import { SchedulingList } from "./_components/scheduling-list";
 
 export default function StoreSchedulingPage() {
   return (
-    <div className="flex min-h-full flex-col bg-muted/30 pb-20">
+    <div className="flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 mx-auto w-full max-w-4xl space-y-6">
         
         {/* Header */}
@@ -24,3 +24,4 @@ export default function StoreSchedulingPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import type { PermissionId } from "@/app/(pages)/store/employees/_components/manage-employee-modal";
+import type { PermissionId } from "@/lib/mocks/positions";
 
 export interface Employee {
   id: string;
