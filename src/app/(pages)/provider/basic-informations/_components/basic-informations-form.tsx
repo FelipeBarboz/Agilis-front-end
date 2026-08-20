@@ -9,8 +9,8 @@ export function BasicInformationsForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("form_basicInfos", "true");
-    router.push("/provider");
+    sessionStorage.setItem("form_basicInfos", "true");
+    router.push("/provider/create-store");
   };
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">

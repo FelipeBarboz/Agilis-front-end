@@ -10,8 +10,8 @@ export function EnterpriseInfosForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("form_enterpriseInfos", "true");
-    router.push("/provider");
+    sessionStorage.setItem("form_enterpriseInfos", "true");
+    router.push("/provider/create-store");
   };
   const [cnpj, setCnpj] = useState("");
 
@@ -34,7 +34,7 @@ export function EnterpriseInfosForm() {
         </label>
         <Input
           id="name"
-          defaultValue="Carlão Piscinas"
+          placeholder="Ex: Carlão Piscinas"
           className="border-0 bg-white px-4 py-3 text-foreground shadow-sm focus:ring-4 focus:ring-white/30 md:py-4"
         />
       </div>
@@ -50,7 +50,7 @@ export function EnterpriseInfosForm() {
           </span>
           <input
             id="url"
-            defaultValue="carlao-piscinas"
+            placeholder="carlao-piscinas"
             className="min-w-0 flex-1 bg-white px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-4 focus:ring-primary/20 md:py-4 md:text-base"
           />
         </div>

@@ -9,8 +9,8 @@ export function StoreDescriptionForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("form_storeDescription", "true");
-    router.push("/provider");
+    sessionStorage.setItem("form_storeDescription", "true");
+    router.push("/provider/create-store");
   };
   const [description, setDescription] = useState("");
   const maxLength = 500;

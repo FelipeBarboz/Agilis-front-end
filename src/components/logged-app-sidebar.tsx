@@ -26,7 +26,7 @@ const mainNavItems = [
   { href: "/support",   icon: <IconSupport />,   label: "Suporte"   },
   { href: "/history",   icon: <IconHistory />,   label: "Histórico" },
   { href: "/favorites", icon: <IconFavorites />, label: "Favoritos" },
-  { href: "/stores",    icon: <IconStore />,     label: "Sua Loja"  },
+  { href: "/store",     icon: <IconStore />,     label: "Sua Loja"  },
 ];
 
 const categoryNavItems = [

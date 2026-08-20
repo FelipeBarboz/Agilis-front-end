@@ -9,8 +9,8 @@ export function EnterprisePhotosForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("form_enterprisePhotos", "true");
-    router.push("/provider");
+    sessionStorage.setItem("form_enterprisePhotos", "true");
+    router.push("/provider/create-store");
   };
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">

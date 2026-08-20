@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPinned, Store, Users, ChevronDown, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,11 +12,11 @@ export function AttendanceTypeForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("form_attendanceArea", "true");
-    router.push("/provider");
+    sessionStorage.setItem("form_attendanceArea", "true");
+    router.push("/provider/create-store");
   };
   const [selectedType, setSelectedType] = useState<AttendanceType>("CLIENT_LOCATION");
-  const [cities, setCities] = useState<string[]>(["Guarulhos"]);
+  const [cities, setCities] = useState<string[]>([]);
 
   const handleRemoveCity = (cityToRemove: string) => {
     setCities(cities.filter(city => city !== cityToRemove));
@@ -108,7 +107,7 @@ export function AttendanceTypeForm() {
           <textarea
             id="address"
             rows={2}
-            defaultValue="R. Cristóbal Cláudio Elilo, 88 - Parque Cecap, Guarulhos"
+            placeholder="Ex: R. Cristóbal Cláudio Elilo, 88 - Parque Cecap, Guarulhos"
             className="w-full resize-none rounded-xl border-0 bg-white px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30 md:py-4 md:text-base"
           />
         </div>

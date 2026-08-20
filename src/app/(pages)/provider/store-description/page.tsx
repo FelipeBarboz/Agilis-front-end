@@ -11,7 +11,7 @@ export default function StoreDescriptionPage() {
         <div className="flex h-16 w-full items-center justify-between px-6 lg:px-12">
           <div className="flex items-center gap-4">
             <Link
-              href="/provider"
+              href="/provider/create-store"
               className="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-white/20"
             >
               <ArrowLeft className="size-5" />
