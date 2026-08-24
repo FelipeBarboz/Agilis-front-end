@@ -18,7 +18,7 @@ export default function ChatCorporativePage() {
   return (
     <div className="flex h-full flex-col bg-muted">
       {/* Top bar — verde Agilis */}
-      <ChatHeader />
+      <ChatHeader backHref="/provider" />
 
       <PageTransition className="flex flex-1 flex-col overflow-hidden">
         {/* Page title — texto do provedor */}

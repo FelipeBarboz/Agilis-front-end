@@ -27,7 +27,7 @@ export function PopularServicesDesktop() {
         </h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {services.map((service, index) => (
-            <FadeInSection key={service.href} delay={index * 0.05}>
+            <FadeInSection key={service.href} delay={index * 0.05} className="h-full">
               <ServiceCard {...service} />
             </FadeInSection>
           ))}

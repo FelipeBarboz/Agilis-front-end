@@ -47,18 +47,17 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col overflow-y-auto bg-muted">
+    <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted">
 
-      {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-background px-6 py-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft size={18} />
-        </button>
-      </div>
+      {/* Seta de voltar flutuante — padrão auth */}
+      <button
+        type="button"
+        onClick={() => router.back()}
+        aria-label="Voltar"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white"
+      >
+        <ArrowLeft size={20} />
+      </button>
 
       {/* Conteúdo */}
       <div className="mx-auto w-full max-w-4xl p-6">

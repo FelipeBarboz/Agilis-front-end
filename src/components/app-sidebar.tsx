@@ -5,7 +5,6 @@ import { Sidebar } from "@/components/ui/sidebar";
 import {
   IconHome,
   IconHistory,
-  IconLogo,
   IconServices,
   IconSupport,
   IconUser,
@@ -38,9 +37,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <Sidebar.Logo href="/home">
-        <IconLogo size={24} />
-      </Sidebar.Logo>
+      <Sidebar.Logo href="/home" />
 
       {/* Main nav */}
       <div className="flex w-full flex-col gap-1 px-2">

@@ -1,4 +1,5 @@
-import { Clock, User } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Clock, User } from "lucide-react";
 import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
 
 export function AppointmentsList() {
@@ -6,7 +7,16 @@ export function AppointmentsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-bold text-foreground">Agendamentos de Hoje</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-foreground">Agendamentos</h2>
+        <Link
+          href="/store/store-scheduling"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group"
+        >
+          <span>Ver todos</span>
+          <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      </div>
       <div className="flex flex-col gap-3">
         {appointments.map((appt) => (
           <div key={appt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border bg-white shadow-sm hover:border-primary/50 transition-colors">

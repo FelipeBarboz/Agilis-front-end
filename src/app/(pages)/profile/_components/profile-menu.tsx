@@ -6,7 +6,7 @@ const menuItems = [
     icon: Bell,
     label: "Notificações",
     description: "Gerencie suas preferências de notificação",
-    href: "/profile/notifications",
+    href: "/notifications",
     danger: false,
   },
   {
@@ -20,7 +20,7 @@ const menuItems = [
     icon: LogOut,
     label: "Sair",
     description: "Encerrar sessão atual",
-    href: "/auth/login",
+    href: "/login",
     danger: true,
   },
 ] as const;
