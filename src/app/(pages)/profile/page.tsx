@@ -19,12 +19,10 @@ export default function ProfilePage() {
         onClose={() => setIsAvatarModalOpen(false)}
       />
 
-      <div className="bg-primary px-6 pb-20 pt-8" />
-
-      {/* Conteúdo sobreposto */}
+      {/* Conteúdo */}
       <div className="mx-auto w-full max-w-lg px-6">
         <motion.div
-          className="-mt-16 flex flex-col gap-4"
+          className="flex flex-col gap-4 pt-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}

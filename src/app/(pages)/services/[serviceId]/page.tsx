@@ -58,9 +58,6 @@ export default function ServiceDetailPage() {
         >
           <ArrowLeft size={18} />
         </button>
-        <h2 className="text-sm font-semibold text-foreground line-clamp-1">
-          {service.title}
-        </h2>
       </div>
 
       {/* Conteúdo */}
