@@ -21,6 +21,8 @@ export type Service = {
   reviewCount: number;
   totalServices: number;
   company: string;
+  city: string;
+  state: string;
   availability: string;
   category: string;
   packages: ServicePackage[];
@@ -41,6 +43,8 @@ export const mockServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "E-Clean",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "tecnologia",
     packages: [
@@ -66,6 +70,8 @@ export const mockServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "E-Clean",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "hidraulica",
     packages: [
@@ -91,6 +97,8 @@ export const mockServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "E-Clean",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "hidraulica",
     packages: [
@@ -115,6 +123,8 @@ export const mockServices: Service[] = [
     reviewCount: 84,
     totalServices: 98,
     company: "HidroFix",
+    city: "Campinas",
+    state: "SP",
     availability: "Hoje, 18:00 disponível",
     category: "hidraulica",
     packages: [
@@ -139,6 +149,8 @@ export const mockServices: Service[] = [
     reviewCount: 112,
     totalServices: 145,
     company: "EletroMax",
+    city: "Rio de Janeiro",
+    state: "RJ",
     availability: "Amanhã, 09:00 disponível",
     category: "eletrica",
     packages: [
@@ -147,7 +159,7 @@ export const mockServices: Service[] = [
       { label: "Completo", description: "Acima de 6",     price: 200 },
     ],
     images: [
-      { id: "img-5a", serviceId: "5", url: "https://images.unsplash.com/photo-1621905251189-08b45249ff78?w=800" },
+      { id: "img-5a", serviceId: "5", url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800" },
     ],
   },
   {
@@ -163,6 +175,8 @@ export const mockServices: Service[] = [
     reviewCount: 73,
     totalServices: 89,
     company: "PinturaTop",
+    city: "Belo Horizonte",
+    state: "MG",
     availability: "Sexta, 10:00 disponível",
     category: "pintura",
     packages: [
@@ -187,6 +201,8 @@ export const mockServices: Service[] = [
     reviewCount: 58,
     totalServices: 67,
     company: "LimpaFácil",
+    city: "Curitiba",
+    state: "PR",
     availability: "Sábado, 08:00 disponível",
     category: "limpeza",
     packages: [
@@ -211,6 +227,8 @@ export const mockServices: Service[] = [
     reviewCount: 41,
     totalServices: 52,
     company: "PinturaTop",
+    city: "Belo Horizonte",
+    state: "MG",
     availability: "Segunda, 07:00 disponível",
     category: "pintura",
     packages: [
@@ -235,6 +253,8 @@ export const mockServices: Service[] = [
     reviewCount: 89,
     totalServices: 112,
     company: "ClimaTech",
+    city: "Porto Alegre",
+    state: "RS",
     availability: "Amanhã, 14:00 disponível",
     category: "tecnologia",
     packages: [
@@ -243,7 +263,7 @@ export const mockServices: Service[] = [
       { label: "Split 18k", description: "Acima de 12k",    price: 550 },
     ],
     images: [
-      { id: "img-9a", serviceId: "9", url: "https://images.unsplash.com/photo-1631916028899-c294eeeba18a?w=800" },
+      { id: "img-9a", serviceId: "9", url: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800" },
     ],
   },
 ];

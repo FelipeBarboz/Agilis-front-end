@@ -137,6 +137,8 @@ export const superPinturasServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "Super Pinturas",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "pintura",
     packages: [
@@ -171,6 +173,8 @@ export const superPinturasServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "Super Pinturas",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "pintura",
     packages: [
@@ -200,6 +204,8 @@ export const superPinturasServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "Super Pinturas",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "pintura",
     packages: [
@@ -229,6 +235,8 @@ export const superPinturasServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "Super Pinturas",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "pintura",
     packages: [
@@ -258,6 +266,8 @@ export const superPinturasServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "Super Pinturas",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "pintura",
     packages: [
@@ -287,6 +297,8 @@ export const superPinturasServices: Service[] = [
     reviewCount: 96,
     totalServices: 103,
     company: "Super Pinturas",
+    city: "São Paulo",
+    state: "SP",
     availability: "Amanhã, 15:00 disponível",
     category: "pintura",
     packages: [

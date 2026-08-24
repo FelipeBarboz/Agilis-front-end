@@ -1,4 +1,4 @@
-import { Star, Clock, DollarSign, CalendarCheck } from "lucide-react";
+import { Star, Clock, DollarSign, CalendarCheck, MapPin } from "lucide-react";
 import { type Service } from "@/lib/mocks/services";
 
 interface ServiceInfoProps {
@@ -14,13 +14,27 @@ export function ServiceInfo({ service }: ServiceInfoProps) {
         {service.title}
       </h1>
 
-      {/* Avaliação */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Star size={15} className="fill-yellow-400 text-yellow-400" />
-        <span className="font-semibold text-foreground">{service.rating}</span>
-        <span>({service.reviewCount})</span>
-        <span>·</span>
-        <span>{service.totalServices} serviços</span>
+      {/* Avaliação e Localização */}
+      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Star size={15} className="fill-amber-400 text-amber-400" />
+          <span className="font-semibold text-foreground">{service.rating}</span>
+          <span>({service.reviewCount})</span>
+          <span>·</span>
+          <span>{service.totalServices} serviços</span>
+        </div>
+
+        {service.city && (
+          <>
+            <span>•</span>
+            <div className="flex items-center gap-1 font-medium text-foreground">
+              <MapPin size={14} className="text-primary" />
+              <span>
+                {service.city}, {service.state}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Descrição */}
