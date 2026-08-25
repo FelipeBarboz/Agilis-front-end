@@ -1,32 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { Camera, MapPin, Star, MessageSquare, CalendarDays, Plus, Store, Clock, Tag } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
+  MessageSquare,
+  CalendarDays,
+  Plus,
+  Store,
+  Clock,
+  Tag,
+  User,
+  Mail,
+  Phone,
+  Pencil,
+  Bell,
+  Settings,
+  LogOut,
+  ChevronRight,
+} from "lucide-react";
 import { mockProfileServices } from "@/lib/mocks/profile-services";
 
 export default function ProviderDashboardPage() {
+  const router = useRouter();
+
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
       
-      {/* Header */}
-      <header className="sticky top-0 z-10 w-full bg-[#00d68f] shadow-sm">
-        <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/img/logo-opened.png"
-              alt="Agilis"
-              width={90}
-              height={36}
-              className="object-contain"
-              priority
-            />
-          </div>
-        </div>
-      </header>
+      {/* Seta de voltar flutuante — padrão auth e serviço */}
+      <button
+        type="button"
+        onClick={() => router.back()}
+        aria-label="Voltar"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </button>
 
       {/* Main Content */}
-      <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
         
         <div>
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">Meu Perfil de Prestador</h1>
@@ -40,16 +54,8 @@ export default function ProviderDashboardPage() {
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             
             {/* Avatar */}
-            <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
-                C
-              </div>
-              <button
-                type="button"
-                className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-muted-foreground shadow-sm transition-colors hover:text-foreground"
-              >
-                <Camera className="size-4" />
-              </button>
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
+              C
             </div>
 
             {/* Info */}
@@ -104,13 +110,13 @@ export default function ProviderDashboardPage() {
 
             <Link
               href="/provider/create-store"
-              className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 transition-all hover:bg-primary/10 hover:border-primary group"
+              className="flex items-center gap-3 rounded-2xl border p-4 transition-all hover:bg-muted/50 hover:border-primary/40 group"
             >
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-white group-hover:scale-105 transition-transform">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <Store className="size-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold text-primary">Criar Loja</span>
+                <span className="text-sm font-semibold text-foreground">Criar Loja</span>
                 <span className="text-xs text-muted-foreground">CNPJ, URL e perfil</span>
               </div>
             </Link>
@@ -159,6 +165,100 @@ export default function ProviderDashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Card 3: Informações pessoais */}
+        <div className="flex flex-col gap-4 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Informações pessoais</h2>
+              <p className="text-sm text-muted-foreground">Seus dados de contato e identificação</p>
+            </div>
+            <Link
+              href="/provider/edit"
+              className="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
+            >
+              <Pencil className="size-3.5" />
+              Editar
+            </Link>
+          </div>
+
+          <div className="mt-2 divide-y border-t">
+            <div className="flex items-center gap-3 py-3.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <User className="size-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground">Nome</span>
+                <span className="text-sm font-medium text-foreground">Carlos Prestador</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-3.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Mail className="size-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground">E-mail</span>
+                <span className="text-sm font-medium text-foreground">carlos.prestador@email.com</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-3.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Phone className="size-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground">Telefone</span>
+                <span className="text-sm font-medium text-foreground">(11) 98765-4321</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Notificações, Configurações e Sair */}
+        <div className="flex flex-col gap-3">
+          <Link
+            href="/provider/notifications"
+            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+              <Bell className="size-5" />
+            </div>
+            <div className="flex flex-1 flex-col">
+              <span className="text-sm font-bold text-foreground">Notificações</span>
+              <span className="text-xs text-muted-foreground">Gerencie alertas e notificações de prestador</span>
+            </div>
+            <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <Link
+            href="/provider/settings"
+            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+              <Settings className="size-5" />
+            </div>
+            <div className="flex flex-1 flex-col">
+              <span className="text-sm font-bold text-foreground">Configurações</span>
+              <span className="text-xs text-muted-foreground">Privacidade, segurança e preferências da conta</span>
+            </div>
+            <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <Link
+            href="/login"
+            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
+              <LogOut className="size-5" />
+            </div>
+            <div className="flex flex-1 flex-col">
+              <span className="text-sm font-bold text-destructive">Sair</span>
+              <span className="text-xs text-muted-foreground">Encerrar sessão atual</span>
+            </div>
+            <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+          </Link>
         </div>
 
       </main>

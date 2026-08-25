@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Phone, Check, X, ChevronRight, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { mockUser } from "@/lib/mocks/user";
 
 // ─── Máscara de telefone ───────────────────────────────────────────────────────
 
@@ -23,7 +22,7 @@ function maskPhone(value: string): string {
 // ─── Campos do formulário ─────────────────────────────────────────────────────
 
 type FormField = {
-  key: keyof typeof mockUser;
+  key: "name" | "email" | "phone";
   label: string;
   placeholder: string;
   type: string;
@@ -33,21 +32,21 @@ type FormField = {
 const formFields: FormField[] = [
   {
     key: "name",
-    label: "Nome completo",
+    label: "Nome completo do prestador",
     placeholder: "Seu nome completo",
     type: "text",
     icon: User,
   },
   {
     key: "email",
-    label: "E-mail",
+    label: "E-mail de contato",
     placeholder: "seu@email.com",
     type: "email",
     icon: Mail,
   },
   {
     key: "phone",
-    label: "Telefone",
+    label: "Telefone / WhatsApp",
     placeholder: "(00) 00000-0000",
     type: "tel",
     icon: Phone,
@@ -56,13 +55,13 @@ const formFields: FormField[] = [
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export function EditPersonalForm() {
+export function EditProviderForm() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    name: mockUser.name,
-    email: mockUser.email,
-    phone: mockUser.phone ?? "",
+    name: "Carlos Prestador",
+    email: "carlos.prestador@email.com",
+    phone: "(11) 98765-4321",
   });
 
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
@@ -109,11 +108,11 @@ export function EditPersonalForm() {
     }
 
     setIsSaved(true);
-    setTimeout(() => router.push("/profile"), 1200);
+    setTimeout(() => router.push("/provider"), 1200);
   }
 
   function handleCancel() {
-    router.push("/profile");
+    router.push("/provider");
   }
 
   return (
@@ -121,9 +120,9 @@ export function EditPersonalForm() {
       {/* Card com formulário */}
       <div className="flex flex-col gap-6 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Dados pessoais</h2>
+          <h2 className="text-lg font-bold text-foreground">Dados do Prestador</h2>
           <p className="text-sm text-muted-foreground">
-            Atualize suas informações de perfil abaixo
+            Atualize suas informações de identificação e contato profissional
           </p>
         </div>
 
@@ -165,12 +164,12 @@ export function EditPersonalForm() {
         </div>
       </div>
 
-      {/* Botões de Ação no mesmo padrão dos cards de opções (notificações, configurações e sair) */}
+      {/* Botões de Ação */}
       <div className="flex flex-col gap-3">
         <button
           type="submit"
           disabled={isSaved}
-          id="btn-save-personal"
+          id="btn-save-provider"
           className="flex w-full items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5 text-left cursor-pointer disabled:opacity-80"
         >
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
@@ -181,7 +180,7 @@ export function EditPersonalForm() {
               {isSaved ? "Salvo com sucesso!" : "Salvar alterações"}
             </span>
             <span className="text-xs text-muted-foreground">
-              {isSaved ? "Suas informações foram atualizadas" : "Confirmar e salvar os novos dados do seu perfil"}
+              {isSaved ? "Suas informações foram atualizadas" : "Confirmar e salvar os novos dados do seu perfil de prestador"}
             </span>
           </div>
           <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
@@ -190,7 +189,7 @@ export function EditPersonalForm() {
         <button
           type="button"
           onClick={handleCancel}
-          id="btn-cancel-personal"
+          id="btn-cancel-provider"
           className="flex w-full items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5 text-left cursor-pointer"
         >
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
@@ -198,7 +197,7 @@ export function EditPersonalForm() {
           </div>
           <div className="flex flex-1 flex-col">
             <span className="text-sm font-bold text-destructive">Cancelar</span>
-            <span className="text-xs text-muted-foreground">Descartar alterações e voltar ao perfil</span>
+            <span className="text-xs text-muted-foreground">Descartar alterações e voltar ao painel de prestador</span>
           </div>
           <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
         </button>

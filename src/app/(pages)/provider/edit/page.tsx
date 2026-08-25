@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera } from "lucide-react";
-import { mockUser } from "@/lib/mocks/user";
-import { AvatarModal } from "../_components/avatar-modal";
-import { EditPersonalForm } from "./_components/edit-personal-form";
+import { AvatarModal } from "../../profile/_components/avatar-modal";
+import { EditProviderForm } from "./_components/edit-provider-form";
 
-export default function EditProfilePage() {
+export default function EditProviderPage() {
   const router = useRouter();
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
@@ -31,9 +30,9 @@ export default function EditProfilePage() {
       {/* Main Content */}
       <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Editar Perfil</h1>
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Editar Perfil de Prestador</h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            Atualize suas informações pessoais e dados de contato
+            Atualize suas informações pessoais e dados de contato profissional
           </p>
         </div>
 
@@ -41,7 +40,7 @@ export default function EditProfilePage() {
         <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border bg-white p-6 shadow-sm sm:p-8">
           <div className="relative">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
-              {mockUser.name.charAt(0)}
+              C
             </div>
             <button
               type="button"
@@ -62,7 +61,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* Formulário de edição */}
-        <EditPersonalForm />
+        <EditProviderForm />
       </main>
     </div>
   );
