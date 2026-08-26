@@ -1,15 +1,17 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-
+import { Clock } from "lucide-react";
 import { type HistoryEntry } from "../types";
 import { HistoryItem } from "./history-item";
+import { Button } from "@/components/ui/button";
 
 interface HistoryListProps {
   entries: HistoryEntry[];
   favorites: Set<string>;
   onToggleFavorite: (id: string) => void;
   onSelectEntry?: (entry: HistoryEntry) => void;
+  onClearFilter?: () => void;
 }
 
 function getMonthLabel(dateIso: string) {
@@ -42,18 +44,32 @@ export function HistoryList({
   favorites,
   onToggleFavorite,
   onSelectEntry,
+  onClearFilter,
 }: HistoryListProps) {
   if (entries.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-background py-16 text-center"
+        className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center"
       >
-        <p className="font-medium text-foreground">Nenhum registro encontrado</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Os serviços que corresponderem a este filtro aparecerão aqui
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-4 shadow-xs">
+          <Clock className="h-8 w-8" />
+        </div>
+        <h3 className="text-base font-semibold text-foreground">Nenhum registro encontrado</h3>
+        <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+          Nenhum serviço corresponde ao filtro selecionado no momento.
         </p>
+        {onClearFilter && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClearFilter}
+            className="mt-4"
+          >
+            Ver todos os registros
+          </Button>
+        )}
       </motion.div>
     );
   }
@@ -64,19 +80,27 @@ export function HistoryList({
     <div className="flex flex-col gap-6">
       {monthGroups.map(([month, monthEntries]) => (
         <div key={month} className="flex flex-col gap-3">
-          <h2 className="text-lg font-bold text-foreground">{month}</h2>
+          {/* Divisor estático de mês */}
+          <div className="flex items-center gap-3 py-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {month}
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
 
-          <AnimatePresence initial={false} mode="popLayout">
-            {monthEntries.map((entry) => (
-              <HistoryItem
-                key={entry.id}
-                entry={entry}
-                isFavorite={favorites.has(entry.id)}
-                onToggleFavorite={onToggleFavorite}
-                onSelect={onSelectEntry}
-              />
-            ))}
-          </AnimatePresence>
+          <div className="flex flex-col gap-2.5">
+            <AnimatePresence initial={false} mode="popLayout">
+              {monthEntries.map((entry) => (
+                <HistoryItem
+                  key={entry.id}
+                  entry={entry}
+                  isFavorite={favorites.has(entry.id)}
+                  onToggleFavorite={onToggleFavorite}
+                  onSelect={onSelectEntry}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       ))}
     </div>
