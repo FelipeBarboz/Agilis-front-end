@@ -12,10 +12,12 @@ type SidebarGroupProps = HTMLAttributes<HTMLDivElement> & { children: ReactNode 
 type SidebarFooterProps = HTMLAttributes<HTMLDivElement> & { children: ReactNode };
 
 interface SidebarNavItemProps {
-  href: string;
+  href?: string;
+  onClick?: () => void;
   icon: ReactNode;
   label: string;
   isActive?: boolean;
+  badge?: number | string;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -91,36 +93,79 @@ SidebarGroup.displayName = "SidebarGroup";
 
 const SidebarNavItem = ({
   href,
+  onClick,
   icon,
   label,
   isActive = false,
-}: SidebarNavItemProps) => (
-  <Link
-    href={href}
-    aria-label={label}
-    className={`
-      flex h-10 w-full items-center gap-3
-      rounded-lg px-2.5
-      transition-colors
-      ${isActive
-        ? "bg-primary/10 text-primary"
-        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      }
-    `}
-  >
-    {/* Ícone — tamanho fixo para não encolher */}
-    <span className="shrink-0">{icon}</span>
+  badge,
+}: SidebarNavItemProps) => {
+  const itemContent = (
+    <>
+      {/* Ícone — tamanho fixo para não encolher com badge */}
+      <span className="relative flex shrink-0 items-center justify-center">
+        {icon}
+        {badge !== undefined && badge !== 0 && (
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-xs">
+            {badge}
+          </span>
+        )}
+      </span>
 
-    {/* Label — aparece no hover via opacidade e largura */}
-    <span className="
-      whitespace-nowrap text-sm font-medium
-      opacity-0 group-hover/sidebar:opacity-100
-      transition-opacity duration-200 delay-100
-    ">
-      {label}
-    </span>
-  </Link>
-);
+      {/* Label — aparece no hover via opacidade e largura */}
+      <span className="
+        whitespace-nowrap text-sm font-medium
+        opacity-0 group-hover/sidebar:opacity-100
+        transition-opacity duration-200 delay-100
+        flex-1 text-left
+      ">
+        {label}
+      </span>
+
+      {badge !== undefined && badge !== 0 && (
+        <span className="
+          ml-auto hidden rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary
+          opacity-0 group-hover/sidebar:opacity-100 group-hover/sidebar:inline-flex
+          transition-opacity duration-200 delay-100
+        ">
+          {badge}
+        </span>
+      )}
+    </>
+  );
+
+  const className = `
+    flex h-10 w-full items-center gap-3
+    rounded-lg px-2.5
+    transition-colors cursor-pointer text-left
+    ${isActive
+      ? "bg-primary/10 text-primary font-medium"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+    }
+  `;
+
+  if (onClick || !href) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={label}
+        className={className}
+      >
+        {itemContent}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className={className}
+    >
+      {itemContent}
+    </Link>
+  );
+};
 SidebarNavItem.displayName = "SidebarNavItem";
 
 const SidebarFooterSlot = forwardRef<HTMLDivElement, SidebarFooterProps>(
