@@ -52,7 +52,7 @@ export function HistoryItem({ entry, isFavorite, onToggleFavorite, onSelect }: H
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
       onClick={() => onSelect?.(entry)}
-      className="group relative flex cursor-pointer flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-border/60 bg-card p-4 shadow-xs transition-all duration-200 hover:border-primary/40 hover:bg-card/90 hover:shadow-md text-left"
+      className="group flex cursor-pointer flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-border/60 bg-card p-4 shadow-xs transition-all duration-200 hover:border-primary/40 hover:bg-card/90 hover:shadow-md text-left"
     >
       {/* Imagem do serviço */}
       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
@@ -74,7 +74,7 @@ export function HistoryItem({ entry, isFavorite, onToggleFavorite, onSelect }: H
 
       {/* Conteúdo principal */}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex flex-wrap items-center gap-2 pr-8 sm:pr-0">
+        <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-bold text-foreground text-sm sm:text-base transition-colors group-hover:text-primary leading-snug">
             {entry.serviceName}
           </h3>
@@ -118,42 +118,44 @@ export function HistoryItem({ entry, isFavorite, onToggleFavorite, onSelect }: H
         </div>
       </div>
 
-      {/* Preço e Ação */}
-      <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60">
-        <div className="flex flex-col sm:items-end">
+      {/* Coluna direita: Preço + Favorito */}
+      <div className="flex shrink-0 flex-row items-center gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/60 sm:flex-col sm:items-end sm:justify-center sm:gap-2">
+        <div className="flex flex-1 flex-col sm:items-end">
           <span className="text-[11px] text-muted-foreground">Valor do serviço</span>
           <span className="text-base sm:text-lg font-bold text-foreground">
             {currencyFormatter.format(entry.price)}
           </span>
         </div>
 
-        <span className="flex items-center gap-0.5 text-xs font-medium text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          Detalhes
-          <ChevronRight className="h-3.5 w-3.5" />
-        </span>
-      </div>
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:flex items-center gap-0.5 text-xs font-medium text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            Detalhes
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
 
-      {/* Botão de favorito */}
-      <motion.button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleFavorite(entry.id);
-        }}
-        whileTap={{ scale: 0.8 }}
-        className="absolute right-3.5 top-3.5 rounded-full p-1.5 transition-colors hover:bg-muted/80 cursor-pointer"
-        aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-        aria-pressed={isFavorite}
-      >
-        <Heart
-          className={cn(
-            "h-4.5 w-4.5 transition-colors",
-            isFavorite
-              ? "fill-red-500 text-red-500"
-              : "text-muted-foreground hover:text-red-500",
-          )}
-        />
-      </motion.button>
+          {/* Botão de favorito — inline, sem absolute */}
+          <motion.button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(entry.id);
+            }}
+            whileTap={{ scale: 0.8 }}
+            className="rounded-full p-1.5 transition-colors hover:bg-muted/80 cursor-pointer"
+            aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            aria-pressed={isFavorite}
+          >
+            <Heart
+              className={cn(
+                "h-4 w-4 transition-colors",
+                isFavorite
+                  ? "fill-red-500 text-red-500"
+                  : "text-muted-foreground hover:text-red-500",
+              )}
+            />
+          </motion.button>
+        </div>
+      </div>
     </motion.div>
   );
 }
