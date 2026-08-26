@@ -1,14 +1,18 @@
 "use client";
 
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { motion } from "motion/react";
 import { mockServices } from "@/lib/mocks/services";
-import { ServiceImages } from "./_components/service-images";
+import { superPinturasServices } from "@/lib/mocks/stores";
 import { ServiceInfo } from "./_components/service-info";
 import { ServicePackages } from "./_components/service-packages";
+import { ServiceStoreCard } from "./_components/service-store-card";
 import { ScheduleButton } from "./_components/schedule-button";
+import { ServiceReviews } from "./_components/service-reviews";
+import { ServiceRelated } from "./_components/service-related";
+import { PageTransition } from "@/components/ui/motion";
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -16,60 +20,67 @@ export default function ServiceDetailPage() {
   const router = useRouter();
 
   const serviceId = params.serviceId as string;
-  const storeId = searchParams.get("storeId") ?? "";
+  const storeIdParam = searchParams.get("storeId") ?? "";
 
-  const service = mockServices.find((s) => s.id === serviceId);
+  // Combina todas as fontes de serviços do mock
+  const service = useMemo(() => {
+    const all = [...mockServices, ...superPinturasServices];
+    return all.find((s) => s.id === serviceId);
+  }, [serviceId]);
 
   const [selectedPrice, setSelectedPrice] = useState(
-    service?.price.inicial ?? 0,
+    service?.price.inicial ?? 0
   );
   const [selectedPackage, setSelectedPackage] = useState(
-    service?.packages[0]?.label ?? "",
+    service?.packages[0]?.label ?? ""
   );
 
   if (!service) {
     return (
       <main className="flex flex-1 items-center justify-center bg-muted p-6">
-        <div className="text-center">
-          <p className="text-base font-medium text-foreground">
+        <div className="flex flex-col items-center gap-3 text-center rounded-2xl border bg-card p-8 shadow-xs ring-1 ring-foreground/10 max-w-sm">
+          <p className="text-base font-semibold text-foreground">
             Serviço não encontrado
           </p>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="mt-2 text-sm text-primary hover:underline"
+          <p className="text-xs text-muted-foreground">
+            O serviço que você está procurando não existe ou foi descontinuado.
+          </p>
+          <Link
+            href="/services"
+            className="mt-2 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
           >
-            Voltar
-          </button>
+            <ArrowLeft size={14} />
+            Voltar para o catálogo
+          </Link>
         </div>
       </main>
     );
   }
 
-  return (
-    <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted">
+  const effectiveStoreId = storeIdParam || service.storeId || "store-super-pinturas";
 
-      {/* Seta de voltar flutuante — padrão auth */}
-      <button
-        type="button"
-        onClick={() => router.back()}
-        aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white"
+  return (
+    <main className="relative flex flex-1 flex-col gap-6 overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
+      {/* Seta de voltar para a tela de pesquisar serviços — Padrão Agilis */}
+      <Link
+        href="/services"
+        aria-label="Voltar para pesquisar serviços"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
       >
         <ArrowLeft size={20} />
-      </button>
+      </Link>
 
-      {/* Conteúdo */}
-      <div className="mx-auto w-full max-w-4xl p-6">
-        <motion.div
-          className="grid grid-cols-1 gap-6 lg:grid-cols-2"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Coluna esquerda — imagens + pacotes */}
-          <div className="flex flex-col gap-6">
-            <ServiceImages images={service.images} title={service.title} />
+      <PageTransition className="flex flex-col gap-6 mx-auto w-full max-w-6xl">
+        
+        {/* Display Principal Horizontal em Grid (Layout Wide) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          {/* Coluna Esquerda (7 Colunas) — Imagens + Info no mesmo card + Pacotes */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            {/* Card Unificado: Fotos e Informações do Serviço */}
+            <ServiceInfo service={service} />
+
+            {/* Seleção de Pacotes */}
             <ServicePackages
               service={service}
               onSelect={(price, label) => {
@@ -79,22 +90,38 @@ export default function ServiceDetailPage() {
             />
           </div>
 
-          {/* Coluna direita — info + botão */}
-          <div className="flex flex-col gap-6">
-            <ServiceInfo service={service} />
-            <div className="lg:mt-auto">
-              <ScheduleButton
-                serviceId={serviceId}
-                storeId={storeId}
-                selectedPrice={selectedPrice}
-                selectedPackage={selectedPackage}
-              />
-            </div>
+          {/* Coluna Direita (5 Colunas) — Loja e Widget de Agendamento Fixo */}
+          <div className="lg:col-span-5 flex flex-col gap-6 lg:sticky lg:top-6">
+            {/* Card da Loja com Padrão Agilis e link para o perfil */}
+            <ServiceStoreCard
+              storeId={effectiveStoreId}
+              companyName={service.company}
+            />
+
+            {/* Card de Resumo de Preço e Agendamento */}
+            <ScheduleButton
+              serviceId={serviceId}
+              storeId={effectiveStoreId}
+              selectedPrice={selectedPrice || service.price.inicial}
+              selectedPackage={selectedPackage || (service.packages[0]?.label ?? "Padrão")}
+            />
           </div>
+        </div>
 
-        </motion.div>
-      </div>
+        {/* Seção Horizontal 1: Avaliações e Comentários dos Usuários */}
+        <ServiceReviews
+          serviceId={serviceId}
+          initialRating={service.rating}
+          reviewCount={service.reviewCount}
+        />
 
+        {/* Seção Horizontal 2: Serviços Recomendados, Parecidos e Próximos */}
+        <ServiceRelated
+          currentServiceId={service.id}
+          category={service.category}
+        />
+
+      </PageTransition>
     </main>
   );
 }

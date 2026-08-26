@@ -8,23 +8,23 @@ import { PageTransition } from "@/components/ui/motion";
 
 export default function ReschedulePage() {
   return (
-    <main className="flex flex-1 flex-col overflow-y-auto bg-muted p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto w-full max-w-2xl">
-        {/* Top Back Nav */}
-        <div className="mb-6 flex items-center gap-3">
-          <Link
-            href="/history"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-muted"
-            aria-label="Voltar ao histórico"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Reagendar Serviço</h1>
-            <p className="text-xs text-muted-foreground">
-              Altere a data ou horário do seu atendimento
-            </p>
-          </div>
+    <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
+      {/* Seta de voltar no canto superior esquerdo — Padrão Agilis */}
+      <Link
+        href="/history"
+        aria-label="Voltar ao histórico"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </Link>
+
+      <div className="mx-auto w-full max-w-2xl space-y-6">
+        {/* Top Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Reagendar Serviço</h1>
+          <p className="text-sm text-muted-foreground">
+            Altere a data ou horário do seu atendimento
+          </p>
         </div>
 
         <PageTransition>
@@ -43,3 +43,4 @@ export default function ReschedulePage() {
     </main>
   );
 }
+
