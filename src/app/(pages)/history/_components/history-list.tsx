@@ -9,6 +9,7 @@ interface HistoryListProps {
   entries: HistoryEntry[];
   favorites: Set<string>;
   onToggleFavorite: (id: string) => void;
+  onSelectEntry?: (entry: HistoryEntry) => void;
 }
 
 function getMonthLabel(dateIso: string) {
@@ -36,7 +37,12 @@ function groupByMonth(entries: HistoryEntry[]) {
   return Array.from(groups.entries());
 }
 
-export function HistoryList({ entries, favorites, onToggleFavorite }: HistoryListProps) {
+export function HistoryList({
+  entries,
+  favorites,
+  onToggleFavorite,
+  onSelectEntry,
+}: HistoryListProps) {
   if (entries.length === 0) {
     return (
       <motion.div
@@ -67,6 +73,7 @@ export function HistoryList({ entries, favorites, onToggleFavorite }: HistoryLis
                 entry={entry}
                 isFavorite={favorites.has(entry.id)}
                 onToggleFavorite={onToggleFavorite}
+                onSelect={onSelectEntry}
               />
             ))}
           </AnimatePresence>

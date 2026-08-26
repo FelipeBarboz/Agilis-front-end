@@ -10,6 +10,7 @@ export type HistoryFilterValue = "todos" | HistoryStatus;
 const FILTERS: { value: HistoryFilterValue; label: string }[] = [
   { value: "todos", label: "Todos" },
   { value: "em_andamento", label: STATUS_LABEL.em_andamento },
+  { value: "agendado", label: STATUS_LABEL.agendado },
   { value: "concluido", label: STATUS_LABEL.concluido },
   { value: "cancelado", label: STATUS_LABEL.cancelado },
 ];

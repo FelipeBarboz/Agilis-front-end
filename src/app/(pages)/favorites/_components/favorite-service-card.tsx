@@ -19,14 +19,20 @@ export function FavoriteServiceCard({
     <div className="flex gap-3 rounded-xl bg-background p-3 shadow-sm">
       <Link
         href={`/services/${service.id}`}
-        className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg"
+        className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted"
       >
-        <Image
-          src={service.imageUrl}
-          alt={service.name}
-          fill
-          className="object-cover"
-        />
+        {service.imageUrl && service.imageUrl.trim() !== "" ? (
+          <Image
+            src={service.imageUrl}
+            alt={service.name}
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs font-bold text-muted-foreground">
+            {service.name.charAt(0)}
+          </div>
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col justify-between py-0.5">
@@ -63,14 +69,20 @@ export function FavoriteServiceCard({
           </div>
 
           <div className="flex items-center gap-2 pt-1">
-            <div className="relative h-4 w-4 shrink-0 overflow-hidden rounded-full">
-              <Image
-                src={service.providerAvatarUrl}
-                alt={service.providerName}
-                fill
-                className="object-cover"
-              />
-            </div>
+            {service.providerAvatarUrl && service.providerAvatarUrl.trim() !== "" ? (
+              <div className="relative h-4 w-4 shrink-0 overflow-hidden rounded-full">
+                <Image
+                  src={service.providerAvatarUrl}
+                  alt={service.providerName}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                {service.providerName.charAt(0)}
+              </div>
+            )}
             <span className="text-xs text-muted-foreground">
               {service.providerName}
             </span>
