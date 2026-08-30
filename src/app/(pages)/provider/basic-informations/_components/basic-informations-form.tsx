@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function BasicInformationsForm() {
   const router = useRouter();
@@ -12,46 +13,61 @@ export function BasicInformationsForm() {
     sessionStorage.setItem("form_basicInfos", "true");
     router.push("/provider/create-store");
   };
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
       {/* Nome da loja */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="storeName" className="text-sm font-medium text-white/90">
-          Nome da loja
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="storeName" className="text-sm font-semibold text-white/80">
+          Nome da loja <span className="text-white/40">*</span>
         </label>
         <Input
           id="storeName"
           placeholder="Ex: Carlão Piscinas"
-          className="h-12 md:h-14 rounded-xl border-0 bg-white px-4 text-foreground shadow-sm focus-visible:ring-4 focus-visible:ring-white/30"
+          className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
         />
       </div>
 
       {/* URL */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="url" className="text-sm font-medium text-white/90">
-          URL
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="url" className="text-sm font-semibold text-white/80">
+          URL personalizada <span className="text-white/40">*</span>
         </label>
-        <div className="flex items-center overflow-hidden rounded-xl bg-white shadow-sm focus-within:ring-4 focus-within:ring-white/30">
-          <span className="flex items-center justify-center bg-gray-100 px-4 py-3 md:py-4 text-sm font-medium text-muted-foreground border-r">
+        <div className="flex h-12 items-center overflow-hidden rounded-xl bg-white/95 shadow-sm focus-within:ring-4 focus-within:ring-white/30">
+          <span className="flex h-full items-center border-r border-muted-foreground/20 bg-white/60 px-4 text-sm font-medium text-muted-foreground select-none whitespace-nowrap">
             agilis.com/
           </span>
           <input
             id="url"
             type="text"
-            className="flex-1 min-w-0 border-0 bg-transparent px-4 py-3 md:py-4 text-sm text-foreground focus:outline-none"
+            className="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
             placeholder="carlao-piscinas"
           />
         </div>
+        <p className="text-xs text-white/40">
+          Apenas letras minúsculas, números e hífens
+        </p>
       </div>
 
-      {/* Salvar */}
-      <Button
-        type="submit"
-        className="mt-2 w-full rounded-xl bg-black py-6 text-base font-bold text-white shadow-lg transition-all hover:bg-black/80 hover:shadow-xl focus:ring-4 focus:ring-black/30 md:py-7 md:text-lg"
-      >
-        Salvar
-      </Button>
+      {/* Separador */}
+      <div className="h-px bg-white/20" />
+
+      {/* Botões */}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/provider/create-store"
+          className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-white/25 text-sm font-bold text-white transition-all hover:bg-white/10 sm:flex-1"
+        >
+          Cancelar
+        </Link>
+        <Button
+          type="submit"
+          className="h-12 w-full rounded-xl bg-black text-sm font-bold text-white shadow-lg transition-all hover:bg-black/80 sm:flex-[2] cursor-pointer"
+        >
+          Salvar e continuar
+        </Button>
+      </div>
 
     </form>
   );
