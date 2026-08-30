@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { PageTransition } from "@/components/ui/motion";
-import { SchedulingHeader } from "./_components/scheduling-header/scheduling-header";
 import { SchedulingCalendar } from "./_components/scheduling-calendar/scheduling-calendar";
 import { AppointmentCard, type Appointment } from "./_components/appointment-card/appointment-card";
 import { EmptySchedule } from "./_components/empty-schedule/empty-schedule";
@@ -116,62 +117,69 @@ export default function SchedulingProviderPage() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-muted/40">
-      <SchedulingHeader />
+    <div className="flex h-full flex-col overflow-y-auto bg-muted/40 pb-20">
+      <PageTransition className="flex flex-1 flex-col">
+        <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
 
-      <PageTransition className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6 pb-20">
-
-            {/* Page title */}
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Gerencie seus agendamentos</h1>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Selecione um dia para ver os detalhes
-              </p>
-            </div>
-
-            {/* Calendar */}
-            <SchedulingCalendar
-              bookedDates={bookedDates}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
-
-            {/* Stats for selected day */}
-            {dayAppointments.length > 0 && (
-              <SchedulingStats
-                total={dayAppointments.length}
-                pending={pending}
-                confirmed={confirmed}
-              />
-            )}
-
-            {/* Appointments list */}
-            <div>
-              <h2 className="mb-3 text-sm font-semibold text-foreground">
-                Agendamentos do dia
-              </h2>
-
-              {dayAppointments.length === 0 ? (
-                <div className="rounded-2xl border bg-white shadow-sm">
-                  <EmptySchedule selectedDate={selectedDate} />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {dayAppointments.map((appointment) => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment}
-                      onConfirm={handleConfirm}
-                      onCancel={handleCancel}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
+          {/* Botão de retorno padrão Agilis */}
+          <div>
+            <Link
+              href="/provider"
+              aria-label="Voltar para tela de prestador"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted"
+            >
+              <ArrowLeft className="size-5" />
+            </Link>
           </div>
+
+          {/* Page title */}
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Gerencie seus agendamentos</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Selecione um dia para ver os detalhes
+            </p>
+          </div>
+
+          {/* Calendar */}
+          <SchedulingCalendar
+            bookedDates={bookedDates}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
+
+          {/* Stats for selected day */}
+          {dayAppointments.length > 0 && (
+            <SchedulingStats
+              total={dayAppointments.length}
+              pending={pending}
+              confirmed={confirmed}
+            />
+          )}
+
+          {/* Appointments list */}
+          <div>
+            <h2 className="mb-3 text-sm font-semibold text-foreground">
+              Agendamentos do dia
+            </h2>
+
+            {dayAppointments.length === 0 ? (
+              <div className="rounded-2xl border bg-white shadow-sm">
+                <EmptySchedule selectedDate={selectedDate} />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {dayAppointments.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={appointment}
+                    onConfirm={handleConfirm}
+                    onCancel={handleCancel}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
       </PageTransition>
     </div>

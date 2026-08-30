@@ -10,6 +10,7 @@ const MONTH_NAMES = [
 const DAY_NAMES = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 interface StoreCalendarProps {
+  /** ISO date strings (YYYY-MM-DD) that have at least one appointment */
   bookedDates: string[];
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
@@ -29,7 +30,7 @@ export function StoreCalendar({
 }: StoreCalendarProps) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [viewMonth, setViewMonth] = useState(today.getMonth()); // 0-indexed
 
   const todayStr = toLocalDateString(today);
 
@@ -51,47 +52,51 @@ export function StoreCalendar({
     }
   }
 
-  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  // Build calendar grid
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
   const cells: (number | null)[] = [
-    ...Array(firstDay).fill(null),
+    ...Array<null>(firstDay).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
+  // Pad to complete last row
   while (cells.length % 7 !== 0) cells.push(null);
 
   return (
-    <div className="w-full">
+    <div className="rounded-2xl border bg-white p-4 shadow-sm">
       {/* Month navigation */}
-      <div className="mb-4 flex items-center justify-between px-2">
+      <div className="mb-4 flex items-center justify-between">
         <button
+          type="button"
           onClick={prevMonth}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted cursor-pointer"
         >
           <ChevronLeft className="size-5" />
         </button>
-        <span className="text-base font-bold text-foreground">
+        <span className="text-sm font-semibold text-foreground">
           {MONTH_NAMES[viewMonth]} {viewYear}
         </span>
         <button
+          type="button"
           onClick={nextMonth}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted cursor-pointer"
         >
           <ChevronRight className="size-5" />
         </button>
       </div>
 
       {/* Day-of-week headers */}
-      <div className="mb-2 grid grid-cols-7 text-center">
+      <div className="mb-1 grid grid-cols-7 text-center">
         {DAY_NAMES.map((d) => (
-          <span key={d} className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
+          <span key={d} className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
             {d}
           </span>
         ))}
       </div>
 
       {/* Cells */}
-      <div className="grid grid-cols-7 gap-y-2">
+      <div className="grid grid-cols-7 gap-y-1">
         {cells.map((day, idx) => {
           if (day === null) {
             return <div key={`empty-${idx}`} />;
@@ -105,22 +110,23 @@ export function StoreCalendar({
           return (
             <button
               key={dateStr}
+              type="button"
               onClick={() => onSelectDate(dateStr)}
               className={[
-                "relative mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-full text-sm font-medium transition-all",
+                "relative mx-auto flex h-9 w-9 flex-col items-center justify-center rounded-full text-sm font-medium transition-all cursor-pointer",
                 isSelected
-                  ? "bg-[#00d68f] text-white shadow-md"
+                  ? "bg-primary text-white shadow-md"
                   : isToday
-                  ? "border-2 border-[#00d68f] text-[#00d68f]"
+                  ? "border border-primary text-primary"
                   : "text-foreground hover:bg-muted",
               ].join(" ")}
             >
               {day}
               {hasBooking && !isSelected && (
-                <span className="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#00d68f]" />
+                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
               )}
               {hasBooking && isSelected && (
-                <span className="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-white" />
+                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-white" />
               )}
             </button>
           );

@@ -14,6 +14,7 @@ import {
   LayoutGrid,
   Store,
   Heart,
+  Bell,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,7 +34,8 @@ export const IconHistory    = ({ size = 20, ...props }) => <Clock      size={siz
 export const IconSearch     = ({ size = 18, ...props }) => <Search     size={size} {...props} />;
 export const IconUser       = ({ size = 22, ...props }) => <User       size={size} {...props} />;
 export const IconStore      = ({ size = 22, ...props }) => <Store      size={size} {...props} />;
-export const IconFavorites      = ({ size = 22, ...props }) => <Heart      size={size} {...props} />;
+export const IconFavorites  = ({ size = 22, ...props }) => <Heart      size={size} {...props} />;
+export const IconBell       = ({ size = 20, ...props }) => <Bell       size={size} {...props} />;
 
 // ─── Ícones de categoria ──────────────────────────────────────────────────────
 

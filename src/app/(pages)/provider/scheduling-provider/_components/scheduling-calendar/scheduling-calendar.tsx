@@ -57,7 +57,7 @@ export function SchedulingCalendar({
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
   const cells: (number | null)[] = [
-    ...Array(firstDay).fill(null),
+    ...Array<null>(firstDay).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
   // Pad to complete last row

@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -18,7 +20,9 @@ import {
   CalendarSync,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { type HistoryEntry, type HistoryStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from "../types";
+import { cn } from "@/lib/utils";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -47,23 +51,37 @@ interface HistoryDetailModalProps {
 
 export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   useEffect(() => {
     if (open && entry) {
       setIsLoading(true);
+      setImgError(false);
+      setAvatarError(false);
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 500);
+      }, 450);
       return () => clearTimeout(timer);
     }
   }, [open, entry?.id]);
+
+  // Fechar com a tecla ESC
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && open) {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
 
   if (!entry) return null;
 
   const StatusIcon = STATUS_ICONS[entry.status];
   const dateObj = new Date(entry.date);
   const formattedDate = fullDateFormatter.format(dateObj);
-  // Capitalize first letter of weekday
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   const bookingFee = entry.bookingFee ?? 0;
@@ -72,26 +90,36 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          {/* Backdrop com desfoque */}
           <motion.div
-            className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            onClick={onClose}
+          />
+
+          {/* Dialog */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: "spring", damping: 25, stiffness: 350 }}
+            className="relative z-10 flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="history-detail-modal-title"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border bg-background/95 px-6 py-4 backdrop-blur-md">
               <div className="flex items-center gap-2">
                 <span
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_BADGE_CLASS[entry.status]}`}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
+                    STATUS_BADGE_CLASS[entry.status],
+                  )}
                 >
                   <StatusIcon className="h-3.5 w-3.5" />
                   {STATUS_LABEL[entry.status]}
@@ -101,38 +129,72 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
                 aria-label="Fechar"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Content or Loading State */}
+            {/* Content or Loading Skeleton */}
             {isLoading ? (
-              <div className="flex flex-1 flex-col items-center justify-center py-24">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
-                  <p className="text-sm text-muted-foreground">Carregando detalhes do serviço...</p>
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 animate-pulse">
+                {/* Hero skeleton */}
+                <div className="flex gap-4 rounded-2xl border border-border/40 bg-card p-4">
+                  <div className="h-20 w-20 shrink-0 rounded-xl bg-muted" />
+                  <div className="flex flex-1 flex-col justify-between py-1">
+                    <div className="space-y-2">
+                      <div className="h-4 w-20 rounded-md bg-muted" />
+                      <div className="h-5 w-44 rounded-md bg-muted" />
+                    </div>
+                    <div className="h-4 w-28 rounded-md bg-muted" />
+                  </div>
+                </div>
+
+                {/* Counterpart skeleton */}
+                <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-card p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 rounded-full bg-muted" />
+                    <div className="space-y-1.5">
+                      <div className="h-3 w-16 rounded-md bg-muted" />
+                      <div className="h-4 w-32 rounded-md bg-muted" />
+                    </div>
+                  </div>
+                  <div className="h-8 w-20 rounded-lg bg-muted" />
+                </div>
+
+                {/* Info block skeleton */}
+                <div className="rounded-2xl border border-border/40 bg-card p-4 space-y-3">
+                  <div className="h-3 w-28 rounded-md bg-muted" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="h-10 rounded-lg bg-muted/60" />
+                    <div className="h-10 rounded-lg bg-muted/60" />
+                  </div>
                 </div>
               </div>
             ) : (
               <>
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto p-6 space-y-5">
                   {/* Service Hero Summary */}
-                  <div className="flex gap-4 rounded-xl border border-border bg-muted/40 p-4">
-                    {entry.imageUrl && entry.imageUrl.trim() !== "" ? (
-                      <img
-                        src={entry.imageUrl}
-                        alt={entry.serviceName}
-                        className="h-20 w-20 shrink-0 rounded-lg object-cover shadow-xs"
-                      />
-                    ) : (
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
-                        {entry.serviceName.charAt(0)}
-                      </div>
-                    )}
+                  <div className="flex gap-4 rounded-2xl border border-border/60 bg-muted/30 p-4 shadow-xs">
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                      {entry.imageUrl && !imgError ? (
+                        <Image
+                          src={entry.imageUrl}
+                          alt={entry.serviceName}
+                          width={80}
+                          height={80}
+                          className="h-full w-full object-cover"
+                          onError={() => setImgError(true)}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary font-bold text-lg">
+                          {entry.serviceName.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex min-w-0 flex-1 flex-col justify-between">
                       <div>
                         {entry.category && (
@@ -140,7 +202,10 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                             {entry.category}
                           </span>
                         )}
-                        <h3 className="text-base font-bold text-foreground leading-snug truncate">
+                        <h3
+                          id="history-detail-modal-title"
+                          className="text-base font-bold text-foreground leading-snug truncate"
+                        >
                           {entry.serviceName}
                         </h3>
                       </div>
@@ -155,11 +220,13 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
 
                   {/* Status Alert Banner if Cancelled */}
                   {entry.status === "cancelado" && entry.cancellationReason && (
-                    <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3.5 text-red-800">
-                      <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+                    <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-red-700 dark:text-red-400">
+                      <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
                       <div className="text-xs">
-                        <p className="font-semibold text-red-900">Motivo do cancelamento</p>
-                        <p className="mt-0.5 text-red-700 leading-relaxed">
+                        <p className="font-semibold text-red-800 dark:text-red-300">
+                          Motivo do cancelamento
+                        </p>
+                        <p className="mt-0.5 text-muted-foreground leading-relaxed">
                           {entry.cancellationReason}
                         </p>
                       </div>
@@ -167,21 +234,26 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                   )}
 
                   {/* Counterpart Card (Provider or Client) */}
-                  <div className="flex items-center justify-between rounded-xl border border-border bg-background p-4 shadow-xs">
+                  <div className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 shadow-xs">
                     <div className="flex items-center gap-3">
-                      {entry.counterpartAvatarUrl && entry.counterpartAvatarUrl.trim() !== "" ? (
-                        <img
-                          src={entry.counterpartAvatarUrl}
-                          alt={entry.counterpartName}
-                          className="h-11 w-11 rounded-full object-cover ring-2 ring-primary/20"
-                        />
-                      ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
-                          {entry.counterpartName.charAt(0)}
-                        </div>
-                      )}
+                      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
+                        {entry.counterpartAvatarUrl && !avatarError ? (
+                          <Image
+                            src={entry.counterpartAvatarUrl}
+                            alt={entry.counterpartName}
+                            width={44}
+                            height={44}
+                            className="h-full w-full object-cover"
+                            onError={() => setAvatarError(true)}
+                          />
+                        ) : (
+                          <span className="text-sm font-bold text-primary">
+                            {entry.counterpartName.charAt(0)}
+                          </span>
+                        )}
+                      </div>
                       <div>
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                           {entry.counterpartRole === "prestador" ? "Prestador" : "Cliente Contratante"}
                         </span>
                         <p className="text-sm font-bold text-foreground">
@@ -192,7 +264,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
 
                     <Link
                       href="/chats"
-                      className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
+                      className="flex items-center gap-1.5 rounded-xl border border-border bg-muted/60 px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs"
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
                       <span>Chat</span>
@@ -200,7 +272,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                   </div>
 
                   {/* Scheduling & Location Information */}
-                  <div className="rounded-xl border border-border bg-background p-4 space-y-3.5 shadow-xs">
+                  <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3.5 shadow-xs">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       Informações de Atendimento
                     </h4>
@@ -209,7 +281,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                       <div className="flex items-start gap-2.5">
                         <Calendar className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Data do serviço</p>
+                          <p className="text-[11px] text-muted-foreground">Data do serviço</p>
                           <p className="text-xs font-medium text-foreground leading-tight">
                             {capitalizedDate}
                           </p>
@@ -219,7 +291,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                       <div className="flex items-start gap-2.5">
                         <Clock className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Horário e duração</p>
+                          <p className="text-[11px] text-muted-foreground">Horário e duração</p>
                           <p className="text-xs font-medium text-foreground leading-tight">
                             {entry.time ? `${entry.time}` : "Horário comercial"}
                             {entry.duration ? ` (${entry.duration})` : ""}
@@ -229,10 +301,10 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                     </div>
 
                     {entry.address && (
-                      <div className="flex items-start gap-2.5 border-t border-border pt-3">
+                      <div className="flex items-start gap-2.5 border-t border-border/60 pt-3">
                         <MapPin className="h-4 w-4 shrink-0 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Local de atendimento</p>
+                          <p className="text-[11px] text-muted-foreground">Local de atendimento</p>
                           <p className="text-xs font-medium text-foreground leading-tight">
                             {entry.address}
                           </p>
@@ -242,7 +314,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                   </div>
 
                   {/* Payment Summary */}
-                  <div className="rounded-xl border border-border bg-background p-4 space-y-3 shadow-xs">
+                  <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3 shadow-xs">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                       Resumo Financeiro
                     </h4>
@@ -264,13 +336,13 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                         </div>
                       )}
 
-                      <div className="flex justify-between border-t border-border pt-2 text-sm font-bold text-foreground">
+                      <div className="flex justify-between border-t border-border/60 pt-2 text-sm font-bold text-foreground">
                         <span>Total</span>
                         <span>{currencyFormatter.format(totalPrice)}</span>
                       </div>
 
                       {entry.paymentMethod && (
-                        <div className="flex items-center justify-between border-t border-border pt-2 text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between border-t border-border/60 pt-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1.5">
                             <CreditCard className="h-3.5 w-3.5 text-primary" />
                             Forma de pagamento
@@ -285,7 +357,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
 
                   {/* Notes / Observations */}
                   {entry.notes && (
-                    <div className="rounded-xl border border-border bg-muted/30 p-4">
+                    <div className="rounded-2xl border border-border/60 bg-muted/30 p-4">
                       <div className="flex items-center gap-2 mb-1.5">
                         <FileText className="h-4 w-4 text-primary" />
                         <h4 className="text-xs font-bold text-foreground">Observações</h4>
@@ -401,7 +473,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
               </>
             )}
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );
