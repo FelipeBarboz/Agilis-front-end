@@ -4,16 +4,17 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function EnterpriseInfosForm() {
   const router = useRouter();
+  const [cnpj, setCnpj] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sessionStorage.setItem("form_enterpriseInfos", "true");
     router.push("/provider/create-store");
   };
-  const [cnpj, setCnpj] = useState("");
 
   function formatCnpj(value: string): string {
     const digits = value.replace(/\D/g, "").slice(0, 14);
@@ -25,52 +26,29 @@ export function EnterpriseInfosForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
-      {/* Nome */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="name" className="text-sm font-medium text-white/90">
-          Nome
-        </label>
-        <Input
-          id="name"
-          placeholder="Ex: Carlão Piscinas"
-          className="border-0 bg-white px-4 py-3 text-foreground shadow-sm focus:ring-4 focus:ring-white/30 md:py-4"
-        />
-      </div>
-
-      {/* URL */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="url" className="text-sm font-medium text-white/90">
-          URL
-        </label>
-        <div className="flex w-full overflow-hidden rounded-xl bg-white shadow-sm">
-          <span className="flex shrink-0 items-center bg-white/80 px-4 text-sm font-medium text-foreground/60 select-none border-r border-border/20 md:text-base">
-            Agilis.com/
-          </span>
-          <input
-            id="url"
-            placeholder="carlao-piscinas"
-            className="min-w-0 flex-1 bg-white px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-4 focus:ring-primary/20 md:py-4 md:text-base"
-          />
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
       {/* Nome de Exibição */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="displayName" className="text-sm font-medium text-white/90">
-          Nome de Exibição
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="displayName" className="text-sm font-semibold text-white/80">
+          Nome de exibição <span className="text-white/40">*</span>
         </label>
         <Input
           id="displayName"
-          placeholder=""
-          className="border-0 bg-white px-4 py-3 text-foreground shadow-sm focus:ring-4 focus:ring-white/30 md:py-4"
+          placeholder="Ex: Carlão Piscinas ME"
+          className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
         />
+        <p className="text-xs text-white/40">
+          Nome que aparecerá publicamente para os clientes
+        </p>
       </div>
 
+      {/* Separador */}
+      <div className="h-px bg-white/20" />
+
       {/* CNPJ */}
-      <div className="flex flex-col gap-2">
-        <label htmlFor="cnpj" className="text-sm font-medium text-white/90">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="cnpj" className="text-sm font-semibold text-white/80">
           CNPJ
         </label>
         <Input
@@ -79,17 +57,31 @@ export function EnterpriseInfosForm() {
           placeholder="00.000.000/0000-00"
           value={cnpj}
           onChange={(e) => setCnpj(formatCnpj(e.target.value))}
-          className="border-0 bg-white px-4 py-3 text-foreground shadow-sm focus:ring-4 focus:ring-white/30 md:py-4"
+          className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
         />
+        <p className="text-xs text-white/40">
+          Opcional — deixe em branco se for pessoa física (CPF)
+        </p>
       </div>
 
-      {/* Salvar */}
-      <Button
-        type="submit"
-        className="mt-2 w-full rounded-xl bg-black py-6 text-base font-bold text-white shadow-lg transition-all hover:bg-black/80 hover:shadow-xl focus:ring-4 focus:ring-black/30 md:py-7 md:text-lg"
-      >
-        Salvar
-      </Button>
+      {/* Separador */}
+      <div className="h-px bg-white/20" />
+
+      {/* Botões */}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/provider/create-store"
+          className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-white/25 text-sm font-bold text-white transition-all hover:bg-white/10 sm:flex-1"
+        >
+          Cancelar
+        </Link>
+        <Button
+          type="submit"
+          className="h-12 w-full rounded-xl bg-black text-sm font-bold text-white shadow-lg transition-all hover:bg-black/80 sm:flex-[2] cursor-pointer"
+        >
+          Salvar e continuar
+        </Button>
+      </div>
 
     </form>
   );

@@ -1,65 +1,42 @@
 import { ArrowLeft } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { StoreDescriptionForm } from "./_components/store-description-form";
 
 export default function StoreDescriptionPage() {
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-muted/30">
-      {/* Header */}
-      <header className="sticky top-0 z-10 w-full bg-primary text-primary-foreground shadow-sm">
-        <div className="flex h-16 w-full items-center justify-between px-6 lg:px-12">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/provider/create-store"
-              className="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-white/20"
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Image
-              src="/img/logo-opened.png"
-              alt="Agilis"
-              width={80}
-              height={32}
-              className="object-contain"
-              priority
-            />
-          </div>
-        </div>
-      </header>
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+      {/* Seta de voltar flutuante — padrão Agilis */}
+      <Link
+        href="/provider/create-store"
+        aria-label="Voltar para criar loja"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </Link>
 
       {/* Main Content */}
-      <main className="flex flex-1 flex-col px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-2xl space-y-6">
-          <h2 className="text-2xl font-bold md:text-3xl">
-            Conte mais sobre sua loja
-          </h2>
+      <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-14 pb-8 sm:px-6 lg:px-8">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+            Descrição da loja
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground md:text-base">
+            Conte mais sobre sua empresa e seus diferenciais
+          </p>
+        </div>
 
-          {/* Form Card */}
-          <div className="overflow-hidden rounded-3xl bg-primary shadow-xl">
-            <div className="p-6 md:p-10">
-              <StoreDescriptionForm />
-            </div>
+        {/* Form Card */}
+        <div className="overflow-hidden rounded-3xl bg-primary shadow-xl">
+          <div className="px-6 py-5 md:px-10 md:py-7">
+            <p className="text-sm font-semibold uppercase tracking-widest text-white/50">
+              Etapa 4 de 5
+            </p>
+          </div>
+          <div className="px-6 pb-8 md:px-10 md:pb-10">
+            <StoreDescriptionForm />
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full bg-primary py-4 text-center text-xs text-primary-foreground/80">
-        <p className="font-medium">
-          © Copyright 2026 - Agilis Services - Todos os direitos reservados
-        </p>
-        <div className="mt-1 flex justify-center gap-6">
-          <Link href="/terms" className="underline underline-offset-2 hover:text-primary-foreground">
-            Termos de Uso
-          </Link>
-          <Link href="/privacy" className="underline underline-offset-2 hover:text-primary-foreground">
-            Política de Privacidade
-          </Link>
-        </div>
-      </footer>
     </div>
   );
 }
