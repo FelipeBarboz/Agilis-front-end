@@ -72,7 +72,7 @@ export function LoginForm() {
             type="email"
             autoComplete="email"
             placeholder="seu.email@exemplo.com"
-            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500 dark:bg-white dark:text-black dark:[color-scheme:light]"
             {...register("email")}
           />
           {errors.email && (
@@ -93,7 +93,7 @@ export function LoginForm() {
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             placeholder="••••••••"
-            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500 dark:bg-white dark:text-black dark:[color-scheme:light]"
             rightIcon={
               <button
                 type="button"

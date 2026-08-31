@@ -74,7 +74,7 @@ export function RegisterForm() {
             type="email"
             autoComplete="email"
             placeholder="seu.email@exemplo.com"
-            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500 dark:bg-white dark:text-black dark:[color-scheme:light]"
             {...register("email")}
           />
           {errors.email && (
@@ -111,7 +111,7 @@ export function RegisterForm() {
             autoComplete="name"
             inputMode="text"
             placeholder="Seu nome completo"
-            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500 dark:bg-white dark:text-black dark:[color-scheme:light]"
             {...register("name")}
             onInput={(e) => {
               const input = e.currentTarget;
@@ -136,7 +136,7 @@ export function RegisterForm() {
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
             placeholder="••••••••"
-            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500 dark:bg-white dark:text-black dark:[color-scheme:light]"
             rightIcon={
               <button
                 type="button"

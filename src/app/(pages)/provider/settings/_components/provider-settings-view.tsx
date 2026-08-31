@@ -108,7 +108,7 @@ export function ProviderSettingsView() {
   };
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       {/* Botão de voltar flutuante */}
       <button
         type="button"
