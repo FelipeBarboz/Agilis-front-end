@@ -64,7 +64,7 @@ export function StoreCalendar({
   while (cells.length % 7 !== 0) cells.push(null);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       {/* Month navigation */}
       <div className="mb-4 flex items-center justify-between">
         <button

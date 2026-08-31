@@ -25,7 +25,7 @@ export function BasicInformationsForm() {
         <Input
           id="storeName"
           placeholder="Ex: Carlão Piscinas"
-          className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
+          className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
         />
       </div>
 
@@ -35,13 +35,13 @@ export function BasicInformationsForm() {
           URL personalizada <span className="text-white/40">*</span>
         </label>
         <div className="flex h-12 items-center overflow-hidden rounded-xl bg-white/95 shadow-sm focus-within:ring-4 focus-within:ring-white/30">
-          <span className="flex h-full items-center border-r border-muted-foreground/20 bg-white/60 px-4 text-sm font-medium text-muted-foreground select-none whitespace-nowrap">
+          <span className="flex h-full items-center border-r border-muted-foreground/20 bg-white/60 px-4 text-sm font-medium text-neutral-600 select-none whitespace-nowrap">
             agilis.com/
           </span>
           <input
             id="url"
             type="text"
-            className="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+            className="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm text-black placeholder:text-neutral-500 focus:outline-none"
             placeholder="carlao-piscinas"
           />
         </div>

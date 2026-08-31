@@ -25,7 +25,7 @@ export function DeletePositionModal({
       onClick={() => onOpenChange(false)}
     >
       <div 
-        className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-border flex flex-col gap-6"
+        className="w-full max-w-md rounded-3xl bg-card p-6 sm:p-8 shadow-2xl border border-border flex flex-col gap-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -56,7 +56,7 @@ export function DeletePositionModal({
             Tem certeza que deseja excluir o cargo <strong className="text-foreground">{position.title}</strong>?
           </p>
           {position.employeeCount > 0 && (
-            <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-600 dark:text-amber-400">
               Atenção: Há <strong>{position.employeeCount} funcionário(s)</strong> atualmente associado(s) a este cargo.
             </div>
           )}

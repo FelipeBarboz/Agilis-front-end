@@ -12,7 +12,7 @@ export default function EditProfilePage() {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       <AvatarModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
@@ -23,7 +23,7 @@ export default function EditProfilePage() {
         type="button"
         onClick={() => router.back()}
         aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
       >
         <ArrowLeft size={20} />
       </button>
@@ -38,7 +38,7 @@ export default function EditProfilePage() {
         </div>
 
         {/* Card 1: Foto de Perfil */}
-        <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
           <div className="relative">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
               {mockUser.name.charAt(0)}

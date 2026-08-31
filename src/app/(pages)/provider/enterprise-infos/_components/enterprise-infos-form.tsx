@@ -36,7 +36,7 @@ export function EnterpriseInfosForm() {
         <Input
           id="displayName"
           placeholder="Ex: Carlão Piscinas ME"
-          className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
+          className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
         />
         <p className="text-xs text-white/40">
           Nome que aparecerá publicamente para os clientes
@@ -57,7 +57,7 @@ export function EnterpriseInfosForm() {
           placeholder="00.000.000/0000-00"
           value={cnpj}
           onChange={(e) => setCnpj(formatCnpj(e.target.value))}
-          className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
+          className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
         />
         <p className="text-xs text-white/40">
           Opcional — deixe em branco se for pessoa física (CPF)

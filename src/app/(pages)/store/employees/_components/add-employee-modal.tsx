@@ -42,7 +42,7 @@ export function AddEmployeeModal({
       onClick={() => onOpenChange(false)}
     >
       <div 
-        className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-border flex flex-col gap-6"
+        className="w-full max-w-md rounded-3xl bg-card p-6 sm:p-8 shadow-2xl border border-border flex flex-col gap-6"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

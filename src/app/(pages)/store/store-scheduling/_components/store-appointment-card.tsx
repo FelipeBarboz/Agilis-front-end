@@ -20,25 +20,25 @@ const STATUS_CONFIG: Record<
 > = {
   pending: {
     label: "Pendente",
-    bgClass: "bg-amber-50",
-    textClass: "text-amber-700",
+    bgClass: "bg-amber-500/10 border border-amber-500/20",
+    textClass: "text-amber-600 dark:text-amber-400",
     Icon: Hourglass,
   },
   confirmed: {
     label: "Confirmado",
-    bgClass: "bg-emerald-50",
-    textClass: "text-emerald-700",
+    bgClass: "bg-emerald-500/10 border border-emerald-500/20",
+    textClass: "text-emerald-600 dark:text-emerald-400",
     Icon: CheckCircle2,
   },
   cancelled: {
     label: "Cancelado",
-    bgClass: "bg-red-50",
-    textClass: "text-red-500",
+    bgClass: "bg-destructive/10 border border-destructive/20",
+    textClass: "text-destructive",
     Icon: XCircle,
   },
   done: {
     label: "Concluído",
-    bgClass: "bg-muted",
+    bgClass: "bg-muted border border-border",
     textClass: "text-muted-foreground",
     Icon: CheckCircle2,
   },
@@ -55,7 +55,7 @@ export function StoreAppointmentCard({ appointment, onConfirm, onCancel }: Store
   const endHour = getEndTime(appointment.time, appointment.duration);
 
   return (
-    <div className="rounded-2xl border bg-white p-4 shadow-sm flex flex-col gap-3">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col gap-3">
       {/* Top row: service name + status badge */}
       <div className="flex items-start justify-between gap-2">
         <div>

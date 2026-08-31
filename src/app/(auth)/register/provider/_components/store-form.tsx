@@ -57,7 +57,8 @@ export function StoreForm() {
         <Input
           type="text"
           autoComplete="organization"
-          className="border-white/20 bg-white text-foreground"
+          placeholder="Ex: Carlão Piscinas"
+          className="border-white/20 bg-white text-black placeholder:text-neutral-500"
           {...register("storeName")}
         />
         {errors.storeName && (
@@ -80,7 +81,7 @@ export function StoreForm() {
           type="text"
           inputMode="text"
           placeholder="Ex: agilis.com/carlao-piscinas"
-          className="border-white/20 bg-white text-foreground"
+          className="border-white/20 bg-white text-black placeholder:text-neutral-500"
           {...register("storeUrl")}
           onInput={(e) => {
             const input = e.currentTarget;

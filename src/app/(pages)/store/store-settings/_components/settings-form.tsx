@@ -33,6 +33,8 @@ function LinkedinIcon({ className = "size-4" }: { className?: string }) {
 }
 
 export function SettingsForm() {
+  const [storeName, setStoreName] = useState("Carlão Piscinas");
+  const [storeSlug, setStoreSlug] = useState("carlao-piscinas");
   const [reportsChecked, setReportsChecked] = useState(true);
   const [emailsChecked, setEmailsChecked] = useState(true);
   const [savedFeedback, setSavedFeedback] = useState(false);
@@ -52,7 +54,7 @@ export function SettingsForm() {
       <div className="flex items-center justify-between pb-6">
         <div className="flex items-center gap-2">
           {savedFeedback && (
-            <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 text-xs font-medium animate-fade-in">
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-3 py-1.5 text-xs font-medium animate-fade-in">
               <Check className="size-3.5 text-emerald-600" />
               <span>Alterações salvas com sucesso!</span>
             </div>
@@ -75,35 +77,34 @@ export function SettingsForm() {
         </div>
       </div>
 
-      {/* Perfil Público */}
+      {/* Identificação Geral */}
       <div className="flex flex-col sm:flex-row gap-6 py-6">
         <div className="sm:w-1/3">
-          <h3 className="text-sm font-bold text-foreground">Perfil público</h3>
+          <h3 className="text-sm font-bold text-foreground">Identificação da loja</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Estas informações ficarão visíveis para os clientes no aplicativo e catálogo do Agilis.
+            Nome fantasia e razão social da sua empresa para exibição aos clientes.
           </p>
         </div>
         <div className="sm:w-2/3 flex flex-col gap-4 max-w-2xl">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Nome comercial da loja</label>
+          <div>
+            <label className="text-xs font-semibold text-foreground mb-1.5 block">Nome fantasia</label>
             <input
               type="text"
-              placeholder="Ex: Carlão Piscinas & Serviços"
-              defaultValue="Carlão Piscinas"
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
               className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
-          
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Link personalizado da loja</label>
-            <div className="flex rounded-xl shadow-xs overflow-hidden border border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+          <div>
+            <label className="text-xs font-semibold text-foreground mb-1.5 block">Nome de usuário / URL</label>
+            <div className="flex rounded-xl border border-input overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
               <span className="inline-flex items-center bg-muted/80 px-4 text-sm font-medium text-muted-foreground border-r border-input select-none">
                 agilis.com.br/loja/
               </span>
               <input
                 type="text"
-                defaultValue="carlao-piscinas"
-                placeholder="nome-da-sua-loja"
+                value={storeSlug}
+                onChange={(e) => setStoreSlug(e.target.value)}
                 className="w-full bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none"
               />
             </div>
@@ -111,7 +112,7 @@ export function SettingsForm() {
         </div>
       </div>
 
-      {/* Logotipo da Empresa */}
+      {/* Logotipo */}
       <div className="flex flex-col sm:flex-row gap-6 py-6">
         <div className="sm:w-1/3">
           <h3 className="text-sm font-bold text-foreground">Logotipo da loja</h3>
@@ -122,13 +123,13 @@ export function SettingsForm() {
         <div className="sm:w-2/3 flex flex-col sm:flex-row items-center sm:items-start gap-6 max-w-2xl">
           <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-brand-dark text-white shadow-xs border border-border">
             <span className="text-2xl font-bold tracking-tight">CP</span>
-            <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-primary text-white shadow-xs" title="Verificado Agilis">
+            <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-card bg-primary text-white shadow-xs" title="Verificado Agilis">
               <Check className="size-3.5" strokeWidth={3} />
             </div>
           </div>
           
           <div className="group flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/60 py-6 px-4 transition-all cursor-pointer">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-xs border border-border text-primary group-hover:scale-105 transition-transform">
+            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-card shadow-xs border border-border text-primary group-hover:scale-105 transition-transform">
               <UploadCloud className="size-5" />
             </div>
             <p className="text-sm font-medium text-foreground">
@@ -156,7 +157,7 @@ export function SettingsForm() {
         <div className="sm:w-2/3 flex flex-col gap-4 max-w-2xl">
           <div 
             onClick={() => setReportsChecked(!reportsChecked)}
-            className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border bg-white hover:bg-muted/30 cursor-pointer transition-colors"
+            className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border bg-background hover:bg-muted/30 cursor-pointer transition-colors"
           >
             <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
               reportsChecked 
@@ -175,7 +176,7 @@ export function SettingsForm() {
 
           <div 
             onClick={() => setEmailsChecked(!emailsChecked)}
-            className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border bg-white hover:bg-muted/30 cursor-pointer transition-colors"
+            className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border bg-background hover:bg-muted/30 cursor-pointer transition-colors"
           >
             <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
               emailsChecked 

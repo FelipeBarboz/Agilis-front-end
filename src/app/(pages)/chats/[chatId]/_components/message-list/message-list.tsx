@@ -38,8 +38,8 @@ export function MessageList({ groups }: MessageListProps) {
           {/* Messages in this date group */}
           {group.messages.map((msg, idx) => {
             const prevMsg = group.messages[idx - 1];
-            // Add spacing between messages from different senders
-            const hasBreak = idx > 0 && prevMsg.isOwn !== msg.isOwn;
+            // Add spacing between messages from different senderscontinue da onde o gemini parou
+            const hasBreak = idx > 0 && prevMsg !== undefined && prevMsg.isOwn !== msg.isOwn;
 
             return (
               <div

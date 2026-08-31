@@ -20,14 +20,14 @@ export function ServicesList() {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {services.map((svc) => (
-          <div key={svc.id} className="flex items-start gap-4 p-4 rounded-xl border bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div key={svc.id} className="flex items-start gap-4 p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
               <svc.icon className="size-6" />
             </div>
             <div className="flex flex-col flex-1">
               <h3 className="font-bold text-foreground">{svc.name}</h3>
               <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                <span className="font-semibold text-black">{svc.price}</span>
+                <span className="font-semibold text-foreground">{svc.price}</span>
                 <span>•</span>
                 <span>{svc.duration}</span>
               </div>

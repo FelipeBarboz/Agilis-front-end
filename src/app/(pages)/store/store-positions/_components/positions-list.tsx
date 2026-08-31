@@ -86,7 +86,7 @@ export function PositionsList() {
           positions.map((pos) => (
             <div
               key={pos.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-white shadow-xs hover:border-primary/30 transition-all group"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card shadow-xs hover:border-primary/30 transition-all group"
             >
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0 group-hover:scale-105 transition-transform">

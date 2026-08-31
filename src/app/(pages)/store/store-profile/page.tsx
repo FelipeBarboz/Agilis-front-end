@@ -32,7 +32,7 @@ export default function StoreProfilePage() {
         type="button"
         onClick={() => router.back()}
         aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted cursor-pointer"
       >
         <ArrowLeft size={20} />
       </button>
@@ -48,11 +48,11 @@ export default function StoreProfilePage() {
         </div>
 
         {/* Card 1: Perfil da Loja */}
-        <div className="flex flex-col gap-6 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-6 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             
             {/* Avatar */}
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl shadow-sm">
               CP
             </div>
 
@@ -60,7 +60,7 @@ export default function StoreProfilePage() {
             <div className="flex flex-col items-center gap-2 pt-2 sm:items-start">
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-bold text-foreground">Carlão Piscinas</h2>
-                <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                <span className="rounded-md bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   Loja Ativa
                 </span>
               </div>
@@ -82,7 +82,7 @@ export default function StoreProfilePage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
             <Link
               href="/store/employees"
-              className="flex items-center gap-3 rounded-2xl border p-4 transition-all hover:bg-muted/50 hover:border-primary/40 group"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <Users className="size-5" />
@@ -95,7 +95,7 @@ export default function StoreProfilePage() {
             
             <Link
               href="/store/store-positions"
-              className="flex items-center gap-3 rounded-2xl border p-4 transition-all hover:bg-muted/50 hover:border-primary/40 group"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <Briefcase className="size-5" />
@@ -108,7 +108,7 @@ export default function StoreProfilePage() {
 
             <Link
               href="/store/store-settings"
-              className="flex items-center gap-3 rounded-2xl border p-4 transition-all hover:bg-muted/50 hover:border-primary/40 group"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <Settings className="size-5" />
@@ -122,7 +122,7 @@ export default function StoreProfilePage() {
         </div>
 
         {/* Card 2: Serviços da Loja */}
-        <div className="flex flex-col gap-4 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-lg font-bold text-foreground">Serviços da Loja</h2>
@@ -131,20 +131,20 @@ export default function StoreProfilePage() {
             
             <Link
               href="/provider/add-service"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 focus:ring-4 focus:ring-primary/20"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus:ring-4 focus:ring-primary/20"
             >
               <Plus className="size-4" />
               Novo serviço
             </Link>
           </div>
 
-          <div className="mt-2 divide-y border-t">
+          <div className="mt-2 divide-y divide-border border-t border-border">
             {mockProfileServices.map((service) => (
               <div key={service.id} className="flex items-center justify-between py-4">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-bold text-foreground">{service.name}</span>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1 font-medium text-emerald-600">
+                    <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
                       <Tag className="size-3.5" />
                       {service.price}
                     </span>
@@ -166,7 +166,7 @@ export default function StoreProfilePage() {
         </div>
 
         {/* Card 3: Agendamentos */}
-        <div className="flex flex-col gap-4 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-foreground">Agendamentos</h2>
@@ -181,7 +181,7 @@ export default function StoreProfilePage() {
             </Link>
           </div>
 
-          <div className="mt-2 divide-y border-t">
+          <div className="mt-2 divide-y divide-border border-t border-border">
             {mockProfileAppointments.map((appt) => (
               <div key={appt.id} className="flex items-center justify-between py-4">
                 <div className="flex flex-col gap-1">
@@ -193,7 +193,7 @@ export default function StoreProfilePage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5">
                     {appt.date}
                   </span>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -210,7 +210,7 @@ export default function StoreProfilePage() {
         <div className="flex flex-col gap-3">
           <Link
             href="/store/store-scheduling"
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:bg-muted hover:border-primary/40 group sm:p-5"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
               <CalendarDays className="size-5" />
@@ -224,7 +224,7 @@ export default function StoreProfilePage() {
 
           <Link
             href="/store/store-settings"
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:bg-muted hover:border-primary/40 group sm:p-5"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
               <Settings className="size-5" />
@@ -238,7 +238,7 @@ export default function StoreProfilePage() {
 
           <Link
             href="/login"
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:bg-muted hover:border-destructive/40 group sm:p-5"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
               <LogOut className="size-5" />

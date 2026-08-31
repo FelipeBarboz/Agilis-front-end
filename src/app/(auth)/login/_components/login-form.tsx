@@ -71,7 +71,8 @@ export function LoginForm() {
           <Input
             type="email"
             autoComplete="email"
-            className="border-white/20 bg-white text-foreground"
+            placeholder="seu.email@exemplo.com"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
             {...register("email")}
           />
           {errors.email && (
@@ -91,13 +92,14 @@ export function LoginForm() {
           <Input
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
-            className="border-white/20 bg-white text-foreground"
+            placeholder="••••••••"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
             rightIcon={
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-neutral-500 hover:text-black transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

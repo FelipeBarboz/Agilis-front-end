@@ -21,13 +21,13 @@ export default function ProfilePage() {
   const router = useRouter();
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       {/* Seta de voltar flutuante — padrão auth e serviço */}
       <button
         type="button"
         onClick={() => router.back()}
         aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
       >
         <ArrowLeft size={20} />
       </button>
@@ -43,7 +43,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Card 1: Perfil do Usuário */}
-        <div className="flex flex-col gap-6 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             
             {/* Avatar */}
@@ -103,7 +103,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Card 2: Informações pessoais */}
-        <div className="flex flex-col gap-4 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-4 rounded-3xl border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-foreground">Informações pessoais</h2>
@@ -155,7 +155,7 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-3">
           <Link
             href="/notifications"
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+            className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
               <Bell className="size-5" />
@@ -169,7 +169,7 @@ export default function ProfilePage() {
 
           <Link
             href="/profile/settings"
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+            className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
               <Settings className="size-5" />
@@ -183,7 +183,7 @@ export default function ProfilePage() {
 
           <Link
             href="/login"
-            className="flex items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5"
+            className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
               <LogOut className="size-5" />
