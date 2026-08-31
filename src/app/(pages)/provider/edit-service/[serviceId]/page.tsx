@@ -99,7 +99,7 @@ function EditServiceContent({ serviceId }: { serviceId: string }) {
                 id="title"
                 defaultValue={service.name}
                 placeholder="Ex: Limpeza de piscina"
-                className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus:ring-4 focus:ring-white/30 rounded-xl"
+                className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus:ring-4 focus:ring-white/30 rounded-xl"
               />
             </div>
 
@@ -114,7 +114,7 @@ function EditServiceContent({ serviceId }: { serviceId: string }) {
                   rows={4}
                   maxLength={250}
                   placeholder="Descreva o que está incluso no serviço, diferenciais, etc."
-                  className="w-full resize-none rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/70 shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
+                  className="w-full resize-none rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-black placeholder:text-neutral-500 shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
                 />
                 <span className="absolute bottom-3 right-3 text-xs text-muted-foreground/60 select-none">
                   0/250
@@ -135,7 +135,7 @@ function EditServiceContent({ serviceId }: { serviceId: string }) {
                   id="priceType"
                   value={priceType}
                   onChange={(e) => setPriceType(e.target.value as PriceType)}
-                  className="h-12 w-full appearance-none rounded-xl border-0 bg-white/95 px-4 pr-10 text-foreground shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30 cursor-pointer"
+                  className="h-12 w-full appearance-none rounded-xl border-0 bg-white/95 px-4 pr-10 text-black shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30 cursor-pointer"
                 >
                   {(Object.entries(PRICE_TYPE_LABELS) as [PriceType, string][]).map(
                     ([value, label]) => (
@@ -167,7 +167,7 @@ function EditServiceContent({ serviceId }: { serviceId: string }) {
                   id="price"
                   defaultValue={service.price}
                   placeholder="R$ 0,00"
-                  className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus:ring-4 focus:ring-white/30 rounded-xl"
+                  className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus:ring-4 focus:ring-white/30 rounded-xl"
                 />
               </div>
             )}
@@ -184,7 +184,7 @@ function EditServiceContent({ serviceId }: { serviceId: string }) {
                 step={5}
                 defaultValue={service.duration.replace("h", "")}
                 placeholder="Ex: 60"
-                className="h-12 border-0 bg-white/95 px-4 text-foreground shadow-sm placeholder:text-muted-foreground/70 focus:ring-4 focus:ring-white/30 rounded-xl"
+                className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus:ring-4 focus:ring-white/30 rounded-xl"
               />
             </div>
 
@@ -199,10 +199,10 @@ function EditServiceContent({ serviceId }: { serviceId: string }) {
               </label>
               <button
                 type="button"
-                className="flex h-12 w-full items-center justify-between rounded-xl border-0 bg-white/95 px-4 text-sm text-foreground shadow-sm transition-colors hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/30 cursor-pointer"
+                className="flex h-12 w-full items-center justify-between rounded-xl border-0 bg-white/95 px-4 text-sm text-black shadow-sm transition-colors hover:bg-white focus:outline-none focus:ring-4 focus:ring-white/30 cursor-pointer"
               >
-                <span className="text-muted-foreground/70">Selecionar arquivos</span>
-                <UploadCloud className="size-5 text-muted-foreground" />
+                <span className="text-neutral-500">Selecionar arquivos</span>
+                <UploadCloud className="size-5 text-neutral-500" />
               </button>
             </div>
 

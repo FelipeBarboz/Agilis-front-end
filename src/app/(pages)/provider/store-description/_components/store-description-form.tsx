@@ -34,7 +34,7 @@ export function StoreDescriptionForm() {
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, maxLength))}
             placeholder="Descreva sua empresa, os serviços que oferece, diferenciais, experiência no mercado..."
-            className="w-full resize-none rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/70 shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
+            className="w-full resize-none rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-black placeholder:text-neutral-500 shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
           />
           <span
             className={`absolute bottom-3 right-3 text-xs font-medium select-none ${

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -13,19 +13,20 @@ import {
   Check, 
   Eye, 
   EyeOff, 
-  ShieldAlert, 
   AlertTriangle,
   MessageSquare,
   Smartphone,
   Mail,
   CheckCircle2,
-  Save,
-  Lock
+  Briefcase,
+  CalendarCheck,
+  DollarSign,
+  Store
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/theme-provider";
 
-export function ProfileSettingsView() {
+export function ProviderSettingsView() {
   const router = useRouter();
 
   // ==================== TEMA ====================
@@ -81,13 +82,13 @@ export function ProfileSettingsView() {
     }, 600);
   };
 
-  // ==================== NOTIFICAÇÕES ====================
+  // ==================== NOTIFICAÇÕES DE PRESTADOR ====================
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(true);
-  const [reminders, setReminders] = useState(true);
-  const [serviceStatus, setServiceStatus] = useState(true);
-  const [promotions, setPromotions] = useState(false);
+  const [newRequests, setNewRequests] = useState(true);
+  const [scheduleAlerts, setScheduleAlerts] = useState(true);
+  const [chatMessages, setChatMessages] = useState(true);
   const [notificationsSaved, setNotificationsSaved] = useState(false);
 
   const handleSaveNotifications = () => {
@@ -107,13 +108,13 @@ export function ProfileSettingsView() {
   };
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
       {/* Botão de voltar flutuante */}
       <button
         type="button"
         onClick={() => router.back()}
         aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted cursor-pointer"
       >
         <ArrowLeft size={20} />
       </button>
@@ -123,9 +124,9 @@ export function ProfileSettingsView() {
         
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Configurações</h1>
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Configurações do Prestador</h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            Gerencie tema, senha de acesso, preferências de notificações e sua conta
+            Gerencie tema da interface, segurança da conta e preferências de atendimento
           </p>
         </div>
 
@@ -213,8 +214,8 @@ export function ProfileSettingsView() {
 
           <form onSubmit={handleUpdatePassword} className="space-y-4 pt-1">
             {passwordFeedback && (
-              <div className="flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 p-3 text-xs text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-2 rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{passwordFeedback}</span>
               </div>
             )}
@@ -266,7 +267,7 @@ export function ProfileSettingsView() {
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-muted-foreground">Força da nova senha:</span>
                   <span className={`font-bold ${
-                    strength <= 25 ? "text-destructive" : strength <= 50 ? "text-amber-500" : "text-emerald-600"
+                    strength <= 25 ? "text-destructive" : strength <= 50 ? "text-amber-500" : "text-emerald-600 dark:text-emerald-400"
                   }`}>
                     {strength <= 25 ? "Fraca" : strength <= 50 ? "Média" : strength <= 75 ? "Boa" : "Excelente"}
                   </span>
@@ -274,7 +275,7 @@ export function ProfileSettingsView() {
                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
-                      strength <= 25 ? "bg-destructive" : strength <= 50 ? "bg-amber-500" : "bg-emerald-600"
+                      strength <= 25 ? "bg-destructive" : strength <= 50 ? "bg-amber-500" : "bg-emerald-600 dark:bg-emerald-500"
                     }`}
                     style={{ width: `${strength}%` }}
                   />
@@ -286,7 +287,7 @@ export function ProfileSettingsView() {
               <Button
                 type="submit"
                 disabled={isUpdatingPassword}
-                className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50"
+                className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50"
               >
                 {isUpdatingPassword ? "Atualizando..." : "Salvar nova senha"}
               </Button>
@@ -294,7 +295,7 @@ export function ProfileSettingsView() {
           </form>
         </div>
 
-        {/* Card 3: Configurar Notificações */}
+        {/* Card 3: Notificações de Serviços e Clientes */}
         <div className="flex flex-col gap-5 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -302,209 +303,226 @@ export function ProfileSettingsView() {
                 <Bell className="size-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-foreground">Configurar Notificações</h2>
+                <h2 className="text-lg font-bold text-foreground">Alertas de Atendimento</h2>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Escolha os canais e tipos de avisos que você deseja receber
+                  Escolha como deseja receber solicitações de novos clientes e mensagens
                 </p>
               </div>
             </div>
 
             {notificationsSaved && (
-              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 animate-fade-in">
-                <Check className="size-3.5" /> Salvo
-              </span>
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fade-in">
+                <Check className="size-3.5" />
+                <span>Salvo!</span>
+              </div>
             )}
           </div>
 
-          {/* Canais */}
-          <div className="space-y-3 pt-1">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Canais de Envio</span>
+          <div className="space-y-4 pt-1">
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Canais de envio</div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div
-                onClick={() => {
-                  setNotifyWhatsapp(!notifyWhatsapp);
-                  handleSaveNotifications();
-                }}
-                className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                  notifyWhatsapp ? "border-primary bg-primary/5 shadow-xs" : "border-border bg-background"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <MessageSquare className="size-4 text-emerald-600" />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label className={`flex items-center gap-3 rounded-2xl border p-3.5 transition-all cursor-pointer select-none ${
+                notifyWhatsapp ? "border-primary/40 bg-primary/5" : "border-border bg-background opacity-70"
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={notifyWhatsapp}
+                  onChange={(e) => setNotifyWhatsapp(e.target.checked)}
+                  className="size-4 rounded-md accent-primary"
+                />
+                <div className="flex items-center gap-2">
+                  <Smartphone className="size-4 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-xs font-bold text-foreground">WhatsApp</span>
                 </div>
-                <div className={`size-4 rounded-full border flex items-center justify-center ${
-                  notifyWhatsapp ? "bg-primary border-primary text-white" : "border-input"
-                }`}>
-                  {notifyWhatsapp && <Check className="size-2.5" strokeWidth={3} />}
-                </div>
-              </div>
+              </label>
 
-              <div
-                onClick={() => {
-                  setNotifyPush(!notifyPush);
-                  handleSaveNotifications();
-                }}
-                className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                  notifyPush ? "border-primary bg-primary/5 shadow-xs" : "border-border bg-background"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Bell className="size-4 text-blue-600" />
-                  <span className="text-xs font-bold text-foreground">Na sua conta</span>
+              <label className={`flex items-center gap-3 rounded-2xl border p-3.5 transition-all cursor-pointer select-none ${
+                notifyPush ? "border-primary/40 bg-primary/5" : "border-border bg-background opacity-70"
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={notifyPush}
+                  onChange={(e) => setNotifyPush(e.target.checked)}
+                  className="size-4 rounded-md accent-primary"
+                />
+                <div className="flex items-center gap-2">
+                  <Bell className="size-4 text-primary" />
+                  <span className="text-xs font-bold text-foreground">Push App</span>
                 </div>
-                <div className={`size-4 rounded-full border flex items-center justify-center ${
-                  notifyPush ? "bg-primary border-primary text-white" : "border-input"
-                }`}>
-                  {notifyPush && <Check className="size-2.5" strokeWidth={3} />}
-                </div>
-              </div>
+              </label>
 
-              <div
-                onClick={() => {
-                  setNotifyEmail(!notifyEmail);
-                  handleSaveNotifications();
-                }}
-                className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                  notifyEmail ? "border-primary bg-primary/5 shadow-xs" : "border-border bg-background"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Mail className="size-4 text-indigo-600" />
+              <label className={`flex items-center gap-3 rounded-2xl border p-3.5 transition-all cursor-pointer select-none ${
+                notifyEmail ? "border-primary/40 bg-primary/5" : "border-border bg-background opacity-70"
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.checked)}
+                  className="size-4 rounded-md accent-primary"
+                />
+                <div className="flex items-center gap-2">
+                  <Mail className="size-4 text-primary" />
                   <span className="text-xs font-bold text-foreground">E-mail</span>
                 </div>
-                <div className={`size-4 rounded-full border flex items-center justify-center ${
-                  notifyEmail ? "bg-primary border-primary text-white" : "border-input"
-                }`}>
-                  {notifyEmail && <Check className="size-2.5" strokeWidth={3} />}
-                </div>
-              </div>
+              </label>
             </div>
-          </div>
 
-          {/* Tipos de Alerta */}
-          <div className="space-y-3 pt-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tipos de Alerta</span>
+            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground pt-2">Tipos de alerta</div>
 
-            <div className="divide-y divide-border rounded-2xl border border-border bg-background overflow-hidden">
-              <div 
-                onClick={() => {
-                  setReminders(!reminders);
-                  handleSaveNotifications();
-                }}
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+            <div className="flex flex-col gap-2.5">
+              <label className="flex items-center justify-between rounded-2xl border border-border bg-background p-3.5 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Briefcase className="size-4 text-primary" />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-foreground">Novos pedidos de serviço</span>
+                    <span className="text-[11px] text-muted-foreground">Receba alertas quando um cliente solicitar um serviço</span>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={newRequests}
+                  onChange={(e) => setNewRequests(e.target.checked)}
+                  className="size-4 rounded-md accent-primary cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between rounded-2xl border border-border bg-background p-3.5 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <CalendarCheck className="size-4 text-primary" />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-foreground">Lembretes de agendamentos</span>
+                    <span className="text-[11px] text-muted-foreground">Avisos antes do horário do atendimento</span>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={scheduleAlerts}
+                  onChange={(e) => setScheduleAlerts(e.target.checked)}
+                  className="size-4 rounded-md accent-primary cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between rounded-2xl border border-border bg-background p-3.5 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="size-4 text-primary" />
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-foreground">Mensagens no chat corporativo</span>
+                    <span className="text-[11px] text-muted-foreground">Notificações de novas mensagens diretas de clientes</span>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={chatMessages}
+                  onChange={(e) => setChatMessages(e.target.checked)}
+                  className="size-4 rounded-md accent-primary cursor-pointer"
+                />
+              </label>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                type="button"
+                onClick={handleSaveNotifications}
+                className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
               >
-                <div className="flex flex-col pr-4">
-                  <span className="text-xs font-bold text-foreground">Lembretes de Agendamento (24h e 2h antes)</span>
-                  <span className="text-[11px] text-muted-foreground">
-                    Avisos prévios sobre o horário marcado e profissional designado.
-                  </span>
-                </div>
-                <div className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-                  reminders ? "bg-primary" : "bg-muted"
-                }`}>
-                  <div className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
-                    reminders ? "translate-x-5" : "translate-x-0"
-                  }`} />
-                </div>
-              </div>
-
-              <div 
-                onClick={() => {
-                  setServiceStatus(!serviceStatus);
-                  handleSaveNotifications();
-                }}
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex flex-col pr-4">
-                  <span className="text-xs font-bold text-foreground">Status do Serviço em Tempo Real</span>
-                  <span className="text-[11px] text-muted-foreground">
-                    Alertas de deslocamento: &ldquo;Prestador a caminho&rdquo; e &ldquo;Chegou ao local&rdquo;.
-                  </span>
-                </div>
-                <div className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-                  serviceStatus ? "bg-primary" : "bg-muted"
-                }`}>
-                  <div className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
-                    serviceStatus ? "translate-x-5" : "translate-x-0"
-                  }`} />
-                </div>
-              </div>
-
-              <div 
-                onClick={() => {
-                  setPromotions(!promotions);
-                  handleSaveNotifications();
-                }}
-                className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex flex-col pr-4">
-                  <span className="text-xs font-bold text-foreground">Cupons de Desconto e Promoções</span>
-                  <span className="text-[11px] text-muted-foreground">
-                    Ofertas sazonais e cupons exclusivos para novos serviços.
-                  </span>
-                </div>
-                <div className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-                  promotions ? "bg-primary" : "bg-muted"
-                }`}>
-                  <div className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
-                    promotions ? "translate-x-5" : "translate-x-0"
-                  }`} />
-                </div>
-              </div>
+                Salvar preferências
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Card 4: Excluir Conta */}
-        <div className="flex flex-col gap-4 rounded-3xl border border-destructive/30 bg-destructive/5 dark:bg-card p-5 shadow-sm sm:p-8">
-          <div className="flex items-center gap-3 text-destructive">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10">
-              <Trash2 className="size-5" />
+        {/* Card 4: Área da Loja & Perfil da Empresa */}
+        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Store className="size-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Excluir Conta</h2>
+              <h2 className="text-lg font-bold text-foreground">Loja & Empresa</h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Encerramento permanente do seu cadastro no Agilis
+                Acesse o gerenciamento avançado da sua loja, equipe e horários
               </p>
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Ao excluir sua conta, todos os seus dados pessoais, histórico de agendamentos, avaliações e cupons serão apagados permanentemente. Esta ação não poderá ser desfeita.
-          </p>
+          <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+            <Button
+              asChild
+              variant="outline"
+              className="w-full sm:w-auto rounded-xl border-border hover:bg-muted text-foreground"
+            >
+              <a href="/store/store-profile">
+                Ir para Perfil da Loja
+              </a>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="w-full sm:w-auto rounded-xl border-border hover:bg-muted text-foreground"
+            >
+              <a href="/store/store-settings">
+                Configurações da Empresa
+              </a>
+            </Button>
+          </div>
+        </div>
 
-          <div className="flex justify-end pt-1">
+        {/* Card 5: Zona de Perigo */}
+        <div className="flex flex-col gap-5 rounded-3xl border border-destructive/20 bg-destructive/5 p-5 shadow-sm sm:p-8">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <Trash2 className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-destructive">Zona de Perigo</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Ações irreversíveis relacionadas à sua conta de prestador
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-destructive/20 bg-card p-4">
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-foreground">Encerrar conta de prestador</span>
+              <span className="text-xs text-muted-foreground mt-0.5">
+                Seus serviços cadastrados e dados de prestador serão permanentemente excluídos
+              </span>
+            </div>
             <Button
               type="button"
-              variant="destructive"
               onClick={() => setIsDeleteModalOpen(true)}
-              className="rounded-xl text-xs font-bold px-4 py-2 cursor-pointer shadow-xs"
+              className="shrink-0 rounded-xl bg-destructive px-4 py-2 text-xs font-bold text-white hover:bg-destructive/90 transition-all cursor-pointer"
             >
-              Excluir minha conta
+              Excluir conta
             </Button>
           </div>
         </div>
 
       </main>
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Exclusão de Conta */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl space-y-4">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in"
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md rounded-3xl bg-card p-6 sm:p-8 shadow-2xl border border-border flex flex-col gap-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-3 text-destructive">
-              <div className="flex size-10 items-center justify-center rounded-2xl bg-destructive/10">
-                <AlertTriangle className="size-5" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10">
+                <AlertTriangle className="size-6" />
               </div>
               <div>
-                <h4 className="text-base font-bold">Tem certeza que deseja excluir?</h4>
-                <p className="text-xs text-muted-foreground">Esta ação é irreversível.</p>
+                <h2 className="text-xl font-bold text-foreground">Excluir Conta</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Esta ação é irreversível.</p>
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              Para confirmar a exclusão da sua conta, digite <strong className="text-foreground">EXCLUIR</strong> no campo abaixo:
+            <p className="text-sm text-foreground leading-relaxed">
+              Para confirmar a exclusão da sua conta e de todos os serviços cadastrados, digite <strong className="text-destructive">EXCLUIR</strong> no campo abaixo:
             </p>
 
             <input
@@ -512,27 +530,23 @@ export function ProfileSettingsView() {
               value={deleteConfirmation}
               onChange={(e) => setDeleteConfirmation(e.target.value)}
               placeholder="Digite EXCLUIR"
-              className="w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-destructive/20 font-bold"
+              className="w-full rounded-xl border border-destructive/30 bg-background px-3.5 py-2.5 text-sm text-foreground focus:border-destructive focus:outline-none focus:ring-2 focus:ring-destructive/20 uppercase"
             />
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setIsDeleteModalOpen(false);
-                  setDeleteConfirmation("");
-                }}
-                className="rounded-xl text-xs font-medium cursor-pointer"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="rounded-xl px-4 py-2 text-xs font-semibold border-border hover:bg-muted"
               >
                 Cancelar
               </Button>
               <Button
                 type="button"
-                variant="destructive"
                 disabled={deleteConfirmation !== "EXCLUIR"}
                 onClick={handleConfirmDelete}
-                className="rounded-xl text-xs font-bold cursor-pointer disabled:opacity-40"
+                className="rounded-xl px-5 py-2 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 transition-colors disabled:opacity-40"
               >
                 Confirmar Exclusão
               </Button>

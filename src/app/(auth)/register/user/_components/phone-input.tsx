@@ -44,10 +44,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
     const displayValue = typeof value === "string" ? formatPhone(value) : value;
 
     return (
-      <div className="flex overflow-hidden rounded-lg border border-input bg-background transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+      <div className={`flex overflow-hidden rounded-lg border border-white/20 bg-white transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${className}`}>
 
         {/* Prefix fixo */}
-        <div className="flex shrink-0 items-center gap-1.5 border-r border-input bg-muted px-3 py-2.5 text-sm text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-1.5 border-r border-neutral-200 bg-neutral-100 px-3 py-2.5 text-sm font-medium text-neutral-700 select-none">
           🇧🇷 +55
         </div>
 
@@ -59,7 +59,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(
           placeholder="00 00000-0000"
           value={displayValue}
           onChange={handleChange}
-          className={`w-full bg-transparent px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none ${className}`}
+          className="w-full bg-white px-3 py-2.5 text-sm text-black placeholder:text-neutral-500 focus:outline-none"
           {...props}
         />
 

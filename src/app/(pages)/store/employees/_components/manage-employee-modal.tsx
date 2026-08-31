@@ -77,7 +77,7 @@ export function ManageEmployeeModal({
           onClick={() => onOpenChange(false)}
         >
           <motion.div
-            className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl overflow-hidden flex flex-col border border-border"
+            className="w-full max-w-lg rounded-3xl bg-card p-6 sm:p-8 shadow-2xl overflow-hidden flex flex-col border border-border"
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -113,9 +113,9 @@ export function ManageEmployeeModal({
                   <Button
                     type="button"
                     onClick={() => {
-                      onDeleteEmployee?.();
-                      onOpenChange(false);
-                    }}
+                    onDeleteEmployee?.();
+                    onOpenChange(false);
+                  }}
                     className="rounded-xl px-5 py-2 text-sm font-semibold bg-destructive text-white hover:bg-destructive/90 transition-colors"
                   >
                     Confirmar Exclusão
@@ -190,7 +190,7 @@ export function ManageEmployeeModal({
                                   "flex items-center justify-between p-3 rounded-xl border text-left transition-all text-sm",
                                   isSelected 
                                     ? "border-primary bg-primary/10 text-primary font-bold shadow-xs" 
-                                    : "border-border bg-white hover:bg-muted text-foreground"
+                                    : "border-border bg-card hover:bg-muted text-foreground"
                                 )}
                               >
                                 <div className="flex flex-col">
@@ -206,7 +206,7 @@ export function ManageEmployeeModal({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-border">
+                      <div className="flex items-center justify-between bg-card px-3.5 py-2.5 rounded-xl border border-border">
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-foreground">{selectedRole}</span>
                           <span className="text-xs text-muted-foreground">

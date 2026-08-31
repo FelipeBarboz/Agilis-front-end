@@ -97,7 +97,7 @@ export function AttendanceTypeForm() {
         <div className="relative">
           <select
             id="radius"
-            className="h-12 w-full appearance-none rounded-xl border-0 bg-white/95 px-4 pr-10 text-foreground shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30 cursor-pointer"
+            className="h-12 w-full appearance-none rounded-xl border-0 bg-white/95 px-4 pr-10 text-black shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30 cursor-pointer"
             defaultValue="10"
           >
             <option value="5">Até 5 km</option>
@@ -118,7 +118,7 @@ export function AttendanceTypeForm() {
           id="address"
           rows={2}
           placeholder="Ex: R. Cristóbal Cláudio Elilo, 88 - Parque Cecap, Guarulhos"
-          className="w-full resize-none rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/70 shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
+          className="w-full resize-none rounded-xl border-0 bg-white/95 px-4 py-3 text-sm text-black placeholder:text-neutral-500 shadow-sm focus:outline-none focus:ring-4 focus:ring-white/30"
         />
         <p className="text-xs text-white/40">
           Ponto de partida para calcular o raio de atendimento
@@ -134,7 +134,7 @@ export function AttendanceTypeForm() {
             {cities.map((city) => (
               <div
                 key={city}
-                className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm"
+                className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-black shadow-sm"
               >
                 <span>{city}</span>
                 <button

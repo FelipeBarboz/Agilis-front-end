@@ -73,7 +73,8 @@ export function RegisterForm() {
           <Input
             type="email"
             autoComplete="email"
-            className="border-white/20 bg-white text-foreground"
+            placeholder="seu.email@exemplo.com"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
             {...register("email")}
           />
           {errors.email && (
@@ -90,7 +91,7 @@ export function RegisterForm() {
           transition={{ duration: 0.3, delay: 0.35 }}
         >
           <label className="text-xs font-medium text-white">DDD + número</label>
-          <PhoneInput className="bg-white" {...register("phone")} />
+          <PhoneInput {...register("phone")} />
           {errors.phone && (
             <p className="text-xs text-red-200">{errors.phone.message}</p>
           )}
@@ -109,7 +110,8 @@ export function RegisterForm() {
             type="text"
             autoComplete="name"
             inputMode="text"
-            className="border-white/20 bg-white text-foreground"
+            placeholder="Seu nome completo"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
             {...register("name")}
             onInput={(e) => {
               const input = e.currentTarget;
@@ -133,13 +135,14 @@ export function RegisterForm() {
           <Input
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
-            className="border-white/20 bg-white text-foreground"
+            placeholder="••••••••"
+            className="border-white/20 bg-white text-black placeholder:text-neutral-500"
             rightIcon={
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-neutral-500 hover:text-black transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

@@ -119,7 +119,7 @@ export function EditPersonalForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
       {/* Card com formulário */}
-      <div className="flex flex-col gap-6 rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
+      <div className="flex flex-col gap-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-8">
         <div>
           <h2 className="text-lg font-bold text-foreground">Dados pessoais</h2>
           <p className="text-sm text-muted-foreground">
@@ -147,7 +147,7 @@ export function EditPersonalForm() {
                 onChange={(e) => handleChange(key, e.target.value)}
                 placeholder={placeholder}
                 aria-invalid={!!errors[key]}
-                className="h-11 rounded-xl bg-muted/20 px-4 text-sm focus:bg-white"
+                className="h-11 rounded-xl bg-muted/40 px-4 text-sm focus:bg-card"
                 autoComplete={
                   key === "email" ? "email" :
                   key === "phone" ? "tel" : "name"
@@ -171,7 +171,7 @@ export function EditPersonalForm() {
           type="submit"
           disabled={isSaved}
           id="btn-save-personal"
-          className="flex w-full items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5 text-left cursor-pointer disabled:opacity-80"
+          className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5 text-left cursor-pointer disabled:opacity-80"
         >
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
             {isSaved ? <Check className="size-5" /> : <Save className="size-5" />}
@@ -191,7 +191,7 @@ export function EditPersonalForm() {
           type="button"
           onClick={handleCancel}
           id="btn-cancel-personal"
-          className="flex w-full items-center gap-3 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5 text-left cursor-pointer"
+          className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5 text-left cursor-pointer"
         >
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
             <X className="size-5" />

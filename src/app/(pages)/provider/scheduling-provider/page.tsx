@@ -163,7 +163,7 @@ export default function SchedulingProviderPage() {
             </h2>
 
             {dayAppointments.length === 0 ? (
-              <div className="rounded-2xl border bg-white shadow-sm">
+              <div className="rounded-2xl border border-border bg-card shadow-sm">
                 <EmptySchedule selectedDate={selectedDate} />
               </div>
             ) : (

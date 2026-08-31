@@ -33,7 +33,7 @@ function StoreAboutContent() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-card text-foreground shadow-xs ring-1 ring-foreground/10 transition-colors hover:bg-white active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-card text-foreground shadow-xs ring-1 ring-foreground/10 transition-colors hover:bg-muted active:scale-95"
             aria-label="Voltar"
           >
             <ArrowLeft size={18} />

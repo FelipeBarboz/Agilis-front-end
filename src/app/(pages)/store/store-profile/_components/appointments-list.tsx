@@ -19,7 +19,7 @@ export function AppointmentsList() {
       </div>
       <div className="flex flex-col gap-3">
         {appointments.map((appt) => (
-          <div key={appt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border bg-white shadow-sm hover:border-primary/50 transition-colors">
+          <div key={appt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border bg-card shadow-sm hover:border-primary/50 transition-colors">
             <div className="flex flex-col gap-1">
               <span className="font-bold text-foreground flex items-center gap-2">
                 <User className="size-4 text-muted-foreground" />
@@ -38,7 +38,7 @@ export function AppointmentsList() {
           </div>
         ))}
         {appointments.length === 0 && (
-          <div className="p-8 text-center text-muted-foreground border border-dashed rounded-xl">
+          <div className="p-8 text-center text-muted-foreground border border-dashed border-border rounded-xl">
             Nenhum agendamento para hoje.
           </div>
         )}
