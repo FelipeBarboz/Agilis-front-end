@@ -25,7 +25,7 @@ export function MessageList({ groups }: MessageListProps) {
   }, [groups]);
 
   return (
-    <div className="flex flex-1 flex-col gap-1 overflow-y-auto bg-muted/30 py-4">
+    <div className="flex flex-1 flex-col gap-1 overflow-y-auto bg-muted/20 py-4">
       {groups.map((group) => (
         <div key={group.dateLabel} className="flex flex-col gap-1">
           {/* Date separator */}

@@ -1,50 +1,84 @@
 "use client";
 
 import { useState } from "react";
-import { PageTransition } from "@/components/ui/motion";
-import { ChatHeader } from "@/app/(pages)/chats/_components/chat-header/chat-header";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import { ChatFilterBar } from "@/app/(pages)/chats/_components/chat-filter-bar/chat-filter-bar";
 import { ChatList } from "@/app/(pages)/chats/_components/chat-list/chat-list";
-import { MOCK_CONVERSATIONS } from "@/lib/mocks/chat";
+import { mockConversations } from "@/lib/mocks/chat";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type FilterType = "todos" | "nao_lidos" | "finalizados";
 
 export default function ChatCorporativePage() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="flex h-full flex-col bg-muted">
-      {/* Top bar — verde Agilis */}
-      <ChatHeader backHref="/provider" />
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
 
-      <PageTransition className="flex flex-1 flex-col overflow-hidden">
-        {/* Page title — texto do provedor */}
-        <div className="bg-background px-4 pt-4 pb-2">
-          <h1 className="text-xl font-bold text-foreground">
+      {/* Botão de voltar flutuante — padrão das outras telas */}
+      <button
+        type="button"
+        onClick={() => router.back()}
+        aria-label="Voltar"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
+      {/* Main Content */}
+      <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
+
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Chats Corporativos</h1>
+          <p className="mt-1 text-sm text-muted-foreground md:text-base">
             Converse com seus clientes
-          </h1>
+          </p>
         </div>
 
-        {/* Filter + search bar */}
-        <ChatFilterBar
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          onSearchChange={setSearchQuery}
-        />
+        {/* Card: Filtros + Lista de conversas */}
+        <div className="flex flex-col rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
 
-        {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto bg-background">
-          <ChatList
-            conversations={MOCK_CONVERSATIONS}
-            filter={activeFilter}
-            search={searchQuery}
-            emptyDescription={"Quando um cliente falar com você\na conversa aparecerá aqui"}
-          />
+          {/* Ícone + título da seção */}
+          <div className="flex items-center gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-6">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <MessageSquare className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">Suas conversas</h2>
+              <p className="text-xs text-muted-foreground">
+                {mockConversations.filter(c => c.unreadCount > 0).length > 0
+                  ? `${mockConversations.filter(c => c.unreadCount > 0).length} não lida(s)`
+                  : "Tudo lido"}
+              </p>
+            </div>
+          </div>
+
+          {/* Filtros + busca */}
+          <div className="border-t border-border">
+            <ChatFilterBar
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
+
+          {/* Lista de conversas */}
+          <div className="border-t border-border">
+            <ChatList
+              conversations={mockConversations}
+              filter={activeFilter}
+              search={searchQuery}
+              emptyDescription={"Quando um cliente falar com você\na conversa aparecerá aqui"}
+            />
+          </div>
         </div>
-      </PageTransition>
+
+      </main>
     </div>
   );
 }

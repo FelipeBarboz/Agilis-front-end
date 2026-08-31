@@ -54,7 +54,7 @@ export function ServiceSummaryBanner({ service }: ServiceSummaryBannerProps) {
   return (
     <Link
       href={`/services/${serviceId}`}
-      className="group mx-3 mt-3 flex items-center justify-between gap-3 rounded-2xl border bg-card p-3.5 shadow-xs ring-1 ring-foreground/5 transition-all hover:ring-primary/30 hover:shadow-md"
+      className="group flex items-center justify-between gap-3 rounded-2xl border bg-card p-3.5 shadow-xs ring-1 ring-foreground/5 transition-all hover:ring-primary/30 hover:shadow-md"
     >
       {/* Icon */}
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">

@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ArrowLeft,
-  MoreVertical,
   Phone,
   Star,
   ShieldCheck,
+  MoreVertical,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,86 +45,82 @@ export function ConversationHeader({
     conversation;
 
   return (
-    <header className="flex items-center gap-3 bg-primary px-3 py-2.5 text-primary-foreground shadow-md">
-      {/* Voltar */}
-      <Link
-        href="/chats"
-        aria-label="Voltar para chats"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-white/20 active:bg-white/30"
-      >
-        <ArrowLeft size={20} />
-      </Link>
-
-      {/* Avatar */}
-      <div className="relative shrink-0">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-sm font-bold text-white ring-2 ring-white/30">
-          {getInitials(providerName)}
-        </div>
-        {/* Online indicator */}
-        {!isFinished && isOnline && (
-          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-primary bg-green-400" />
-        )}
-      </div>
-
-      {/* Info — provider name + service */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-bold leading-tight text-white">
-            {providerName}
-          </span>
-          {/* Verified badge */}
-          <ShieldCheck size={13} className="shrink-0 text-white/70" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Status */}
-          <span
-            className={`text-[11px] font-medium leading-tight ${
-              isFinished
-                ? "text-white/50"
-                : isOnline
-                  ? "text-green-300"
-                  : "text-white/60"
-            }`}
-          >
-            {isFinished ? "Conversa finalizada" : isOnline ? "Online agora" : "Offline"}
-          </span>
-
-          {/* Separator + service name */}
-          <span className="text-white/40 text-[11px]">•</span>
-          <span className="truncate text-[11px] text-white/60">{serviceName}</span>
-
-          {/* Rating */}
-          {rating !== undefined && (
-            <>
-              <span className="text-white/40 text-[11px]">•</span>
-              <span className="flex items-center gap-0.5 text-[11px] text-amber-300">
-                <Star size={10} className="fill-amber-300" />
-                {rating.toFixed(1)}
-              </span>
-            </>
+    <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+      <div className="flex items-center gap-4">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary ring-2 ring-primary/10 sm:h-20 sm:w-20 sm:text-2xl">
+            {getInitials(providerName)}
+          </div>
+          {/* Online indicator */}
+          {!isFinished && isOnline && (
+            <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-card bg-emerald-500" />
           )}
         </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          type="button"
-          aria-label="Ligar para prestador"
-          className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/20 active:bg-white/30"
-        >
-          <Phone size={18} />
-        </button>
-        <button
-          type="button"
-          onClick={onMenuOpen}
-          aria-label="Mais opções"
-          className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/20 active:bg-white/30"
-        >
-          <MoreVertical size={18} />
-        </button>
+        {/* Info */}
+        <div className="flex flex-1 flex-col gap-1 overflow-hidden">
+          <div className="flex items-center gap-1.5">
+            <h2 className="truncate text-lg font-bold text-foreground sm:text-xl">
+              {providerName}
+            </h2>
+            <ShieldCheck size={15} className="shrink-0 text-primary/60" />
+          </div>
+
+          <p className="truncate text-sm text-muted-foreground">{serviceName}</p>
+
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            {/* Status */}
+            <span
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold border ${
+                isFinished
+                  ? "border-border bg-muted text-muted-foreground"
+                  : isOnline
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
+                    : "border-border bg-muted text-muted-foreground"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isFinished
+                    ? "bg-muted-foreground"
+                    : isOnline
+                      ? "bg-emerald-500 animate-pulse"
+                      : "bg-muted-foreground"
+                }`}
+              />
+              {isFinished ? "Conversa finalizada" : isOnline ? "Online agora" : "Offline"}
+            </span>
+
+            {/* Rating */}
+            {rating !== undefined && (
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                <Star size={11} className="fill-amber-500 text-amber-500" />
+                {rating.toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            aria-label="Ligar para prestador"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Phone size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={onMenuOpen}
+            aria-label="Mais opções"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <MoreVertical size={18} />
+          </button>
+        </div>
       </div>
-    </header>
+    </div>
   );
 }
