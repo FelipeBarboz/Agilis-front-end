@@ -27,7 +27,7 @@ export default function ProviderDashboardPage() {
   const router = useRouter();
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       
       {/* Seta de voltar flutuante — padrão auth e serviço */}
       <button
@@ -84,7 +84,7 @@ export default function ProviderDashboardPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
             <Link
               href="/provider/chat-corporative"
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted hover:border-primary/40 group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <MessageSquare className="size-5" />
@@ -97,7 +97,7 @@ export default function ProviderDashboardPage() {
             
             <Link
               href="/provider/scheduling-provider"
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted hover:border-primary/40 group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <CalendarDays className="size-5" />
@@ -110,7 +110,7 @@ export default function ProviderDashboardPage() {
 
             <Link
               href="/provider/create-store"
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted hover:border-primary/40 group"
             >
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                 <Store className="size-5" />

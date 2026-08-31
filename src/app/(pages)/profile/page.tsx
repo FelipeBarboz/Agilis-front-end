@@ -55,7 +55,7 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center gap-2 pt-2 sm:items-start">
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-bold text-foreground">{mockUser.name}</h2>
-                <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                <span className="rounded-md bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   Cliente Ativo
                 </span>
               </div>
