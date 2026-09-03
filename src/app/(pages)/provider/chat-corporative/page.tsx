@@ -1,33 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, MessageSquare } from "lucide-react";
 import { ChatFilterBar } from "@/app/(pages)/chats/_components/chat-filter-bar/chat-filter-bar";
 import { ChatList } from "@/app/(pages)/chats/_components/chat-list/chat-list";
 import { mockConversations } from "@/lib/mocks/chat";
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 type FilterType = "todos" | "nao_lidos" | "finalizados";
 
 export default function ChatCorporativePage() {
-  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
 
-      {/* Botão de voltar flutuante — padrão das outras telas */}
-      <button
-        type="button"
-        onClick={() => router.back()}
-        aria-label="Voltar"
+      {/* Botão de voltar flutuante — redireciona para tela de prestador */}
+      <Link
+        href="/provider"
+        aria-label="Voltar para tela de prestador"
         className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
       >
         <ArrowLeft size={20} />
-      </button>
+      </Link>
 
       {/* Main Content */}
       <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">

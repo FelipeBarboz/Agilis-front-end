@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, Camera } from "lucide-react";
 import { AvatarModal } from "../../profile/_components/avatar-modal";
 import { EditProviderForm } from "./_components/edit-provider-form";
 
 export default function EditProviderPage() {
-  const router = useRouter();
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   return (
@@ -17,15 +16,14 @@ export default function EditProviderPage() {
         onClose={() => setIsAvatarModalOpen(false)}
       />
 
-      {/* Seta de voltar flutuante — padrão auth, serviço e perfil */}
-      <button
-        type="button"
-        onClick={() => router.back()}
-        aria-label="Voltar"
+      {/* Seta de voltar flutuante — redireciona para tela de prestador */}
+      <Link
+        href="/provider"
+        aria-label="Voltar para tela de prestador"
         className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
       >
         <ArrowLeft size={20} />
-      </button>
+      </Link>
 
       {/* Main Content */}
       <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">

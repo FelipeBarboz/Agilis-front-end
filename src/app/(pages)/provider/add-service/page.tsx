@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, ChevronDown, ImagePlus, UploadCloud, X } from "lucide-react";
@@ -16,20 +15,18 @@ const PRICE_TYPE_LABELS: Record<PriceType, string> = {
 };
 
 export default function AddServicePage() {
-  const router = useRouter();
   const [priceType, setPriceType] = useState<PriceType>("FIXED");
 
   return (
     <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
-      {/* Seta de voltar flutuante — padrão Agilis */}
-      <button
-        type="button"
-        onClick={() => router.back()}
-        aria-label="Voltar"
+      {/* Seta de voltar flutuante — redireciona para tela de prestador */}
+      <Link
+        href="/provider"
+        aria-label="Voltar para tela de prestador"
         className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
       >
         <ArrowLeft size={20} />
-      </button>
+      </Link>
 
       {/* Main Content */}
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 pt-14 pb-8 sm:px-6 lg:px-8">
