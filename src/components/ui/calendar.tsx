@@ -132,8 +132,7 @@ export function Calendar({
           dateOnly.setHours(0, 0, 0, 0);
 
           const isSelected =
-            selected &&
-            selected.getFullYear() === date.getFullYear() &&
+            selected?.getFullYear() === date.getFullYear() &&
             selected.getMonth() === date.getMonth() &&
             selected.getDate() === date.getDate();
 
@@ -143,7 +142,7 @@ export function Calendar({
             today.getDate() === date.getDate();
 
           let isDisabled = !isCurrentMonth;
-          if (disabled && disabled(date)) isDisabled = true;
+          if (disabled?.(date)) isDisabled = true;
           if (minDate && dateOnly < minDate) isDisabled = true;
           if (maxDate && dateOnly > maxDate) isDisabled = true;
 

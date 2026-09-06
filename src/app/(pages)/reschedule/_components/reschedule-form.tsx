@@ -113,7 +113,7 @@ export function RescheduleForm() {
           />
         ) : (
           <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary">
-            {entry?.serviceName?.charAt(0) || "S"}
+            {entry?.serviceName?.[0] ?? "S"}
           </div>
         )}
 

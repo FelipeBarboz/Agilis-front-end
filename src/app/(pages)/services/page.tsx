@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { ServicesSearchBar } from "./_components/services-search-bar";
@@ -21,7 +21,7 @@ const DEFAULT_FILTERS: Filters = {
   rating: 0,
 };
 
-export default function ServicesPage() {
+function ServicesContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") ?? "todos";
 
@@ -65,11 +65,11 @@ export default function ServicesPage() {
 
       const matchesState =
         appliedFilters.state === "" ||
-        (s.state && s.state.toLowerCase() === appliedFilters.state.toLowerCase());
+        (s.state?.toLowerCase() === appliedFilters.state.toLowerCase());
 
       const matchesCity =
         appliedFilters.city === "" ||
-        (s.city && s.city.toLowerCase().includes(appliedFilters.city.toLowerCase())) ||
+        Boolean(s.city?.toLowerCase().includes(appliedFilters.city.toLowerCase())) ||
         s.availability.toLowerCase().includes(appliedFilters.city.toLowerCase());
 
       return (
@@ -220,5 +220,22 @@ export default function ServicesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex flex-1 items-center justify-center bg-muted p-6">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Carregando serviços...</p>
+          </div>
+        </main>
+      }
+    >
+      <ServicesContent />
+    </Suspense>
   );
 }

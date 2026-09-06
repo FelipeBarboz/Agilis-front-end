@@ -23,7 +23,7 @@ export function HistorySection() {
 
     for (const entry of MOCK_HISTORY) {
       if (entry.status in counts) {
-        counts[entry.status as HistoryStatus]++;
+        counts[entry.status]++;
       }
     }
 

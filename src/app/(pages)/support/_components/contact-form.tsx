@@ -23,7 +23,7 @@ export function ContactForm() {
     reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<SupportFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+     
     resolver: zodResolver(supportSchema) as Resolver<SupportFormData>,
   });
 

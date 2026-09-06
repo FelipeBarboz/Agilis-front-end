@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { mockServices } from "@/lib/mocks/services";
@@ -14,10 +14,9 @@ import { ServiceReviews } from "./_components/service-reviews";
 import { ServiceRelated } from "./_components/service-related";
 import { PageTransition } from "@/components/ui/motion";
 
-export default function ServiceDetailPage() {
+function ServiceDetailContent() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const serviceId = params.serviceId as string;
   const storeIdParam = searchParams.get("storeId") ?? "";
@@ -123,5 +122,22 @@ export default function ServiceDetailPage() {
 
       </PageTransition>
     </main>
+  );
+}
+
+export default function ServiceDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex flex-1 items-center justify-center bg-muted p-6">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Carregando detalhes do serviço...</p>
+          </div>
+        </main>
+      }
+    >
+      <ServiceDetailContent />
+    </Suspense>
   );
 }

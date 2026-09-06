@@ -21,7 +21,7 @@ import { Card } from "@/components/ui/card";
 function StoreAboutContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const storeId = searchParams.get("id") || searchParams.get("storeId") || "store-super-pinturas";
+  const storeId = searchParams.get("id") ?? searchParams.get("storeId") ?? "store-super-pinturas";
 
   const store = useMemo(() => getStoreById(storeId), [storeId]);
 
