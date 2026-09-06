@@ -8,7 +8,7 @@ interface FavoritesListProps {
 
 export function FavoritesList({ services, onToggleFavorite }: FavoritesListProps) {
   return (
-    <div className="flex flex-col gap-3 px-4 py-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {services.map((service) => (
         <FavoriteServiceCard
           key={service.id}
@@ -18,4 +18,4 @@ export function FavoritesList({ services, onToggleFavorite }: FavoritesListProps
       ))}
     </div>
   );
-}
+}

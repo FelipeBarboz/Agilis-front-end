@@ -36,22 +36,27 @@ export function PaymentMethodModal({
           onClick={() => onOpenChange(false)}
         >
           <motion.div
-            className="w-full max-w-sm rounded-xl bg-background p-6 shadow-lg"
+            className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl"
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-foreground">
-                Selecione a forma de pagamento
-              </h2>
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">
+                  Forma de Pagamento
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Selecione como deseja pagar pelo serviço
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="text-muted-foreground hover:text-foreground"
+                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
@@ -66,53 +71,62 @@ export function PaymentMethodModal({
                     type="button"
                     onClick={() => onSelect(method.id)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
+                      "flex items-center gap-3.5 rounded-xl border p-3.5 text-left transition-all cursor-pointer",
                       isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-input hover:bg-muted",
+                        ? "border-primary bg-primary/5 shadow-2xs"
+                        : "border-border hover:bg-muted/50 hover:border-primary/30",
                     )}
                   >
-                    <Icon
+                    <div
                       className={cn(
-                        "h-5 w-5",
-                        isSelected ? "text-primary" : "text-muted-foreground",
+                        "flex size-10 shrink-0 items-center justify-center rounded-xl transition-colors",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground",
                       )}
-                    />
-                    <div className="flex flex-1 flex-col">
-                      <span className="text-sm font-medium text-foreground">
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+
+                    <div className="flex flex-1 flex-col min-w-0">
+                      <span className="text-sm font-semibold text-foreground">
                         {method.label}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground truncate">
                         {method.description}
                       </span>
                     </div>
+
                     <span
                       className={cn(
-                        "h-4 w-4 rounded-full border-2",
+                        "flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all",
                         isSelected
-                          ? "border-primary bg-primary"
-                          : "border-input",
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-muted-foreground/40",
                       )}
-                    />
+                    >
+                      {isSelected && (
+                        <span className="size-2 rounded-full bg-white" />
+                      )}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="mt-4 flex items-start gap-2 rounded-lg bg-primary/5 p-3">
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-primary/5 border border-primary/15 p-3">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <p className="text-xs text-muted-foreground">
-                Pagamento seguro. Seus dados são protegidos e criptografados
-                em todas as transações.
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <strong className="text-foreground font-semibold">Pagamento seguro:</strong> Seus dados são protegidos e criptografados em todas as etapas.
               </p>
             </div>
 
             <Button
-              className="mt-4 w-full"
+              className="mt-5 w-full rounded-xl font-bold h-11"
               disabled={!selectedId}
               onClick={() => onOpenChange(false)}
             >
-              Continuar
+              Confirmar Escolha
             </Button>
           </motion.div>
         </motion.div>
