@@ -25,7 +25,7 @@ export function EmployeesList() {
     const rolePos = mockPositions.find(
       (p) => p.title.toLowerCase() === newRole.toLowerCase()
     );
-    const newPermissions = rolePos?.permissions || ["manage_appointments"];
+    const newPermissions = rolePos?.permissions ?? ["manage_appointments"];
 
     setEmployees((prev) => 
       prev.map((emp) => 
@@ -50,7 +50,7 @@ export function EmployeesList() {
     const rolePos = mockPositions.find(
       (p) => p.title.toLowerCase() === newEmp.roleLabel.toLowerCase()
     );
-    const initialPermissions = rolePos?.permissions || newEmp.permissions;
+    const initialPermissions = rolePos?.permissions ?? newEmp.permissions;
 
     const created: Employee = {
       id: String(Date.now()),
@@ -151,7 +151,7 @@ export function EmployeesList() {
       <ManageEmployeeModal 
         open={manageModalOpen} 
         onOpenChange={setManageModalOpen}
-        employeeName={selectedEmployee?.name || ""}
+        employeeName={selectedEmployee?.name ?? ""}
         currentRole={selectedEmployee?.roleLabel}
         onSave={handleSaveEmployee}
         onDeleteEmployee={handleDeleteEmployee}

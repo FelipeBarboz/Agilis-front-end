@@ -9,7 +9,7 @@ import { PageTransition } from "@/components/ui/motion";
 
 function StorePageContent() {
   const searchParams = useSearchParams();
-  const storeId = searchParams.get("id") || searchParams.get("storeId") || "store-super-pinturas";
+  const storeId = searchParams.get("id") ?? searchParams.get("storeId") ?? "store-super-pinturas";
 
   const store = useMemo(() => getStoreById(storeId), [storeId]);
   const services = useMemo(() => getServicesByStore(store), [store]);

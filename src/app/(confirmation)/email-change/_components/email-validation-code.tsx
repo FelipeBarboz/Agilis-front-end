@@ -47,7 +47,7 @@ export default function EmailValidationCode({ email, onBack, onConfirm }: EmailV
 
     const newCode = [...code];
     for (let i = 0; i < pastedData.length; i++) {
-      if (i < 6) newCode[i] = pastedData[i] as string;
+      if (i < 6) newCode[i] = pastedData[i]!;
     }
     setCode(newCode);
     

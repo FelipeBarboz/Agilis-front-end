@@ -18,7 +18,7 @@ export function AddEmployeeModal({
   onAddEmployee,
 }: AddEmployeeModalProps) {
   const [name, setName] = useState("");
-  const [roleLabel, setRoleLabel] = useState(mockPositions[0]?.title || "Provedor de Serviço");
+  const [roleLabel, setRoleLabel] = useState(mockPositions[0]?.title ?? "Provedor de Serviço");
 
   if (!open) return null;
 

@@ -142,7 +142,7 @@ export function EditProviderForm() {
               <Input
                 id={`field-${key}`}
                 type={type}
-                value={formData[key as keyof typeof formData] ?? ""}
+                value={formData[key] ?? ""}
                 onChange={(e) => handleChange(key, e.target.value)}
                 placeholder={placeholder}
                 aria-invalid={!!errors[key]}

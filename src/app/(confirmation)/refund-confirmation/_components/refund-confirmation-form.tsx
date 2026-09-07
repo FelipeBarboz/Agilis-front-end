@@ -121,7 +121,7 @@ export function RefundConfirmationForm() {
           />
         ) : (
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 font-bold text-primary">
-            {entry?.serviceName?.charAt(0) || "S"}
+            {entry?.serviceName?.[0] ?? "S"}
           </div>
         )}
         <div className="min-w-0 flex-1">

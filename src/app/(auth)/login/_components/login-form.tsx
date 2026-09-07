@@ -23,7 +23,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+     
     resolver: zodResolver(loginSchema) as Resolver<LoginFormData>,
   });
 

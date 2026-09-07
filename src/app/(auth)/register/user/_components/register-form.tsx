@@ -25,7 +25,7 @@ export function RegisterForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+     
     resolver: zodResolver(registerSchema),
   });
 

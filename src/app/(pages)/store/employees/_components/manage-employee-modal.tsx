@@ -62,9 +62,9 @@ export function ManageEmployeeModal({
   // Find the selected position object to show its inherited permissions
   const selectedPositionObj = mockPositions.find(
     (p) => p.title.toLowerCase() === selectedRole.toLowerCase()
-  ) || mockPositions[1];
+  ) ?? mockPositions[1];
 
-  const rolePermissions = selectedPositionObj?.permissions || ["manage_appointments"];
+  const rolePermissions = selectedPositionObj?.permissions ?? ["manage_appointments"];
 
   return (
     <AnimatePresence>
@@ -210,7 +210,7 @@ export function ManageEmployeeModal({
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-foreground">{selectedRole}</span>
                           <span className="text-xs text-muted-foreground">
-                            {selectedPositionObj?.description || "Função na loja"}
+                            {selectedPositionObj?.description ?? "Função na loja"}
                           </span>
                         </div>
                         <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-lg">
