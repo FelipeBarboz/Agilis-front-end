@@ -11,15 +11,13 @@ import {
   Settings,
   CalendarDays,
   Clock,
-  Tag,
-  Plus,
   User,
   ArrowRight,
   LogOut,
   ChevronRight,
 } from "lucide-react";
-import { mockProfileServices } from "@/lib/mocks/profile-services";
 import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
+import { ServicesList } from "./_components/services-list";
 
 export default function StoreProfilePage() {
   const router = useRouter();
@@ -122,48 +120,7 @@ export default function StoreProfilePage() {
         </div>
 
         {/* Card 2: Serviços da Loja */}
-        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Serviços da Loja</h2>
-              <p className="text-sm text-muted-foreground">Gerencie os serviços oferecidos e seus valores</p>
-            </div>
-            
-            <Link
-              href="/provider/add-service"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus:ring-4 focus:ring-primary/20"
-            >
-              <Plus className="size-4" />
-              Novo serviço
-            </Link>
-          </div>
-
-          <div className="mt-2 divide-y divide-border border-t border-border">
-            {mockProfileServices.map((service) => (
-              <div key={service.id} className="flex items-center justify-between py-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-bold text-foreground">{service.name}</span>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
-                      <Tag className="size-3.5" />
-                      {service.price}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="size-3.5" />
-                      {service.duration}
-                    </span>
-                  </div>
-                </div>
-                <Link
-                  href="/provider/add-service"
-                  className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
-                >
-                  Editar
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
+        <ServicesList />
 
         {/* Card 3: Agendamentos */}
         <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
