@@ -49,7 +49,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           className={`relative rounded-2xl px-3.5 py-2 shadow-sm ${
             isOwn
               ? "rounded-br-sm bg-primary text-primary-foreground"
-              : "rounded-bl-sm bg-white text-foreground ring-1 ring-border/60"
+              : "rounded-bl-sm bg-card text-card-foreground ring-1 ring-border/60"
           }`}
         >
           <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
