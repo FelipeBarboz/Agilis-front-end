@@ -4,12 +4,12 @@ import { AttendanceTypeForm } from "./_components/attendance-type-form";
 
 export default function AttendanceAreaPage() {
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       {/* Seta de voltar flutuante — padrão Agilis */}
       <Link
         href="/provider/create-store"
         aria-label="Voltar para criar loja"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
       >
         <ArrowLeft size={20} />
       </Link>
@@ -26,13 +26,13 @@ export default function AttendanceAreaPage() {
         </div>
 
         {/* Form Card */}
-        <div className="overflow-hidden rounded-3xl bg-primary shadow-xl">
-          <div className="px-6 py-5 md:px-10 md:py-7">
-            <p className="text-sm font-semibold uppercase tracking-widest text-white/50">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+          <div className="flex items-center gap-3 border-b border-border px-6 py-5 md:px-10">
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
               Etapa 3 de 5
-            </p>
+            </span>
           </div>
-          <div className="px-6 pb-8 md:px-10 md:pb-10">
+          <div className="px-6 pb-8 pt-6 md:px-10 md:pb-10">
             <AttendanceTypeForm />
           </div>
         </div>

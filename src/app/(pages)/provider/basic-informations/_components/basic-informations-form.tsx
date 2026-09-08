@@ -19,51 +19,51 @@ export function BasicInformationsForm() {
 
       {/* Nome da loja */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="storeName" className="text-sm font-semibold text-white/80">
-          Nome da loja <span className="text-white/40">*</span>
+        <label htmlFor="storeName" className="text-xs font-bold text-foreground">
+          Nome da loja <span className="text-primary">*</span>
         </label>
         <Input
           id="storeName"
           placeholder="Ex: Carlão Piscinas"
-          className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
+          className="h-11 rounded-xl"
         />
       </div>
 
       {/* URL */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="url" className="text-sm font-semibold text-white/80">
-          URL personalizada <span className="text-white/40">*</span>
+        <label htmlFor="url" className="text-xs font-bold text-foreground">
+          URL personalizada <span className="text-primary">*</span>
         </label>
-        <div className="flex h-12 items-center overflow-hidden rounded-xl bg-white/95 shadow-sm focus-within:ring-4 focus-within:ring-white/30">
-          <span className="flex h-full items-center border-r border-muted-foreground/20 bg-white/60 px-4 text-sm font-medium text-neutral-600 select-none whitespace-nowrap">
+        <div className="flex h-11 items-center overflow-hidden rounded-xl border border-input bg-background shadow-xs focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+          <span className="flex h-full items-center border-r border-border bg-muted/50 px-3.5 text-sm font-medium text-muted-foreground select-none whitespace-nowrap">
             agilis.com/
           </span>
           <input
             id="url"
             type="text"
-            className="h-full min-w-0 flex-1 border-0 bg-transparent px-4 text-sm text-black placeholder:text-neutral-500 focus:outline-none"
+            className="h-full min-w-0 flex-1 border-0 bg-transparent px-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             placeholder="carlao-piscinas"
           />
         </div>
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-muted-foreground">
           Apenas letras minúsculas, números e hífens
         </p>
       </div>
 
       {/* Separador */}
-      <div className="h-px bg-white/20" />
+      <div className="h-px bg-border" />
 
       {/* Botões */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href="/provider/create-store"
-          className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-white/25 text-sm font-bold text-white transition-all hover:bg-white/10 sm:flex-1"
+          className="flex h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:flex-1"
         >
           Cancelar
         </Link>
         <Button
           type="submit"
-          className="h-12 w-full rounded-xl bg-black text-sm font-bold text-white shadow-lg transition-all hover:bg-black/80 sm:flex-[2] cursor-pointer"
+          className="h-11 w-full rounded-xl bg-primary px-8 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 sm:flex-[2] cursor-pointer"
         >
           Salvar e continuar
         </Button>

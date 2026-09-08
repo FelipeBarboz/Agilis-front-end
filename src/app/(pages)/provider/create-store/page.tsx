@@ -115,19 +115,19 @@ export default function CreateStorePage() {
         </div>
 
         {/* Progress Card */}
-        <div className="overflow-hidden rounded-3xl bg-primary shadow-xl">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
           <div className="flex flex-col gap-5 p-6 md:p-8">
 
             {/* Icon + Text */}
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15">
-                <Store className="size-7 text-white" />
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
+                <Store className="size-7 text-primary" />
               </div>
               <div>
-                <p className="text-base font-bold text-white leading-tight">
+                <p className="text-base font-bold text-foreground leading-tight">
                   Configure os dados da sua loja
                 </p>
-                <p className="mt-0.5 text-sm text-white/70">
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   Complete as 5 etapas para publicar seu perfil
                 </p>
               </div>
@@ -136,14 +136,14 @@ export default function CreateStorePage() {
             {/* Progress Bar */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span className="text-white/70">Progresso</span>
-                <span className="text-white">
+                <span className="text-muted-foreground">Progresso</span>
+                <span className="text-foreground">
                   {completedSteps}/{totalSteps} etapas ({progressPercentage}%)
                 </span>
               </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/20">
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-white transition-all duration-500 ease-out"
+                  className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -153,8 +153,8 @@ export default function CreateStorePage() {
         </div>
 
         {/* Steps List Card */}
-        <div className="overflow-hidden rounded-3xl border bg-white shadow-sm">
-          <div className="border-b px-6 py-4 md:px-8">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+          <div className="border-b border-border px-6 py-4 md:px-8">
             <h2 className="text-base font-bold text-foreground">Etapas de cadastro</h2>
           </div>
 
@@ -212,7 +212,7 @@ export default function CreateStorePage() {
         </div>
 
         {/* Finalize Card */}
-        <div className="flex flex-col items-center justify-between gap-4 rounded-3xl border bg-white p-6 shadow-sm sm:flex-row sm:p-8">
+        <div className="flex flex-col items-center justify-between gap-4 rounded-3xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:p-8">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Sparkles className="size-5" />

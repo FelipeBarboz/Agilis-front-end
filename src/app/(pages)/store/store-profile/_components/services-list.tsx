@@ -64,7 +64,7 @@ export function ServicesList() {
               </div>
             </div>
             <Link
-              href="/provider/add-service"
+              href={`/provider/edit-service/${service.id}`}
               className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
             >
               Editar

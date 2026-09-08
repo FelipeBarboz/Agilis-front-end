@@ -30,25 +30,25 @@ export function EnterpriseInfosForm() {
 
       {/* Nome de Exibição */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="displayName" className="text-sm font-semibold text-white/80">
-          Nome de exibição <span className="text-white/40">*</span>
+        <label htmlFor="displayName" className="text-xs font-bold text-foreground">
+          Nome de exibição <span className="text-primary">*</span>
         </label>
         <Input
           id="displayName"
           placeholder="Ex: Carlão Piscinas ME"
-          className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
+          className="h-11 rounded-xl"
         />
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-muted-foreground">
           Nome que aparecerá publicamente para os clientes
         </p>
       </div>
 
       {/* Separador */}
-      <div className="h-px bg-white/20" />
+      <div className="h-px bg-border" />
 
       {/* CNPJ */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="cnpj" className="text-sm font-semibold text-white/80">
+        <label htmlFor="cnpj" className="text-xs font-bold text-foreground">
           CNPJ
         </label>
         <Input
@@ -57,27 +57,27 @@ export function EnterpriseInfosForm() {
           placeholder="00.000.000/0000-00"
           value={cnpj}
           onChange={(e) => setCnpj(formatCnpj(e.target.value))}
-          className="h-12 border-0 bg-white/95 px-4 text-black shadow-sm placeholder:text-neutral-500 focus-visible:ring-4 focus-visible:ring-white/30 rounded-xl"
+          className="h-11 rounded-xl"
         />
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-muted-foreground">
           Opcional — deixe em branco se for pessoa física (CPF)
         </p>
       </div>
 
       {/* Separador */}
-      <div className="h-px bg-white/20" />
+      <div className="h-px bg-border" />
 
       {/* Botões */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href="/provider/create-store"
-          className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-white/25 text-sm font-bold text-white transition-all hover:bg-white/10 sm:flex-1"
+          className="flex h-11 w-full items-center justify-center rounded-xl border border-border text-sm font-semibold text-foreground transition-colors hover:bg-muted sm:flex-1"
         >
           Cancelar
         </Link>
         <Button
           type="submit"
-          className="h-12 w-full rounded-xl bg-black text-sm font-bold text-white shadow-lg transition-all hover:bg-black/80 sm:flex-[2] cursor-pointer"
+          className="h-11 w-full rounded-xl bg-primary px-8 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 sm:flex-[2] cursor-pointer"
         >
           Salvar e continuar
         </Button>
