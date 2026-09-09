@@ -79,7 +79,7 @@ export default function ProviderDashboardPage() {
           </div>
 
           {/* Action Buttons: Chat, Agenda, Criar Loja */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 mt-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
             <Link
               href="/provider/chat-corporative"
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted hover:border-primary/40 group"
@@ -103,6 +103,19 @@ export default function ProviderDashboardPage() {
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">Agenda</span>
                 <span className="text-xs text-muted-foreground">Seus horários</span>
+              </div>
+            </Link>
+
+            <Link
+              href="/create-store"
+              className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 transition-all hover:bg-muted hover:border-primary group"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground group-hover:scale-105 transition-transform">
+                <Store className="size-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-primary">Criar Loja</span>
+                <span className="text-xs text-muted-foreground">CNPJ, URL e perfil</span>
               </div>
             </Link>
           </div>

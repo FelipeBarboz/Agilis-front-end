@@ -21,6 +21,7 @@ const PROTECTED_ROUTES = [
   "/store/store-settings",
   "/provider",
   "/register/provider",
+  "/create-store",
   "/store/store-scheduling",
   "/reschedule",
 ];

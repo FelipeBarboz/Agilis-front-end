@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MapPinned, Store, Users, ChevronDown, Plus, X } from "lucide-react";
+import { MapPinned, Store, Users, ChevronDown, Plus, X, Search, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { BRAZILIAN_CITIES } from "@/lib/constants/brazilian-cities";
 
 type AttendanceType = "CLIENT_LOCATION" | "FIXED_LOCATION" | "BOTH";
 
@@ -37,7 +38,40 @@ const ATTENDANCE_OPTIONS: {
 export function AttendanceTypeForm() {
   const router = useRouter();
   const [selectedType, setSelectedType] = useState<AttendanceType>("CLIENT_LOCATION");
-  const [cities, setCities] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>(["Guarulhos - SP"]);
+  const [cityQuery, setCityQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const autocompleteRef = useRef<HTMLDivElement>(null);
+
+  // Fecha o dropdown quando clica fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        autocompleteRef.current &&
+        !autocompleteRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const filteredCities = BRAZILIAN_CITIES.filter((cityName) => {
+    const matchesQuery = cityName.toLowerCase().includes(cityQuery.toLowerCase().trim());
+    const notAlreadySelected = !cities.includes(cityName);
+    return matchesQuery && notAlreadySelected;
+  }).slice(0, 7);
+
+  const handleSelectCity = (cityToAdd: string) => {
+    if (!cities.includes(cityToAdd)) {
+      setCities([...cities, cityToAdd]);
+    }
+    setCityQuery("");
+    setIsDropdownOpen(false);
+  };
 
   const handleRemoveCity = (cityToRemove: string) => {
     setCities(cities.filter((city) => city !== cityToRemove));
@@ -138,20 +172,24 @@ export function AttendanceTypeForm() {
 
       {/* Cidades atendidas */}
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-bold text-foreground">Cidades atendidas</p>
+        <label htmlFor="city-input" className="text-xs font-bold text-foreground">
+          Cidades atendidas
+        </label>
 
+        {/* Badges de cidades adicionadas */}
         {cities.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-1">
             {cities.map((city) => (
               <div
                 key={city}
-                className="flex items-center gap-1.5 rounded-xl border border-border bg-muted px-3 py-1.5 text-xs font-semibold text-foreground"
+                className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary"
               >
                 <span>{city}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveCity(city)}
-                  className="text-muted-foreground transition-colors hover:text-destructive"
+                  className="text-primary/60 transition-colors hover:text-destructive cursor-pointer"
+                  aria-label={`Remover ${city}`}
                 >
                   <X className="size-3.5" />
                 </button>
@@ -160,13 +198,80 @@ export function AttendanceTypeForm() {
           </div>
         )}
 
-        <button
-          type="button"
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-sm font-semibold text-muted-foreground transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 cursor-pointer"
-        >
-          <Plus className="size-4" />
-          Adicionar cidade
-        </button>
+        {/* Input com Autocomplete */}
+        <div ref={autocompleteRef} className="relative">
+          <div className="relative flex items-center">
+            <Search className="pointer-events-none absolute left-3.5 size-4 text-muted-foreground" />
+            <input
+              id="city-input"
+              type="text"
+              value={cityQuery}
+              onChange={(e) => {
+                setCityQuery(e.target.value);
+                setIsDropdownOpen(true);
+              }}
+              onFocus={() => {
+                if (filteredCities.length > 0) {
+                  setIsDropdownOpen(true);
+                }
+              }}
+              placeholder="Digite o nome da cidade (ex: Guarulhos, São Paulo...)"
+              className="h-11 w-full rounded-xl border border-input bg-background pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+            {cityQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCityQuery("");
+                  setIsDropdownOpen(false);
+                }}
+                className="absolute right-3 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Menu Dropdown de sugestões */}
+          {isDropdownOpen && filteredCities.length > 0 && (
+            <div className="absolute left-0 top-full z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-lg">
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Cidades sugeridas
+              </div>
+              {filteredCities.map((cityName) => (
+                <button
+                  key={cityName}
+                  type="button"
+                  onClick={() => handleSelectCity(cityName)}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-primary/10 hover:text-primary cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="size-3.5 text-primary" />
+                    <span>{cityName}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-primary">+ Adicionar</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {isDropdownOpen && cityQuery.trim().length > 0 && filteredCities.length === 0 && (
+            <div className="absolute left-0 top-full z-30 mt-1 w-full rounded-xl border border-border bg-card p-3 shadow-lg text-center">
+              <p className="text-xs text-muted-foreground">Nenhuma cidade encontrada para &ldquo;{cityQuery}&rdquo;</p>
+              <button
+                type="button"
+                onClick={() => handleSelectCity(cityQuery.trim())}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
+              >
+                <Plus className="size-3.5" />
+                Adicionar &ldquo;{cityQuery.trim()}&rdquo; mesmo assim
+              </button>
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Adicione todas as cidades em que sua equipe realiza atendimentos
+        </p>
       </div>
 
       {/* Separador */}
