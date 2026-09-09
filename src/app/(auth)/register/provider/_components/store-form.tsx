@@ -136,9 +136,9 @@ export function StoreForm() {
               <p className="mb-5 text-center text-base font-bold text-foreground">
                 {cnpjValue
                   ? cnpjValue.replace(
-                      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-                      "$1.$2.$3/$4-$5"
-                    )
+                    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+                    "$1.$2.$3/$4-$5"
+                  )
                   : pendingData?.cnpj}
               </p>
               <p className="mb-6 text-center text-sm text-muted-foreground">
@@ -147,9 +147,9 @@ export function StoreForm() {
               </p>
 
               {/* Aviso */}
-              <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/40 dark:bg-amber-950/20">
-                <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-500" />
-                <p className="text-xs text-amber-700 dark:text-amber-400">
+              <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-3.5 dark:border-red-800/60 dark:bg-red-950/40">
+                <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-600 dark:text-red-400" />
+                <p className="text-xs font-semibold text-red-900 dark:text-red-200 leading-relaxed">
                   Certifique-se de que o CNPJ informado é válido e pertence à sua empresa.
                 </p>
               </div>
