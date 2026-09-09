@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { GoogleButton } from "../../register/user/_components/google-button";
 import { loginSchema, type LoginFormData } from "@/lib/validations/login";
 
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/auth/auth-context";
+
 const fieldVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0 },
@@ -17,18 +20,27 @@ const fieldVariants = {
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-     
     resolver: zodResolver(loginSchema) as Resolver<LoginFormData>,
   });
 
   async function onSubmit(data: LoginFormData) {
-    console.log(data);
+    try {
+      await login(data.email, data.password);
+      const redirectUrl = searchParams.get("redirect") || "/home";
+      router.push(redirectUrl);
+      router.refresh();
+    } catch (error) {
+      console.error("[Login] Erro ao autenticar:", error);
+    }
   }
 
   return (

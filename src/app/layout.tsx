@@ -3,6 +3,7 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { AuthProvider } from "@/lib/auth/auth-context";
 
 export const metadata: Metadata = {
   title: "Agilis Services",
@@ -43,7 +44,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-background text-foreground font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -23,6 +23,8 @@ import {
   IconBell,
 } from "@/components/ui/icons";
 
+import { useAuth } from "@/lib/auth/auth-context";
+
 const categoryNavItems = [
   { href: "/services?category=todos",      icon: <IconAll size={20} />,      label: "Todos"           },
   { href: "/services?category=tecnologia", icon: <IconTech size={20} />,     label: "Tecnologia e TV" },
@@ -33,6 +35,8 @@ const categoryNavItems = [
 ];
 
 export function LoggedAppSidebar() {
+  const { user } = useAuth();
+  const currentUser = user ?? mockUser;
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category");
@@ -101,8 +105,8 @@ export function LoggedAppSidebar() {
         <Sidebar.Footer className="px-2 pb-2">
           <Sidebar.NavItem
             href="/profile"
-            icon={<UserAvatar user={mockUser} size={28} />}
-            label={mockUser.name}
+            icon={<UserAvatar user={currentUser} size={28} />}
+            label={currentUser.name}
             isActive={pathname === "/profile"}
           />
         </Sidebar.Footer>
