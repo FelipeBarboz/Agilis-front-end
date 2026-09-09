@@ -18,7 +18,7 @@ import { mockProfileServices } from "@/lib/mocks/profile-services";
 export default function ProviderDashboardPage() {
   return (
     <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
-      
+
       {/* Seta de voltar flutuante — redireciona para a home */}
       <Link
         href="/home"
@@ -30,7 +30,7 @@ export default function ProviderDashboardPage() {
 
       {/* Main Content */}
       <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
-        
+
         <div>
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">Meu Perfil de Prestador</h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
@@ -41,7 +41,7 @@ export default function ProviderDashboardPage() {
         {/* Card 1: Provider Profile */}
         <div className="flex flex-col gap-6 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-            
+
             {/* Avatar */}
             <div className="relative">
               <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl shadow-sm">
@@ -79,7 +79,7 @@ export default function ProviderDashboardPage() {
           </div>
 
           {/* Action Buttons: Chat, Agenda, Criar Loja */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 mt-2">
             <Link
               href="/provider/chat-corporative"
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted hover:border-primary/40 group"
@@ -92,7 +92,7 @@ export default function ProviderDashboardPage() {
                 <span className="text-xs text-muted-foreground">Fale com clientes</span>
               </div>
             </Link>
-            
+
             <Link
               href="/provider/scheduling-provider"
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:bg-muted hover:border-primary/40 group"
@@ -105,19 +105,6 @@ export default function ProviderDashboardPage() {
                 <span className="text-xs text-muted-foreground">Seus horários</span>
               </div>
             </Link>
-
-            <Link
-              href="/provider/create-store"
-              className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 transition-all hover:bg-muted hover:border-primary group"
-            >
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground group-hover:scale-105 transition-transform">
-                <Store className="size-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-primary">Criar Loja</span>
-                <span className="text-xs text-muted-foreground">CNPJ, URL e perfil</span>
-              </div>
-            </Link>
           </div>
         </div>
 
@@ -128,7 +115,7 @@ export default function ProviderDashboardPage() {
               <h2 className="text-lg font-bold text-foreground">Seus serviços</h2>
               <p className="text-sm text-muted-foreground">Gerencie seus serviços prestados e cadastre novos</p>
             </div>
-            
+
             <Link
               href="/provider/add-service"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus:ring-4 focus:ring-primary/20"
