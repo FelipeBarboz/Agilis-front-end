@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -43,6 +43,24 @@ export function LoggedAppSidebar() {
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>(mockAppNotifications);
+  const [hasActiveStore, setHasActiveStore] = useState(false);
+
+  useEffect(() => {
+    const checkStore = () => {
+      const storeFlag = localStorage.getItem("has_active_store");
+      setHasActiveStore(storeFlag === "true");
+    };
+
+    checkStore();
+
+    window.addEventListener("storage", checkStore);
+    window.addEventListener("auth-change", checkStore);
+
+    return () => {
+      window.removeEventListener("storage", checkStore);
+      window.removeEventListener("auth-change", checkStore);
+    };
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -60,7 +78,9 @@ export function LoggedAppSidebar() {
     },
     { href: "/history",   icon: <IconHistory />,   label: "Histórico" },
     { href: "/favorites", icon: <IconFavorites />, label: "Favoritos" },
-    { href: "/store",     icon: <IconStore />,     label: "Sua Loja"  },
+    ...(hasActiveStore
+      ? [{ href: "/store", icon: <IconStore />, label: "Sua Loja" }]
+      : []),
   ];
 
   function isCategoryActive(href: string): boolean {

@@ -77,10 +77,15 @@ export default function CreateStorePage() {
   const totalSteps = STEPS.length;
   const completedSteps = Object.values(status).filter(Boolean).length;
   const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
+  const isAllCompleted = mounted && completedSteps === totalSteps;
 
   const handleFinishStoreCreation = () => {
+    if (!isAllCompleted) return;
     localStorage.setItem("has_active_store", "true");
-    router.push("/store/store-profile");
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("auth-change"));
+    // Executa full refresh para carregar a nova sidebar com o item 'Sua Loja'
+    window.location.href = "/store/store-profile";
   };
 
   return (
@@ -119,7 +124,7 @@ export default function CreateStorePage() {
                   Configure os dados da sua loja
                 </p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  Complete as 5 etapas para publicar seu perfil
+                  Complete as {totalSteps} etapas para publicar seu perfil
                 </p>
               </div>
             </div>
@@ -209,14 +214,17 @@ export default function CreateStorePage() {
             <div>
               <h3 className="text-base font-bold text-foreground">Tudo pronto para começar?</h3>
               <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                Ao concluir, sua loja estará configurada e pronta para receber agendamentos.
+                {isAllCompleted
+                  ? "Todas as etapas foram preenchidas! Clique abaixo para finalizar e abrir sua loja."
+                  : "Complete as 4 etapas acima para poder finalizar e publicar sua loja."}
               </p>
             </div>
           </div>
           <Button
             type="button"
+            disabled={!isAllCompleted}
             onClick={handleFinishStoreCreation}
-            className="w-full shrink-0 gap-2 rounded-xl bg-primary py-5 text-sm font-bold text-white shadow-md transition-all hover:bg-primary/90 sm:w-auto cursor-pointer"
+            className="w-full shrink-0 gap-2 rounded-xl bg-primary py-5 text-sm font-bold text-white shadow-md transition-all hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary sm:w-auto cursor-pointer"
           >
             Finalizar e Abrir Loja
             <ArrowRight className="size-4" />

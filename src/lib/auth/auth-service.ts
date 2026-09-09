@@ -35,7 +35,7 @@ export function createMockAuthHeaders(token?: string): MockAuthHeaders {
  */
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
+  const match = new RegExp(`(^|;\\s*)${name}=([^;]*)`).exec(document.cookie);
   return match ? decodeURIComponent(match[2] ?? "") : null;
 }
 

@@ -93,7 +93,7 @@ export function SettingsForm() {
 
   // Copiar URL da loja
   const handleCopySlug = () => {
-    navigator.clipboard.writeText(`https://agilis.com.br/loja/${storeSlug}`);
+    void navigator.clipboard.writeText(`https://agilis.com.br/loja/${storeSlug}`);
     setCopiedSlug(true);
     setTimeout(() => setCopiedSlug(false), 2500);
   };

@@ -29,7 +29,7 @@ function getStoredAddresses(): Address[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      return JSON.parse(raw);
+      return JSON.parse(raw) as Address[];
     }
   } catch {
     // fallback
