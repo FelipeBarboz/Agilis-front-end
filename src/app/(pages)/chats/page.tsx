@@ -1,0 +1,82 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, MessageSquare, Search } from "lucide-react";
+import { ChatList } from "./_components/chat-list/chat-list";
+import { ChatFilterBar } from "./_components/chat-filter-bar/chat-filter-bar";
+import { mockConversations } from "@/lib/mocks/chat";
+
+type FilterType = "todos" | "nao_lidos" | "finalizados";
+
+export default function ChatsPage() {
+  const router = useRouter();
+  const [activeFilter, setActiveFilter] = useState<FilterType>("todos");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  return (
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+
+      {/* Botão de voltar flutuante — padrão das outras telas */}
+      <button
+        type="button"
+        onClick={() => router.back()}
+        aria-label="Voltar"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
+      {/* Main Content */}
+      <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
+
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Chats</h1>
+          <p className="mt-1 text-sm text-muted-foreground md:text-base">
+            Suas conversas com prestadores de serviço
+          </p>
+        </div>
+
+        {/* Card: Filtros + Lista de conversas */}
+        <div className="flex flex-col rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+
+          {/* Ícone + título da seção */}
+          <div className="flex items-center gap-3 px-5 pt-5 pb-4 sm:px-8 sm:pt-6">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <MessageSquare className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">Suas conversas</h2>
+              <p className="text-xs text-muted-foreground">
+                {mockConversations.filter(c => c.unreadCount > 0).length > 0
+                  ? `${mockConversations.filter(c => c.unreadCount > 0).length} não lida(s)`
+                  : "Tudo lido"}
+              </p>
+            </div>
+          </div>
+
+          {/* Filtros + busca */}
+          <div className="border-t border-border">
+            <ChatFilterBar
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              onSearchChange={setSearchQuery}
+            />
+          </div>
+
+          {/* Lista de conversas */}
+          <div className="border-t border-border">
+            <ChatList
+              conversations={mockConversations}
+              filter={activeFilter}
+              search={searchQuery}
+            />
+          </div>
+        </div>
+
+      </main>
+    </div>
+  );
+}
+//testando o github
