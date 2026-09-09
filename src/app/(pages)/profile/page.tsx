@@ -8,14 +8,16 @@ import {
   Mail,
   User,
   Phone,
+  IdCard,
   Pencil,
   MessageSquare,
-  Bell,
   Settings,
   LogOut,
   ChevronRight,
 } from "lucide-react";
 import { mockUser } from "@/lib/mocks/user";
+import { CnpjProviderCard } from "./_components/cnpj-provider-card";
+import { ProviderButton } from "./_components/provider-button";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -131,6 +133,16 @@ export default function ProfilePage() {
 
             <div className="flex items-center gap-3 py-3.5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <IdCard className="size-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground">CPF</span>
+                <span className="text-sm font-medium text-foreground">{mockUser.cpf ?? "Não informado"}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-3.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Mail className="size-4" />
               </div>
               <div className="flex flex-col">
@@ -151,21 +163,17 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 3: Notificações, Configurações e Sair */}
+        {/* Card 3: CNPJ — Tornar-se Provedor */}
         <div className="flex flex-col gap-3">
-          <Link
-            href="/notifications"
-            className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-              <Bell className="size-5" />
-            </div>
-            <div className="flex flex-1 flex-col">
-              <span className="text-sm font-bold text-foreground">Notificações</span>
-              <span className="text-xs text-muted-foreground">Gerencie suas preferências de notificação</span>
-            </div>
-            <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-          </Link>
+          <div>
+            <h2 className="text-sm font-semibold text-muted-foreground px-1 mb-2">Conta Provedor</h2>
+            <CnpjProviderCard />
+          </div>
+        </div>
+
+        {/* Card 4: Configurações, Provedor e Sair */}
+        <div className="flex flex-col gap-3">
+          <ProviderButton />
 
           <Link
             href="/profile/settings"

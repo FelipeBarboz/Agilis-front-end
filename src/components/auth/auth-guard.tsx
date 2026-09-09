@@ -44,7 +44,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
           {/* Design padrão de loading/await Agilis (idêntico a payment e services) */}
           <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
           <p className="text-sm font-medium text-muted-foreground">
-            Verificando autenticação...
+            Carregando...
           </p>
         </div>
       </div>

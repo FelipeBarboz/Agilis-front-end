@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Mail, Phone, Check, X, ChevronRight, Save } from "lucide-react";
+import { User, Mail, Phone, IdCard, Lock, Check, X, ChevronRight, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { mockUser } from "@/lib/mocks/user";
 
@@ -28,6 +28,8 @@ type FormField = {
   placeholder: string;
   type: string;
   icon: React.ElementType;
+  disabled?: boolean;
+  helperText?: string;
 };
 
 const formFields: FormField[] = [
@@ -37,6 +39,15 @@ const formFields: FormField[] = [
     placeholder: "Seu nome completo",
     type: "text",
     icon: User,
+  },
+  {
+    key: "cpf",
+    label: "CPF",
+    placeholder: "000.000.000-00",
+    type: "text",
+    icon: IdCard,
+    disabled: true,
+    helperText: "O CPF é um documento pessoal e intransferível, não podendo ser alterado.",
   },
   {
     key: "email",
@@ -61,6 +72,7 @@ export function EditPersonalForm() {
 
   const [formData, setFormData] = useState({
     name: mockUser.name,
+    cpf: mockUser.cpf ?? "",
     email: mockUser.email,
     phone: mockUser.phone ?? "",
   });
@@ -128,31 +140,51 @@ export function EditPersonalForm() {
         </div>
 
         <div className="flex flex-col gap-5 pt-2">
-          {formFields.map(({ key, label, placeholder, type, icon: Icon }) => (
+          {formFields.map(({ key, label, placeholder, type, icon: Icon, disabled, helperText }) => (
             <div key={key} className="flex flex-col gap-2">
-              <label
-                htmlFor={`field-${key}`}
-                className="flex items-center gap-2 text-sm font-semibold text-foreground"
-              >
-                <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon size={14} />
-                </div>
-                {label}
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor={`field-${key}`}
+                  className="flex items-center gap-2 text-sm font-semibold text-foreground"
+                >
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon size={14} />
+                  </div>
+                  {label}
+                </label>
+                {disabled && (
+                  <span className="flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                    <Lock size={11} />
+                    Não editável
+                  </span>
+                )}
+              </div>
 
               <Input
                 id={`field-${key}`}
                 type={type}
                 value={formData[key as keyof typeof formData] ?? ""}
-                onChange={(e) => handleChange(key, e.target.value)}
+                onChange={(e) => !disabled && handleChange(key, e.target.value)}
                 placeholder={placeholder}
+                disabled={disabled}
+                readOnly={disabled}
                 aria-invalid={!!errors[key]}
-                className="h-11 rounded-xl bg-muted/40 px-4 text-sm focus:bg-card"
+                className={`h-11 rounded-xl px-4 text-sm focus:bg-card ${
+                  disabled
+                    ? "cursor-not-allowed border-dashed bg-muted/60 text-muted-foreground select-none opacity-80"
+                    : "bg-muted/40"
+                }`}
                 autoComplete={
                   key === "email" ? "email" :
                   key === "phone" ? "tel" : "name"
                 }
               />
+
+              {helperText && (
+                <p className="text-[11px] text-muted-foreground">
+                  {helperText}
+                </p>
+              )}
 
               {errors[key] && (
                 <p className="flex items-center gap-1 text-xs text-destructive">

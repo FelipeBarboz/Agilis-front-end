@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Phone, User, Pencil } from "lucide-react";
+import { Mail, Phone, User, IdCard, Pencil } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { type MockUser } from "@/lib/mocks/user";
 
@@ -8,9 +8,10 @@ interface ProfileInfoProps {
 }
 
 const fields = [
-  { icon: User,  label: "Nome",     key: "name"  },
-  { icon: Mail,  label: "E-mail",   key: "email" },
-  { icon: Phone, label: "Telefone", key: "phone" },
+  { icon: User,   label: "Nome",     key: "name"  },
+  { icon: IdCard, label: "CPF",      key: "cpf"   },
+  { icon: Mail,   label: "E-mail",   key: "email" },
+  { icon: Phone,  label: "Telefone", key: "phone" },
 ] as const;
 
 export function ProfileInfo({ user }: ProfileInfoProps) {
@@ -40,6 +41,8 @@ export function ProfileInfo({ user }: ProfileInfoProps) {
               <span className="text-sm font-medium text-foreground">
                 {key === "phone"
                   ? user.phone ?? "Não informado"
+                  : key === "cpf"
+                  ? user.cpf ?? "Não informado"
                   : user[key]}
               </span>
             </div>

@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 export const AUTH_COOKIE_NAME = "sb-access-token";
 
-// Rotas que exigem autenticação fornecidas pelo usuário
+// Rotas que exigem autenticação
 const PROTECTED_ROUTES = [
   "/schedule",
   "/payment",
@@ -19,8 +19,8 @@ const PROTECTED_ROUTES = [
   "/store/employees",
   "/store/store-positions",
   "/store/store-settings",
-  "/provider/add-service",
-  "/provider/edit-service",
+  "/provider",
+  "/register/provider",
   "/store/store-scheduling",
   "/reschedule",
 ];

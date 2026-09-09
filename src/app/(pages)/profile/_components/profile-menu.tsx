@@ -1,14 +1,7 @@
 import Link from "next/link";
-import { Bell, Settings, LogOut, ChevronRight } from "lucide-react";
+import { Settings, LogOut, ChevronRight } from "lucide-react";
 
 const menuItems = [
-  {
-    icon: Bell,
-    label: "Notificações",
-    description: "Gerencie suas preferências de notificação",
-    href: "/notifications",
-    danger: false,
-  },
   {
     icon: Settings,
     label: "Configurações",

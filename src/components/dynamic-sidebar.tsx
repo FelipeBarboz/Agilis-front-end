@@ -8,18 +8,24 @@ import { getStoredToken } from "@/lib/auth/auth-service";
 
 export function DynamicSidebar() {
   const { isAuthenticated, isLoading } = useAuth();
-  // Inicializa com base no token existente no storage/cookie para evitar flash visual
-  const [hasToken, setHasToken] = useState<boolean>(() => Boolean(getStoredToken()));
+  const [mounted, setMounted] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setHasToken(Boolean(getStoredToken()) || isAuthenticated);
   }, [isAuthenticated, isLoading]);
+
+  // Durante SSR e primeira hidratação no cliente, renderiza AppSidebar para garantir paridade exata
+  if (!mounted) {
+    return <AppSidebar />;
+  }
 
   const showLoggedSidebar = isAuthenticated || hasToken;
 
   if (showLoggedSidebar) {
     return (
-      <Suspense fallback={null}>
+      <Suspense fallback={<AppSidebar />}>
         <LoggedAppSidebar />
       </Suspense>
     );
@@ -27,3 +33,4 @@ export function DynamicSidebar() {
 
   return <AppSidebar />;
 }
+

@@ -6,6 +6,7 @@ import { ArrowLeft, Camera } from "lucide-react";
 import { mockUser } from "@/lib/mocks/user";
 import { AvatarModal } from "../_components/avatar-modal";
 import { EditPersonalForm } from "./_components/edit-personal-form";
+import { CnpjProviderCard } from "../_components/cnpj-provider-card";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -63,6 +64,12 @@ export default function EditProfilePage() {
 
         {/* Formulário de edição */}
         <EditPersonalForm />
+
+        {/* Card: CNPJ / Conta Provedor */}
+        <div className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold text-muted-foreground px-1">Conta Provedor</h2>
+          <CnpjProviderCard />
+        </div>
       </main>
     </div>
   );

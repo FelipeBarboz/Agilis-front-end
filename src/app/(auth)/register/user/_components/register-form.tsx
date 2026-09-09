@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GoogleButton } from "./google-button";
 import { PhoneInput } from "./phone-input";
+import { CpfInput } from "./cpf-input";
 import { TermsCheckbox } from "./terms-checkbox";
 import { registerSchema, type RegisterFormData } from "@/lib/validations/register";
 
@@ -120,6 +121,21 @@ export function RegisterForm() {
           />
           {errors.name && (
             <p className="text-xs text-red-200">{errors.name.message}</p>
+          )}
+        </motion.div>
+
+        {/* CPF */}
+        <motion.div
+          className="flex flex-col gap-1"
+          variants={fieldVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ duration: 0.3, delay: 0.43 }}
+        >
+          <label className="text-xs font-medium text-white">CPF</label>
+          <CpfInput {...register("cpf")} />
+          {errors.cpf && (
+            <p className="text-xs text-red-200">{errors.cpf.message}</p>
           )}
         </motion.div>
 

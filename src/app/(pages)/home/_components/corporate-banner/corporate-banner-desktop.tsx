@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
 import { FadeInSection } from "@/components/ui/motion";
+import { RegisterButton } from "./register-button";
 
 export function CorporateBannerDesktop() {
   return (
@@ -32,9 +31,7 @@ export function CorporateBannerDesktop() {
           viewport={{ once: true }}
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
         >
-          <Button asChild variant="primary" size="lg">
-            <Link href="/register/user">Cadastre-se</Link>
-          </Button>
+          <RegisterButton />
         </motion.div>
 
         <div className="absolute right-0 bottom-0 h-full w-55 opacity-90">

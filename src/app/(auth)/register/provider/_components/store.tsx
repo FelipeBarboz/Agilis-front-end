@@ -1,21 +1,17 @@
 import { z } from "zod";
 
 export const storeSchema = z.object({
-  storeName: z
+  cnpj: z
     .string()
-    .min(2, "Informe o nome da loja")
-    .max(60, "Nome muito longo"),
-  storeUrl: z
-    .string()
-    .min(3, "Informe a URL da loja")
-    .max(50, "URL muito longa")
-    .regex(
-      /^[a-z0-9]+(-[a-z0-9]+)*$/,
-      "Use apenas letras minúsculas, números e hífens",
+    .min(1, "CNPJ obrigatório")
+    .transform((val) => val.replace(/\D/g, ""))
+    .pipe(
+      z
+        .string()
+        .length(14, "CNPJ deve ter 14 dígitos")
+        .regex(/^\d+$/, "Apenas números"),
     ),
-  terms: z.literal(true, {
-    errorMap: () => ({ message: "Você precisa aceitar os termos" }),
-  }),
+  terms: z.boolean().optional(),
 });
 
-export type StoreFormData = z.infer<typeof storeSchema>;
+export type StoreFormData = z.infer<typeof storeSchema>;
