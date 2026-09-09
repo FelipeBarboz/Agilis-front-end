@@ -45,9 +45,13 @@ export function StoreForm() {
     // Simula registro (aqui entraria a chamada real à API)
     await new Promise((res) => setTimeout(res, 1000));
 
+    // Salva o CNPJ e status de prestador no localStorage
+    localStorage.setItem("provider_cnpj", pendingData.cnpj);
+    localStorage.setItem("is_provider", "true");
+
     setIsRegistering(false);
     setShowConfirm(false);
-    router.push("/provider");
+    router.push("/profile");
   }
 
   function handleCancel() {

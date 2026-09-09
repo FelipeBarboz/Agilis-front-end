@@ -124,8 +124,8 @@ export default function SchedulingProviderPage() {
           {/* Botão de retorno padrão Agilis */}
           <div>
             <Link
-              href="/provider"
-              aria-label="Voltar para tela de prestador"
+              href="/profile"
+              aria-label="Voltar para perfil"
               className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted"
             >
               <ArrowLeft className="size-5" />

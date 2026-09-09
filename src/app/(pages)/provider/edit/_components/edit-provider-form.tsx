@@ -108,11 +108,11 @@ export function EditProviderForm() {
     }
 
     setIsSaved(true);
-    setTimeout(() => router.push("/provider"), 1200);
+    setTimeout(() => router.push("/profile"), 1200);
   }
 
   function handleCancel() {
-    router.push("/provider");
+    router.push("/profile");
   }
 
   return (

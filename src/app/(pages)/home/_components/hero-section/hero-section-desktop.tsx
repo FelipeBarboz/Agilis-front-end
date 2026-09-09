@@ -6,7 +6,7 @@ import { SearchBar } from "../search-bar";
 
 export function HeroSectionDesktop() {
   return (
-    <div className="relative flex min-h-65 items-center justify-between overflow-hidden rounded-2xl bg-secondary px-12 py-10">
+    <div className="relative flex min-h-65 items-center justify-between rounded-2xl bg-secondary px-12 py-10">
 
       {/* LEFT */}
       <div className="z-10 max-w-130">
@@ -31,7 +31,7 @@ export function HeroSectionDesktop() {
       </div>
 
       {/* RIGHT */}
-      <div className="pointer-events-none absolute right-0 bottom-0 flex items-end justify-end">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl flex items-end justify-end">
         <div className="absolute -right-10 -bottom-10 h-75 w-75 rounded-full bg-brand-green-dark" />
         <div className="absolute right-15 -bottom-15 h-45 w-45 rounded-full bg-primary" />
 

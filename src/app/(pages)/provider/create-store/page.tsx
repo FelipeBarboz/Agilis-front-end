@@ -23,13 +23,6 @@ const STEPS = [
     step: 1,
   },
   {
-    key: "enterpriseInfos" as const,
-    label: "Informações da empresa",
-    description: "Nome de exibição e CNPJ",
-    href: "/provider/enterprise-infos",
-    step: 2,
-  },
-  {
     key: "attendanceArea" as const,
     label: "Área de atendimento",
     description: "Defina onde você atende seus clientes",
@@ -59,7 +52,6 @@ export default function CreateStorePage() {
   const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState<Record<StatusKey, boolean>>({
     basicInfos: false,
-    enterpriseInfos: false,
     attendanceArea: false,
     storeDescription: false,
     enterprisePhotos: false,
@@ -76,7 +68,6 @@ export default function CreateStorePage() {
     setMounted(true);
     setStatus({
       basicInfos: sessionStorage.getItem("form_basicInfos") === "true",
-      enterpriseInfos: sessionStorage.getItem("form_enterpriseInfos") === "true",
       attendanceArea: sessionStorage.getItem("form_attendanceArea") === "true",
       storeDescription: sessionStorage.getItem("form_storeDescription") === "true",
       enterprisePhotos: sessionStorage.getItem("form_enterprisePhotos") === "true",
@@ -93,11 +84,11 @@ export default function CreateStorePage() {
   };
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       {/* Seta de voltar flutuante — padrão Agilis */}
       <Link
-        href="/provider"
-        aria-label="Voltar para tela de prestador"
+        href="/profile"
+        aria-label="Voltar para perfil"
         className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
       >
         <ArrowLeft size={20} />
@@ -169,11 +160,10 @@ export default function CreateStorePage() {
                 >
                   {/* Step status icon */}
                   <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                      isCompleted
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${isCompleted
                         ? "bg-emerald-100 text-emerald-600"
                         : "bg-muted text-muted-foreground"
-                    }`}
+                      }`}
                   >
                     {isCompleted ? (
                       <CheckCircle2 className="size-5" />
@@ -195,11 +185,10 @@ export default function CreateStorePage() {
                   {/* Action badge + chevron */}
                   <div className="flex shrink-0 items-center gap-2">
                     <span
-                      className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
-                        isCompleted
+                      className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${isCompleted
                           ? "bg-muted text-foreground"
                           : "bg-destructive/10 text-destructive"
-                      }`}
+                        }`}
                     >
                       {isCompleted ? "Alterar" : "Pendente"}
                     </span>

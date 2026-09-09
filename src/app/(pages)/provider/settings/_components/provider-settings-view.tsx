@@ -112,8 +112,8 @@ export function ProviderSettingsView() {
     <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       {/* Botão de voltar flutuante — redireciona para a tela do prestador */}
       <Link
-        href="/provider"
-        aria-label="Voltar para tela de prestador"
+        href="/profile"
+        aria-label="Voltar para perfil"
         className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted cursor-pointer"
       >
         <ArrowLeft size={20} />

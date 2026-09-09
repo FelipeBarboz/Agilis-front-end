@@ -75,7 +75,7 @@ export function AvatarModal({ isOpen, onClose }: AvatarModalProps) {
           {/* Modal centralizado */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
-              className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl"
+              className="w-full max-w-sm rounded-2xl bg-card border border-border p-6 shadow-xl"
               initial={{ opacity: 0, scale: 0.95, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 8 }}

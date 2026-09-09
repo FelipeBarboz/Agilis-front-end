@@ -8,7 +8,7 @@ export function SchedulingHeader() {
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3">
           <Link
-            href="/provider"
+            href="/profile"
             className="flex items-center justify-center rounded-full p-2 transition-colors hover:bg-white/20"
           >
             <ArrowLeft className="size-5" />

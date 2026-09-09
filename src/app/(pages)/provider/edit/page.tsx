@@ -10,7 +10,7 @@ export default function EditProviderPage() {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted/30 pb-20">
+    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       <AvatarModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}
@@ -18,8 +18,8 @@ export default function EditProviderPage() {
 
       {/* Seta de voltar flutuante — redireciona para tela de prestador */}
       <Link
-        href="/provider"
-        aria-label="Voltar para tela de prestador"
+        href="/profile"
+        aria-label="Voltar para perfil"
         className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-white cursor-pointer"
       >
         <ArrowLeft size={20} />

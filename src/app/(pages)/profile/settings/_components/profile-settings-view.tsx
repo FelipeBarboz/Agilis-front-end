@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { 
   ArrowLeft, 
   Key, 
@@ -13,20 +14,33 @@ import {
   Check, 
   Eye, 
   EyeOff, 
-  ShieldAlert, 
   AlertTriangle,
   MessageSquare,
   Smartphone,
   Mail,
   CheckCircle2,
-  Save,
-  Lock
+  Briefcase,
+  CalendarCheck,
+  Store
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/theme-provider";
 
 export function ProfileSettingsView() {
   const router = useRouter();
+
+  // ==================== VALIDAÇÃO DE PRESTADOR & LOJA ====================
+  const [isProvider, setIsProvider] = useState(false);
+  const [hasActiveStore, setHasActiveStore] = useState(false);
+
+  useEffect(() => {
+    const storedCnpj = localStorage.getItem("provider_cnpj");
+    const providerFlag = localStorage.getItem("is_provider");
+    const storeFlag = localStorage.getItem("has_active_store");
+
+    setIsProvider(Boolean(storedCnpj || providerFlag === "true"));
+    setHasActiveStore(storeFlag === "true");
+  }, []);
 
   // ==================== TEMA ====================
   const { theme, setTheme } = useTheme();
@@ -81,7 +95,7 @@ export function ProfileSettingsView() {
     }, 600);
   };
 
-  // ==================== NOTIFICAÇÕES ====================
+  // ==================== NOTIFICAÇÕES (USUÁRIO) ====================
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(true);
@@ -93,6 +107,17 @@ export function ProfileSettingsView() {
   const handleSaveNotifications = () => {
     setNotificationsSaved(true);
     setTimeout(() => setNotificationsSaved(false), 3000);
+  };
+
+  // ==================== NOTIFICAÇÕES (PRESTADOR) ====================
+  const [newRequests, setNewRequests] = useState(true);
+  const [scheduleAlerts, setScheduleAlerts] = useState(true);
+  const [chatMessages, setChatMessages] = useState(true);
+  const [providerNotificationsSaved, setProviderNotificationsSaved] = useState(false);
+
+  const handleSaveProviderNotifications = () => {
+    setProviderNotificationsSaved(true);
+    setTimeout(() => setProviderNotificationsSaved(false), 3000);
   };
 
   // ==================== EXCLUIR CONTA ====================
@@ -456,6 +481,153 @@ export function ProfileSettingsView() {
             </div>
           </div>
         </div>
+
+        {/* Card Adicional: Notificações de Atendimento (Se for prestador cadastrado) */}
+        {isProvider && (
+          <div className="flex flex-col gap-5 rounded-3xl border border-primary/20 bg-card p-5 shadow-sm sm:p-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Briefcase className="size-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-foreground">Alertas de Atendimento (Prestador)</h2>
+                    <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      Prestador Ativo
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Receba novos pedidos de clientes, alertas de horários e mensagens de trabalho
+                  </p>
+                </div>
+              </div>
+
+              {providerNotificationsSaved && (
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fade-in">
+                  <Check className="size-3.5" />
+                  <span>Salvo!</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 pt-1">
+              <div className="divide-y divide-border rounded-2xl border border-border bg-background overflow-hidden">
+                <div
+                  onClick={() => {
+                    setNewRequests(!newRequests);
+                    handleSaveProviderNotifications();
+                  }}
+                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 pr-4">
+                    <Briefcase className="size-4 text-primary shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-foreground">Novos pedidos de serviço</span>
+                      <span className="text-[11px] text-muted-foreground">Alertas quando um cliente solicitar um serviço seu</span>
+                    </div>
+                  </div>
+                  <div className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                    newRequests ? "bg-primary" : "bg-muted"
+                  }`}>
+                    <div className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
+                      newRequests ? "translate-x-5" : "translate-x-0"
+                    }`} />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setScheduleAlerts(!scheduleAlerts);
+                    handleSaveProviderNotifications();
+                  }}
+                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 pr-4">
+                    <CalendarCheck className="size-4 text-primary shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-foreground">Lembretes de agendamentos</span>
+                      <span className="text-[11px] text-muted-foreground">Avisos prévios de horários marcados com clientes</span>
+                    </div>
+                  </div>
+                  <div className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                    scheduleAlerts ? "bg-primary" : "bg-muted"
+                  }`}>
+                    <div className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
+                      scheduleAlerts ? "translate-x-5" : "translate-x-0"
+                    }`} />
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setChatMessages(!chatMessages);
+                    handleSaveProviderNotifications();
+                  }}
+                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 pr-4">
+                    <MessageSquare className="size-4 text-primary shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-foreground">Mensagens no chat corporativo</span>
+                      <span className="text-[11px] text-muted-foreground">Novas mensagens diretas de clientes no chat corporativo</span>
+                    </div>
+                  </div>
+                  <div className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                    chatMessages ? "bg-primary" : "bg-muted"
+                  }`}>
+                    <div className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
+                      chatMessages ? "translate-x-5" : "translate-x-0"
+                    }`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Card Adicional: Gestão da Loja (Se tiver loja criada) */}
+        {isProvider && hasActiveStore && (
+          <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <Store className="size-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-foreground">Configurações da Loja</h2>
+                  <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary border border-primary/20">
+                    Loja Ativa
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Acesse os atalhos de gerenciamento do perfil da sua loja, equipe e horários
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full sm:w-auto rounded-xl border-border hover:bg-muted text-foreground cursor-pointer"
+              >
+                <Link href="/store/store-profile">
+                  Ir para Perfil da Loja
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full sm:w-auto rounded-xl border-border hover:bg-muted text-foreground cursor-pointer"
+              >
+                <Link href="/store/store-settings">
+                  Configurações da Empresa
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Card 4: Excluir Conta */}
         <div className="flex flex-col gap-4 rounded-3xl border border-destructive/30 bg-destructive/5 dark:bg-card p-5 shadow-sm sm:p-8">

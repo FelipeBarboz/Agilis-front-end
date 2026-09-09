@@ -24,15 +24,18 @@ const DEFAULT_FILTERS: Filters = {
 function ServicesContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") ?? "todos";
+  const initialQ = searchParams.get("q") ?? "";
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialQ);
   const [category, setCategory] = useState(initialCategory);
   const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS);
 
-  // ← Sincroniza o estado com a URL sempre que o query param mudar
+  // Sincroniza category e q com a URL sempre que os query params mudarem
   useEffect(() => {
     const cat = searchParams.get("category") ?? "todos";
     setCategory(cat);
+    const q = searchParams.get("q") ?? "";
+    if (q) setSearch(q);
   }, [searchParams]);
 
   const filteredServices = useMemo(() => {

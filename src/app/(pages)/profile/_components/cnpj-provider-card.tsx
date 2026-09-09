@@ -1,14 +1,63 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronRight, Plus } from "lucide-react";
+import { Building2, ChevronRight, Plus, CheckCircle2 } from "lucide-react";
 
 /**
- * Mostra um campo/botão "Adicionar CNPJ" no perfil.
- * Ao clicar, redireciona para /register/provider onde o usuário informará o CNPJ
- * e um pop-up de confirmação vai registrá-lo como provedor.
+ * Mostra o status do CNPJ no perfil.
+ * - Se já possui CNPJ no localStorage, exibe o CNPJ formatado com badge verde.
+ * - Se não possui, exibe o card interativo para cadastrar CNPJ em /register/provider.
  */
 export function CnpjProviderCard() {
+  const [mounted, setMounted] = useState(false);
+  const [cnpj, setCnpj] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const storedCnpj = localStorage.getItem("provider_cnpj");
+    setCnpj(storedCnpj);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex h-[74px] items-center rounded-2xl border border-dashed border-border bg-card p-4 sm:p-5" />
+    );
+  }
+
+  const formatCnpj = (val: string) => {
+    const digits = val.replace(/\D/g, "");
+    if (digits.length === 14) {
+      return digits.replace(
+        /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+        "$1.$2.$3/$4-$5"
+      );
+    }
+    return val;
+  };
+
+  if (cnpj) {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-card p-4 shadow-sm sm:p-5">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <Building2 className="size-5" />
+        </div>
+        <div className="flex flex-1 flex-col">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-foreground">CNPJ Cadastrado</span>
+            <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <CheckCircle2 className="size-3" />
+              Provedor Ativo
+            </span>
+          </div>
+          <span className="text-xs font-mono font-medium text-muted-foreground mt-0.5">
+            {formatCnpj(cnpj)}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Link
       href="/register/provider"
@@ -20,7 +69,7 @@ export function CnpjProviderCard() {
       </div>
       <div className="flex flex-1 flex-col">
         <span className="text-sm font-bold text-foreground">CNPJ</span>
-        <span className="text-xs text-muted-foreground">Torne-se um prestador de serviços</span>
+        <span className="text-xs text-muted-foreground">Adicione seu CNPJ para se tornar provedor</span>
       </div>
       <div className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors group-hover:bg-primary/20">
         <Plus className="size-3.5" />

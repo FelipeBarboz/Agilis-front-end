@@ -22,6 +22,21 @@ import { ProviderButton } from "./_components/provider-button";
 export default function ProfilePage() {
   const router = useRouter();
 
+  function handleLogout() {
+    // Limpa todo o localStorage
+    localStorage.clear();
+
+    // Limpa todos os cookies
+    document.cookie.split(";").forEach((cookie) => {
+      const name = (cookie.split("=")[0] ?? "").trim();
+      if (name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
+
+    window.location.href = "/login";
+  }
+
   return (
     <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
       {/* Seta de voltar flutuante — padrão auth e serviço */}
@@ -171,10 +186,11 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 4: Configurações, Provedor e Sair */}
-        <div className="flex flex-col gap-3">
-          <ProviderButton />
+        {/* Card 4: Botões do Prestador (Só visível se CNPJ cadastrado) */}
+        <ProviderButton />
 
+        {/* Card 5: Configurações e Sair */}
+        <div className="flex flex-col gap-3">
           <Link
             href="/profile/settings"
             className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
@@ -189,9 +205,10 @@ export default function ProfilePage() {
             <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
           </Link>
 
-          <Link
-            href="/login"
-            className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5"
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5 cursor-pointer text-left"
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
               <LogOut className="size-5" />
@@ -201,7 +218,7 @@ export default function ProfilePage() {
               <span className="text-xs text-muted-foreground">Encerrar sessão atual</span>
             </div>
             <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-          </Link>
+          </button>
         </div>
 
       </main>
