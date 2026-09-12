@@ -6,7 +6,7 @@ import {
   QrCode,
   Wallet,
 } from "lucide-react";
-import type { PaymentMethod } from "./types";
+import type { PaymentMethod } from "../../../../types/payment";
 
 interface AppointmentDetailsProps {
   date: string;
@@ -119,4 +119,4 @@ export function AppointmentDetails({
     </div>
   );
 }
-
+

@@ -59,7 +59,7 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        {/* Card 1: Perfil do Usuário */}
+        {/*Perfil do Usuário */}
         <div className="flex flex-col gap-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             
@@ -119,7 +119,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 2: Informações pessoais */}
+        {/*Informações pessoais */}
         <div className="flex flex-col gap-4 rounded-3xl border bg-card p-5 shadow-sm sm:p-8">
           <div className="flex items-center justify-between">
             <div>
@@ -178,7 +178,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 3: CNPJ — Tornar-se Provedor */}
+        {/*CNPJ — Tornar-se Provedor */}
         <div className="flex flex-col gap-3">
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground px-1 mb-2">Conta Provedor</h2>
@@ -186,10 +186,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Card 4: Botões do Prestador (Só visível se CNPJ cadastrado) */}
+        {/*Botões do Prestador (Só visível se CNPJ cadastrado) */}
         <ProviderButton />
 
-        {/* Card 5: Configurações e Sair */}
+        {/*Configurações e Sair */}
         <div className="flex flex-col gap-3">
           <Link
             href="/profile/settings"

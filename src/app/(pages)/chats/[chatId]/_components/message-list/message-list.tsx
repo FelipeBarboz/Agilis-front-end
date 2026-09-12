@@ -3,8 +3,6 @@
 import { useEffect, useRef } from "react";
 import { MessageBubble, type ChatMessage } from "../message-bubble/message-bubble";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface MessageGroup {
   dateLabel: string;
   messages: ChatMessage[];
@@ -13,8 +11,6 @@ interface MessageGroup {
 interface MessageListProps {
   groups: MessageGroup[];
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function MessageList({ groups }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);

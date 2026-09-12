@@ -9,14 +9,10 @@ import {
   Trash2,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface ConversationMenuProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-// ─── Menu items ───────────────────────────────────────────────────────────────
 
 const MENU_ITEMS = [
   {
@@ -44,8 +40,6 @@ const MENU_ITEMS = [
     className: "text-destructive",
   },
 ];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ConversationMenu({ isOpen, onClose }: ConversationMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);

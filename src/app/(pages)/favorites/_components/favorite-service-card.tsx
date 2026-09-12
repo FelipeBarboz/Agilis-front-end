@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Heart, Star, CalendarClock, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { FavoriteService } from "./types";
+import type { FavoriteService } from "../../../../types/favorite-service";
 
 interface FavoriteServiceCardProps {
   service: FavoriteService;
@@ -128,4 +128,4 @@ function formatCurrency(value: number) {
     style: "currency",
     currency: "BRL",
   });
-}
+}

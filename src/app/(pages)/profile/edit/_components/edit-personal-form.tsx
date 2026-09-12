@@ -6,8 +6,6 @@ import { User, Mail, Phone, IdCard, Lock, Check, X, ChevronRight, Save } from "l
 import { Input } from "@/components/ui/input";
 import { mockUser } from "@/lib/mocks/user";
 
-// ─── Máscara de telefone ───────────────────────────────────────────────────────
-
 function maskPhone(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 10) {
@@ -19,8 +17,6 @@ function maskPhone(value: string): string {
     .replace(/^(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2");
 }
-
-// ─── Campos do formulário ─────────────────────────────────────────────────────
 
 type FormField = {
   key: keyof typeof mockUser;
@@ -65,7 +61,6 @@ const formFields: FormField[] = [
   },
 ];
 
-// ─── Componente ───────────────────────────────────────────────────────────────
 
 export function EditPersonalForm() {
   const router = useRouter();

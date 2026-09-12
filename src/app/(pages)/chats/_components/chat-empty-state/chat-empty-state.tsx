@@ -1,13 +1,9 @@
 "use client";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface ChatEmptyStateProps {
   title?: string;
   description?: string;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ChatEmptyState({
   title = "Nenhuma conversa ainda",

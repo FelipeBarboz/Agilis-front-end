@@ -7,8 +7,6 @@ import {
   MoreVertical,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface ConversationInfo {
   id: string;
   providerName: string;
@@ -24,8 +22,6 @@ interface ConversationHeaderProps {
   onMenuOpen?: () => void;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -34,8 +30,6 @@ function getInitials(name: string) {
     .join("")
     .toUpperCase();
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ConversationHeader({
   conversation,

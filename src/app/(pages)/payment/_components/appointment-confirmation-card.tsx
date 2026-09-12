@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AppointmentDetails } from "./appointment-details";
 import { OrderSummary } from "./order-summary";
 import { PaymentMethodModal } from "./payment-method-modal";
-import { PAYMENT_METHODS, type PaymentMethodId } from "./types";
+import { PAYMENT_METHODS, type PaymentMethodId } from "../../../../types/payment";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -287,4 +287,4 @@ export function AppointmentConfirmationCard({
       />
     </>
   );
-}
+}

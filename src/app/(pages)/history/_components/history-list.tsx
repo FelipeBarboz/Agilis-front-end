@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { Clock } from "lucide-react";
-import { type HistoryEntry } from "../types";
+import { type HistoryEntry } from "../../../../types/history";
 import { HistoryItem } from "./history-item";
 import { Button } from "@/components/ui/button";
 

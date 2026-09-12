@@ -1,4 +1,4 @@
-import { type HistoryEntry } from "../types";
+import { type HistoryEntry } from "../../types/history";
 
 export const MOCK_HISTORY: HistoryEntry[] = [
   {

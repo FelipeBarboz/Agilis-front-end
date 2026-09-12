@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { type HistoryEntry, type HistoryStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from "../types";
+import { type HistoryEntry, type HistoryStatus, STATUS_LABEL, STATUS_BADGE_CLASS } from "../../../../types/history";
 import { cn } from "@/lib/utils";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {

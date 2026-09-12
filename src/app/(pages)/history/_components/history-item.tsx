@@ -13,7 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { type HistoryEntry, type HistoryStatus, STATUS_BADGE_CLASS, STATUS_LABEL } from "../types";
+import { type HistoryEntry, type HistoryStatus, STATUS_BADGE_CLASS, STATUS_LABEL } from "../../../../types/history";
 import { cn } from "@/lib/utils";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {

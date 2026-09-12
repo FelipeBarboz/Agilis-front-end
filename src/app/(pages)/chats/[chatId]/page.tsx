@@ -11,8 +11,6 @@ import { ServiceSummaryBanner } from "./_components/service-summary-banner/servi
 import { ConversationMenu } from "./_components/conversation-menu/conversation-menu";
 import { mockConversationDetails } from "@/lib/mocks/chat";
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function ChatDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -32,8 +30,6 @@ export default function ChatDetailPage() {
       },
     ];
   }, [data]);
-
-  // ── Not found ────────────────────────────────────────────────────────────────
 
   if (!data) {
     return (
@@ -60,14 +56,10 @@ export default function ChatDetailPage() {
     );
   }
 
-  // ── Handle send ───────────────────────────────────────────────────────────────
-
   function handleSend(text: string) {
-    // TODO: integrar com a API de mensagens
     console.log("Sending:", text);
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-0">

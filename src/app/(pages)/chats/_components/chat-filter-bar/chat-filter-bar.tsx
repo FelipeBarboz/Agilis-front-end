@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type FilterType = "todos" | "nao_lidos" | "finalizados";
 
 interface ChatFilterBarProps {
@@ -12,8 +10,6 @@ interface ChatFilterBarProps {
   onSearchChange: (query: string) => void;
   activeFilter: FilterType;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ChatFilterBar({
   onFilterChange,

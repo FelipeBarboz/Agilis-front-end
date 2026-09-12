@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { CheckCheck, MessageSquare } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface ChatConversation {
   id: string;
   providerName: string;
@@ -21,8 +19,6 @@ interface ChatListItemProps {
   conversation: ChatConversation;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -31,8 +27,6 @@ function getInitials(name: string) {
     .join("")
     .toUpperCase();
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ChatListItem({ conversation }: ChatListItemProps) {
   const {

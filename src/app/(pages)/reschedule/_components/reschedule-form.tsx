@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { MOCK_HISTORY } from "../../history/_components/mock-history";
+import { MOCK_HISTORY } from "../../../../lib/mocks/history";
 import { Calendar } from "@/components/ui/calendar";
 
 const AVAILABLE_TIMES = [

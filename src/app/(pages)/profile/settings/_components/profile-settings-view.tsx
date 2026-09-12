@@ -29,7 +29,6 @@ import { useTheme } from "@/providers/theme-provider";
 export function ProfileSettingsView() {
   const router = useRouter();
 
-  // ==================== VALIDAÇÃO DE PRESTADOR & LOJA ====================
   const [isProvider, setIsProvider] = useState(false);
   const [hasActiveStore, setHasActiveStore] = useState(false);
 
@@ -42,10 +41,8 @@ export function ProfileSettingsView() {
     setHasActiveStore(storeFlag === "true");
   }, []);
 
-  // ==================== TEMA ====================
   const { theme, setTheme } = useTheme();
 
-  // ==================== SENHA ====================
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -95,7 +92,6 @@ export function ProfileSettingsView() {
     }, 600);
   };
 
-  // ==================== NOTIFICAÇÕES (USUÁRIO) ====================
   const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
   const [notifyEmail, setNotifyEmail] = useState(true);
@@ -109,7 +105,6 @@ export function ProfileSettingsView() {
     setTimeout(() => setNotificationsSaved(false), 3000);
   };
 
-  // ==================== NOTIFICAÇÕES (PRESTADOR) ====================
   const [newRequests, setNewRequests] = useState(true);
   const [scheduleAlerts, setScheduleAlerts] = useState(true);
   const [chatMessages, setChatMessages] = useState(true);
@@ -120,7 +115,6 @@ export function ProfileSettingsView() {
     setTimeout(() => setProviderNotificationsSaved(false), 3000);
   };
 
-  // ==================== EXCLUIR CONTA ====================
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
