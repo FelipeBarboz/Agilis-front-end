@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "motion/react";
-import { StoreForm } from "./_components/store-form";
-
+import { StoreForm } from "./_components/store-form/store-form";
+    
 export default function StoreRegisterPage() {
   return (
     <>

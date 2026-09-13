@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AppointmentConfirmationCard } from "./_components/appointment-confirmation-card";
+import { AppointmentConfirmationCard } from "./_components/card/appointment-confirmation-card";
 import { PageTransition } from "@/components/ui/motion";
 
 export default async function ConfirmAppointmentPage({
@@ -28,4 +28,4 @@ export default async function ConfirmAppointmentPage({
       </main>
     </div>
   );
-}
+}

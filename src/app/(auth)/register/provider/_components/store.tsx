@@ -14,4 +14,4 @@ export const storeSchema = z.object({
   terms: z.boolean().optional(),
 });
 
-export type StoreFormData = z.infer<typeof storeSchema>;
+export type StoreFormData = z.infer<typeof storeSchema>;

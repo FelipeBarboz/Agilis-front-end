@@ -1,0 +1,241 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Bell,
+  Briefcase,
+  CalendarCheck,
+  Check,
+  Mail,
+  MessageSquare,
+} from "lucide-react";
+
+export function ProviderNotificationsSettingsCard() {
+  const [notifyWhatsapp, setNotifyWhatsapp] = useState(true);
+  const [notifyPush, setNotifyPush] = useState(true);
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [newRequests, setNewRequests] = useState(true);
+  const [scheduleAlerts, setScheduleAlerts] = useState(true);
+  const [chatMessages, setChatMessages] = useState(true);
+  const [notificationsSaved, setNotificationsSaved] = useState(false);
+
+  const handleSaveNotifications = () => {
+    setNotificationsSaved(true);
+    setTimeout(() => setNotificationsSaved(false), 3000);
+  };
+
+  return (
+    <div className="flex flex-col gap-5 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Bell className="size-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-foreground">
+              Configurar Notificações
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Escolha os canais e alertas de serviços que você deseja receber
+            </p>
+          </div>
+        </div>
+
+        {notificationsSaved && (
+          <span className="text-xs font-bold text-emerald-600 flex items-center gap-1 animate-fade-in">
+            <Check className="size-3.5" /> Salvo
+          </span>
+        )}
+      </div>
+
+      {/* Canais */}
+      <div className="space-y-3 pt-1">
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          Canais de Envio
+        </span>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div
+            onClick={() => {
+              setNotifyWhatsapp(!notifyWhatsapp);
+              handleSaveNotifications();
+            }}
+            className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
+              notifyWhatsapp
+                ? "border-primary bg-primary/5 shadow-xs"
+                : "border-border bg-background"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <MessageSquare className="size-4 text-emerald-600" />
+              <span className="text-xs font-bold text-foreground">WhatsApp</span>
+            </div>
+            <div
+              className={`size-4 rounded-full border flex items-center justify-center ${
+                notifyWhatsapp
+                  ? "bg-primary border-primary text-white"
+                  : "border-input"
+              }`}
+            >
+              {notifyWhatsapp && <Check className="size-2.5" strokeWidth={3} />}
+            </div>
+          </div>
+
+          <div
+            onClick={() => {
+              setNotifyPush(!notifyPush);
+              handleSaveNotifications();
+            }}
+            className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
+              notifyPush
+                ? "border-primary bg-primary/5 shadow-xs"
+                : "border-border bg-background"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Bell className="size-4 text-blue-600" />
+              <span className="text-xs font-bold text-foreground">Na sua conta</span>
+            </div>
+            <div
+              className={`size-4 rounded-full border flex items-center justify-center ${
+                notifyPush
+                  ? "bg-primary border-primary text-white"
+                  : "border-input"
+              }`}
+            >
+              {notifyPush && <Check className="size-2.5" strokeWidth={3} />}
+            </div>
+          </div>
+
+          <div
+            onClick={() => {
+              setNotifyEmail(!notifyEmail);
+              handleSaveNotifications();
+            }}
+            className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
+              notifyEmail
+                ? "border-primary bg-primary/5 shadow-xs"
+                : "border-border bg-background"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Mail className="size-4 text-indigo-600" />
+              <span className="text-xs font-bold text-foreground">E-mail</span>
+            </div>
+            <div
+              className={`size-4 rounded-full border flex items-center justify-center ${
+                notifyEmail
+                  ? "bg-primary border-primary text-white"
+                  : "border-input"
+              }`}
+            >
+              {notifyEmail && <Check className="size-2.5" strokeWidth={3} />}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tipos de Alerta */}
+      <div className="space-y-3 pt-2">
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          Alertas de Atendimento
+        </span>
+
+        <div className="divide-y divide-border rounded-2xl border border-border bg-background overflow-hidden">
+          <div
+            onClick={() => {
+              setNewRequests(!newRequests);
+              handleSaveNotifications();
+            }}
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+          >
+            <div className="flex items-center gap-3 pr-4">
+              <Briefcase className="size-4 text-primary shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-foreground">
+                  Novos pedidos de serviço
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Alertas em tempo real quando um cliente solicitar atendimento
+                </span>
+              </div>
+            </div>
+            <div
+              className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                newRequests ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <div
+                className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
+                  newRequests ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </div>
+          </div>
+
+          <div
+            onClick={() => {
+              setScheduleAlerts(!scheduleAlerts);
+              handleSaveNotifications();
+            }}
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+          >
+            <div className="flex items-center gap-3 pr-4">
+              <CalendarCheck className="size-4 text-primary shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-foreground">
+                  Lembretes de agendamentos
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Avisos prévios de horários marcados com clientes
+                </span>
+              </div>
+            </div>
+            <div
+              className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                scheduleAlerts ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <div
+                className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
+                  scheduleAlerts ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </div>
+          </div>
+
+          <div
+            onClick={() => {
+              setChatMessages(!chatMessages);
+              handleSaveNotifications();
+            }}
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+          >
+            <div className="flex items-center gap-3 pr-4">
+              <MessageSquare className="size-4 text-primary shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-foreground">
+                  Mensagens no chat corporativo
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Novas mensagens diretas de clientes no chat corporativo
+                </span>
+              </div>
+            </div>
+            <div
+              className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                chatMessages ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <div
+                className={`h-5 w-5 rounded-full bg-white shadow-xs transition-transform ${
+                  chatMessages ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

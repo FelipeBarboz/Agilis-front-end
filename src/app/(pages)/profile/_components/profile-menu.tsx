@@ -1,46 +1,47 @@
 import Link from "next/link";
-import { Settings, LogOut, ChevronRight } from "lucide-react";
+import { ChevronRight, LogOut, Settings } from "lucide-react";
 
-const menuItems = [
-  {
-    icon: Settings,
-    label: "Configurações",
-    description: "Privacidade, segurança e preferências",
-    href: "/profile/settings",
-    danger: false,
-  },
-  {
-    icon: LogOut,
-    label: "Sair",
-    description: "Encerrar sessão atual",
-    href: "/login",
-    danger: true,
-  },
-] as const;
+interface ProfileMenuProps {
+  onLogout: () => void;
+}
 
-export function ProfileMenu() {
+export function ProfileMenu({ onLogout }: ProfileMenuProps) {
   return (
-    <div className="flex flex-col gap-2 pb-8">
-      {menuItems.map(({ icon: Icon, label, description, href, danger }) => (
-        <Link
-          key={href}
-          href={href}
-          className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:bg-muted"
-        >
-          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-            danger ? "bg-destructive/10" : "bg-primary/10"
-          }`}>
-            <Icon size={17} className={danger ? "text-destructive" : "text-primary"} />
-          </div>
-          <div className="flex flex-1 flex-col">
-            <span className={`text-sm font-medium ${danger ? "text-destructive" : "text-foreground"}`}>
-              {label}
-            </span>
-            <span className="text-xs text-muted-foreground">{description}</span>
-          </div>
-          <ChevronRight size={16} className="text-muted-foreground" />
-        </Link>
-      ))}
+    <div className="flex flex-col gap-3">
+      <Link
+        href="/profile/settings"
+        className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+      >
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+          <Settings className="size-5" />
+        </div>
+        <div className="flex flex-1 flex-col">
+          <span className="text-sm font-bold text-foreground">
+            Configurações
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Privacidade, segurança e preferências
+          </span>
+        </div>
+        <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+      </Link>
+
+      <button
+        type="button"
+        onClick={onLogout}
+        className="flex w-full items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-destructive/40 group sm:p-5 cursor-pointer text-left"
+      >
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive group-hover:scale-105 transition-transform">
+          <LogOut className="size-5" />
+        </div>
+        <div className="flex flex-1 flex-col">
+          <span className="text-sm font-bold text-destructive">Sair</span>
+          <span className="text-xs text-muted-foreground">
+            Encerrar sessão atual
+          </span>
+        </div>
+        <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+      </button>
     </div>
   );
 }

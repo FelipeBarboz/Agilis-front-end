@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { RegisterForm } from "./_components/register-form";
+import { RegisterForm } from "./_components/register-form/register-form";
 
 export default function RegisterPage() {
   return (

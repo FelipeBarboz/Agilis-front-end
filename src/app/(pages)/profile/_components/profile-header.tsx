@@ -1,37 +1,30 @@
-"use client";
-
-import { Camera } from "lucide-react";
-import { UserAvatar } from "@/components/ui/user-avatar";
-import { type MockUser } from "@/lib/mocks/user";
+import { ArrowLeft } from "lucide-react";
 
 interface ProfileHeaderProps {
-  user: MockUser;
-  onAvatarClick: () => void;
+  onBack: () => void;
 }
 
-export function ProfileHeader({ user, onAvatarClick }: ProfileHeaderProps) {
+export function ProfileHeader({ onBack }: ProfileHeaderProps) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-6 shadow-sm border border-border">
+    <>
+      {/* Seta de voltar flutuante — padrão auth e serviço */}
+      <button
+        type="button"
+        onClick={onBack}
+        aria-label="Voltar"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </button>
 
-      {/* Avatar com botão de câmera */}
-      <div className="relative">
-        <UserAvatar user={user} size={88} />
-        <button
-          type="button"
-          onClick={onAvatarClick}
-          aria-label="Trocar foto de perfil"
-          className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-opacity hover:opacity-90"
-        >
-          <Camera size={14} />
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+          Meu Perfil de Usuário
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground md:text-base">
+          Gerencie suas informações pessoais, endereços e preferências da sua conta
+        </p>
       </div>
-
-      {/* Nome e email */}
-      <div className="text-center">
-        <h1 className="text-lg font-bold text-foreground">{user.name}</h1>
-        <p className="text-sm text-muted-foreground">{user.email}</p>
-      </div>
-
-    </div>
+    </>
   );
 }

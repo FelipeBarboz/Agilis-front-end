@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { LoginForm } from "./_components/login-form";
+import { LoginForm } from "./_components/login-form/login-form";
 
 export default function LoginPage() {
   return (
