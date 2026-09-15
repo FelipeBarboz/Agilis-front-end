@@ -13,7 +13,7 @@ export default function EditProfilePage() {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
       <AvatarModal
         isOpen={isAvatarModalOpen}
         onClose={() => setIsAvatarModalOpen(false)}

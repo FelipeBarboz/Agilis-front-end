@@ -21,6 +21,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
+      className="h-full"
     >
       <Link
         href={`/services/${service.id}?storeId=${service.storeId}`}

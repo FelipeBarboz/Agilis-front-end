@@ -33,7 +33,7 @@ export default function ChatDetailPage() {
 
   if (!data) {
     return (
-      <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+      <div className="relative flex flex-1 flex-col bg-muted pb-20">
         <button
           type="button"
           onClick={() => router.back()}
@@ -62,7 +62,7 @@ export default function ChatDetailPage() {
 
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-0">
+    <div className="relative flex flex-1 flex-col bg-muted pb-0">
 
       {/* Botão de voltar flutuante — padrão das outras telas */}
       <button

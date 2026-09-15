@@ -10,7 +10,7 @@ export default function AddressesPage() {
   const { addresses, deleteAddress } = useAddresses();
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
       {/* Seta de voltar flutuante — Padrão Agilis */}
       <Link
         href="/profile"

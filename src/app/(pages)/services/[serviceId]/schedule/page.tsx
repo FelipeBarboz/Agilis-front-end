@@ -12,7 +12,7 @@ export default async function ServiceSchedulePage({
   const { serviceId } = await params;
 
   return (
-    <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
+    <main className="relative flex flex-1 flex-col bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
       {/* Seta de voltar no canto superior esquerdo — Padrão Agilis */}
       <Link
         href={`/services/${serviceId}`}

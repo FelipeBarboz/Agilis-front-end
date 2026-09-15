@@ -3,7 +3,7 @@ import { FaqSection } from "./_components/faq-section";
 
 export default function SupportPage() {
   return (
-    <main className="flex flex-1 flex-col gap-8 overflow-y-auto bg-muted p-6">
+    <main className="flex flex-1 flex-col gap-8 bg-muted p-6">
 
       {/* Header da página */}
       <div>

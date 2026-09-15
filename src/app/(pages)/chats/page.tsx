@@ -15,7 +15,7 @@ export default function ChatsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
 
       {/* Botão de voltar flutuante — padrão das outras telas */}
       <button

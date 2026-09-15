@@ -53,7 +53,7 @@ export default function CreateStorePage() {
   };
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
       {/* Conteúdo Principal */}
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-14 pb-8 sm:px-6 lg:px-8">
         <CreateStoreHeader />

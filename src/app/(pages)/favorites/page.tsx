@@ -18,7 +18,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
+    <main className="relative flex flex-1 flex-col bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
       {/* Seta de voltar*/}
       <button
         type="button"

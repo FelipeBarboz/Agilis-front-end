@@ -5,7 +5,7 @@ import { HomeServiceCarousels } from "./home/_components/services-carousel/home-
 
 export default function HomePage() {
   return (
-    <main className="flex-1 overflow-y-auto bg-muted min-h-0">
+    <main className="flex-1 bg-muted">
       <div className="flex flex-col gap-8 p-6">
         <HeroSection />
         <PopularServices />
