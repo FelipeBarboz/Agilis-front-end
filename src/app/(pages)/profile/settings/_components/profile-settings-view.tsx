@@ -26,7 +26,7 @@ export function ProfileSettingsView() {
   }, []);
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-col bg-muted pb-20">
       {/* Conteúdo Principal */}
       <main className="mx-auto flex w-full max-w-3xl flex-col space-y-6 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
         <SettingsHeader onBack={() => router.back()} />
