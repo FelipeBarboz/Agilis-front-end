@@ -88,7 +88,7 @@ export function ProviderButton() {
           // CNPJ cadastrado, mas loja ainda não criada: apenas o botão "Criar Loja"
           <div className="grid grid-cols-1">
             <Link
-              href="/create-store"
+              href="/provider/create-store"
               className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm transition-all hover:bg-muted/50 hover:border-primary group sm:p-5"
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground group-hover:scale-105 transition-transform">

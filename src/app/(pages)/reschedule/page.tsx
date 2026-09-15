@@ -9,7 +9,7 @@ import { PageTransition } from "@/components/ui/motion";
 export default function ReschedulePage() {
   return (
     <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
-      {/* Seta de voltar no canto superior esquerdo — Padrão Agilis */}
+      {/* Seta de voltar */}
       <Link
         href="/history"
         aria-label="Voltar ao histórico"
