@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MapPin,
   SlidersHorizontal,
@@ -77,6 +77,17 @@ export function FilterPanel({ onApply, onClear, initialFilters }: FilterPanelPro
   const [minPrice, setMinPrice] = useState<number | "">(initialFilters?.minPrice ?? "");
   const [maxPrice, setMaxPrice] = useState<number | "">(initialFilters?.maxPrice ?? "");
   const [rating, setRating] = useState<number>(initialFilters?.rating ?? 0);
+
+  useEffect(() => {
+    if (initialFilters) {
+      setType(initialFilters.type ?? "todos");
+      setState(initialFilters.state ?? "");
+      setCity(initialFilters.city ?? "");
+      setMinPrice(initialFilters.minPrice ?? "");
+      setMaxPrice(initialFilters.maxPrice ?? "");
+      setRating(initialFilters.rating ?? 0);
+    }
+  }, [initialFilters]);
 
   const hasActiveFilters =
     type !== "todos" ||

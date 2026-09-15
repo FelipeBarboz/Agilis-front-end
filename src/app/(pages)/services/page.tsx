@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import { ServicesFilters } from "./_components/filters/services-filters";
 import { ServicesResults } from "./_components/services-results";
-import { DEFAULT_FILTERS } from "./_components/filters/default-filters";
 import { useServicesFilter } from "./_hooks/use-services-filter";
 
 function ServicesContent() {
@@ -14,6 +13,7 @@ function ServicesContent() {
     setCategory,
     appliedFilters,
     setAppliedFilters,
+    clearFilters,
     filteredServices,
     filteredStores,
     totalResults,
@@ -29,7 +29,7 @@ function ServicesContent() {
           onCategoryChange={setCategory}
           appliedFilters={appliedFilters}
           onApplyFilters={setAppliedFilters}
-          onClearFilters={() => setAppliedFilters(DEFAULT_FILTERS)}
+          onClearFilters={clearFilters}
           totalResults={totalResults}
         />
 
