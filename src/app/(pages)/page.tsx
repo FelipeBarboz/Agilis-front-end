@@ -1,20 +1,17 @@
 import { HeroSection } from "./home/_components/hero-section/hero-section";
 import { PopularServices } from "./home/_components/popular-services/popular-services";
 import { CorporateBanner } from "./home/_components/corporate-banner/corporate-banner";
-import { HomeFooter } from "./home/_components/home-footer/home-footer";
-import { PageTransition } from "@/components/ui/motion";
+import { HomeServiceCarousels } from "./home/_components/services-carousel/home-service-carousels";
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <main className="flex flex-1 flex-col gap-8 overflow-y-auto bg-muted p-6">
-        <PageTransition className="flex flex-col gap-8">
-          <HeroSection />
-          <PopularServices />
-          <CorporateBanner />
-        </PageTransition>
-      </main>
-      <HomeFooter />
-    </div>
+    <main className="flex-1 overflow-y-auto bg-muted min-h-0">
+      <div className="flex flex-col gap-8 p-6">
+        <HeroSection />
+        <PopularServices />
+        <CorporateBanner />
+        <HomeServiceCarousels />
+      </div>
+    </main>
   );
 }

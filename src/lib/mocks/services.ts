@@ -20,6 +20,7 @@ export type Service = {
   rating: number;
   reviewCount: number;
   totalServices: number;
+  viewsCount?: number;
   company: string;
   city: string;
   state: string;
@@ -42,6 +43,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 96,
     totalServices: 103,
+    viewsCount: 2450,
     company: "E-Clean",
     city: "São Paulo",
     state: "SP",
@@ -69,6 +71,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 96,
     totalServices: 103,
+    viewsCount: 1890,
     company: "E-Clean",
     city: "São Paulo",
     state: "SP",
@@ -96,6 +99,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 96,
     totalServices: 103,
+    viewsCount: 3120,
     company: "E-Clean",
     city: "São Paulo",
     state: "SP",
@@ -122,6 +126,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 84,
     totalServices: 98,
+    viewsCount: 1540,
     company: "HidroFix",
     city: "Campinas",
     state: "SP",
@@ -148,6 +153,7 @@ export const mockServices: Service[] = [
     rating: 4.9,
     reviewCount: 112,
     totalServices: 145,
+    viewsCount: 4200,
     company: "EletroMax",
     city: "Rio de Janeiro",
     state: "RJ",
@@ -174,6 +180,7 @@ export const mockServices: Service[] = [
     rating: 4.6,
     reviewCount: 73,
     totalServices: 89,
+    viewsCount: 2780,
     company: "PinturaTop",
     city: "Belo Horizonte",
     state: "MG",
@@ -200,6 +207,7 @@ export const mockServices: Service[] = [
     rating: 4.9,
     reviewCount: 58,
     totalServices: 67,
+    viewsCount: 980,
     company: "LimpaFácil",
     city: "Curitiba",
     state: "PR",
@@ -226,6 +234,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 41,
     totalServices: 52,
+    viewsCount: 1340,
     company: "PinturaTop",
     city: "Belo Horizonte",
     state: "MG",
@@ -252,6 +261,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 89,
     totalServices: 112,
+    viewsCount: 3890,
     company: "ClimaTech",
     city: "Porto Alegre",
     state: "RS",
@@ -278,6 +288,7 @@ export const mockServices: Service[] = [
     rating: 4.9,
     reviewCount: 34,
     totalServices: 41,
+    viewsCount: 2150,
     company: "ReformaMax",
     city: "Brasília",
     state: "DF",
@@ -304,6 +315,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 67,
     totalServices: 78,
+    viewsCount: 1670,
     company: "SecureTech",
     city: "Salvador",
     state: "BA",
@@ -330,6 +342,7 @@ export const mockServices: Service[] = [
     rating: 4.6,
     reviewCount: 51,
     totalServices: 63,
+    viewsCount: 890,
     company: "AquaClean",
     city: "Manaus",
     state: "AM",
@@ -356,6 +369,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 92,
     totalServices: 110,
+    viewsCount: 4750,
     company: "MarcenaFix",
     city: "Fortaleza",
     state: "CE",
@@ -382,6 +396,7 @@ export const mockServices: Service[] = [
     rating: 4.9,
     reviewCount: 48,
     totalServices: 55,
+    viewsCount: 3200,
     company: "EletroMax",
     city: "Recife",
     state: "PE",
@@ -408,6 +423,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 29,
     totalServices: 35,
+    viewsCount: 1420,
     company: "ReformaMax",
     city: "Goiânia",
     state: "GO",
@@ -434,6 +450,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 143,
     totalServices: 178,
+    viewsCount: 2890,
     company: "LimpaFácil",
     city: "Porto Alegre",
     state: "RS",
@@ -460,6 +477,7 @@ export const mockServices: Service[] = [
     rating: 4.6,
     reviewCount: 62,
     totalServices: 74,
+    viewsCount: 5100,
     company: "ElectroGate",
     city: "Florianópolis",
     state: "SC",
@@ -486,6 +504,7 @@ export const mockServices: Service[] = [
     rating: 4.5,
     reviewCount: 88,
     totalServices: 105,
+    viewsCount: 1980,
     company: "JardimVerde",
     city: "Campinas",
     state: "SP",
@@ -512,6 +531,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 77,
     totalServices: 92,
+    viewsCount: 3650,
     company: "PinturaTop",
     city: "São Paulo",
     state: "SP",
@@ -538,6 +558,7 @@ export const mockServices: Service[] = [
     rating: 4.9,
     reviewCount: 115,
     totalServices: 138,
+    viewsCount: 2310,
     company: "PisoMais",
     city: "Belo Horizonte",
     state: "MG",
@@ -564,6 +585,7 @@ export const mockServices: Service[] = [
     rating: 4.6,
     reviewCount: 54,
     totalServices: 66,
+    viewsCount: 1120,
     company: "EletroMax",
     city: "Rio de Janeiro",
     state: "RJ",
@@ -590,6 +612,7 @@ export const mockServices: Service[] = [
     rating: 4.5,
     reviewCount: 38,
     totalServices: 45,
+    viewsCount: 4400,
     company: "LimpaFácil",
     city: "Curitiba",
     state: "PR",
@@ -616,6 +639,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 43,
     totalServices: 51,
+    viewsCount: 1780,
     company: "EletroMax",
     city: "Salvador",
     state: "BA",
@@ -642,6 +666,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 71,
     totalServices: 84,
+    viewsCount: 2950,
     company: "EletroFix",
     city: "Goiânia",
     state: "GO",
@@ -668,6 +693,7 @@ export const mockServices: Service[] = [
     rating: 4.6,
     reviewCount: 33,
     totalServices: 40,
+    viewsCount: 820,
     company: "GessoMais",
     city: "Natal",
     state: "RN",
@@ -694,6 +720,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 96,
     totalServices: 118,
+    viewsCount: 3340,
     company: "PragaZero",
     city: "Brasília",
     state: "DF",
@@ -720,6 +747,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 27,
     totalServices: 32,
+    viewsCount: 2600,
     company: "TelhaMax",
     city: "Fortaleza",
     state: "CE",
@@ -746,6 +774,7 @@ export const mockServices: Service[] = [
     rating: 4.9,
     reviewCount: 134,
     totalServices: 160,
+    viewsCount: 1250,
     company: "ClimaTech",
     city: "Recife",
     state: "PE",
@@ -772,6 +801,7 @@ export const mockServices: Service[] = [
     rating: 4.8,
     reviewCount: 22,
     totalServices: 28,
+    viewsCount: 4900,
     company: "SolarTech",
     city: "Maceió",
     state: "AL",
@@ -798,6 +828,7 @@ export const mockServices: Service[] = [
     rating: 4.7,
     reviewCount: 45,
     totalServices: 53,
+    viewsCount: 2050,
     company: "MadeiraMais",
     city: "Florianópolis",
     state: "SC",
@@ -826,3 +857,54 @@ export const categories = [
   { id: "marcenaria", label: "Marcenaria" },
   { id: "climatizacao", label: "Climatização" },
 ] as const;
+export type ServiceFilterType = "most_visited" | "top_rated" | "most_hired";
+
+export interface PaginatedServicesResponse {
+  items: Service[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
+export function getPaginatedServices({
+  filter = "most_visited",
+  page = 1,
+  limit = 5,
+}: {
+  filter?: ServiceFilterType;
+  page?: number;
+  limit?: number;
+}): PaginatedServicesResponse {
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+
+  const sorted = [...mockServices].sort((a, b) => {
+    if (filter === "most_visited") {
+      return (b.viewsCount ?? 0) - (a.viewsCount ?? 0);
+    }
+    if (filter === "top_rated") {
+      if (b.rating !== a.rating) {
+        return b.rating - a.rating;
+      }
+      return b.reviewCount - a.reviewCount;
+    }
+    if (filter === "most_hired") {
+      return b.totalServices - a.totalServices;
+    }
+    return 0;
+  });
+
+  const total = sorted.length;
+  const startIndex = (safePage - 1) * safeLimit;
+  const items = sorted.slice(startIndex, startIndex + safeLimit);
+  const hasMore = startIndex + safeLimit < total;
+
+  return {
+    items,
+    page: safePage,
+    limit: safeLimit,
+    total,
+    hasMore,
+  };
+}
