@@ -24,6 +24,8 @@ const PROTECTED_ROUTES = [
   "/create-store",
   "/store/store-scheduling",
   "/reschedule",
+  "/refund-confirmation",
+  "/cancelled",
 ];
 
 function isProtectedRoute(pathname: string): boolean {

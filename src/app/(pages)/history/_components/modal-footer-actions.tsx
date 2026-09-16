@@ -34,13 +34,10 @@ export function ModalFooterActions({ status, entryId }: ModalFooterActionsProps)
             </Link>
           </div>
           <div className="flex items-center justify-between pt-1 text-xs">
-            <Link
-              href={`/refund-confirmation?id=${entryId}`}
-              className="flex items-center gap-1 text-destructive hover:underline"
-            >
-              <Ban className="h-3.5 w-3.5" />
-              Cancelar serviço e solicitar reembolso
-            </Link>
+            <span className="text-muted-foreground flex items-center gap-1.5">
+              <Ban className="h-3.5 w-3.5 text-muted-foreground/70" />
+              Serviços em andamento não podem ser cancelados
+            </span>
             <Link href="/support" className="text-muted-foreground hover:underline">
               Ajuda
             </Link>
@@ -73,22 +70,36 @@ export function ModalFooterActions({ status, entryId }: ModalFooterActionsProps)
       )}
 
       {status === "concluido" && (
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Link href="/services" className={primaryLink}>
-            <RefreshCw className="h-4 w-4" />
-            Contratar Novamente
-          </Link>
-          <Link href="/chats" className={secondaryLink}>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            Ver Conversa
-          </Link>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link href="/services" className={primaryLink}>
+              <RefreshCw className="h-4 w-4" />
+              Contratar Novamente
+            </Link>
+            <Link href="/chats" className={secondaryLink}>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              Ver Conversa
+            </Link>
+          </div>
+          <div className="flex items-center justify-between pt-1 text-xs">
+            <Link
+              href={`/refund-confirmation?id=${entryId}`}
+              className="flex items-center gap-1 text-destructive hover:underline cursor-pointer"
+            >
+              <Ban className="h-3.5 w-3.5" />
+              Tive um problema / Solicitar reembolso
+            </Link>
+            <Link href="/support" className="text-muted-foreground hover:underline">
+              Ajuda
+            </Link>
+          </div>
         </div>
       )}
 
       {status === "cancelado" && (
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Link href={`/refund-confirmation?id=${entryId}`} className={primaryLink}>
-            Ver Detalhes do Reembolso
+          <Link href={`/cancelled?id=${entryId}`} className={primaryLink}>
+            Acompanhar Reembolso
           </Link>
           <Link href="/support" className={secondaryLink}>
             Suporte

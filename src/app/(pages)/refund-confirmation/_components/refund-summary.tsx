@@ -16,8 +16,8 @@ export function RefundSummary({
   const isPix = paymentMethod === "PIX";
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-background p-4">
-      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+    <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-4">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Resumo do Reembolso
       </h4>
 
@@ -32,18 +32,18 @@ export function RefundSummary({
         </div>
         <div className="flex justify-between border-t border-border pt-2 text-sm font-bold text-foreground">
           <span>Total a ser estornado</span>
-          <span className="text-emerald-600">{totalPrice}</span>
+          <span className="text-emerald-600 dark:text-emerald-400">{totalPrice}</span>
         </div>
       </div>
 
       <div className="flex items-center gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
         {isPix ? (
-          <QrCode className="h-4 w-4 text-primary" />
+          <QrCode className="h-4 w-4 text-primary shrink-0" />
         ) : (
-          <CreditCard className="h-4 w-4 text-primary" />
+          <CreditCard className="h-4 w-4 text-primary shrink-0" />
         )}
         <span>
-          Destino: <strong>{paymentMethod ?? "PIX"}</strong> (mesmo método de
+          Destino: <strong className="text-foreground">{paymentMethod ?? "PIX"}</strong> (mesmo método de
           pagamento utilizado)
         </span>
       </div>

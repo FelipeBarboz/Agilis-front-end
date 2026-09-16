@@ -8,7 +8,7 @@ export function CommentsTextarea({ value, onChange }: CommentsTextareaProps) {
     <div className="space-y-2">
       <label
         htmlFor="cancel-details"
-        className="text-xs font-bold uppercase tracking-wider text-foreground"
+        className="text-xs font-semibold uppercase tracking-wider text-foreground"
       >
         Observações adicionais (opcional)
       </label>
@@ -18,7 +18,7 @@ export function CommentsTextarea({ value, onChange }: CommentsTextareaProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Deixe mais detalhes para ajudar nossa equipe a melhorar..."
-        className="w-full resize-none rounded-xl border border-input bg-background p-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full resize-none rounded-xl border border-input bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
       />
     </div>
   );
