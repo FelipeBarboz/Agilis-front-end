@@ -62,7 +62,6 @@ export function ServiceFormActions({
             submittingLabel
           ) : (
             <>
-              <Sparkles className="size-4 mr-2" />
               {submitLabel}
             </>
           )}

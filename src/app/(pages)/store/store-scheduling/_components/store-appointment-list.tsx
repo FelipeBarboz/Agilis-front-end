@@ -25,16 +25,6 @@ export function StoreAppointmentList({
         <h2 className="text-sm font-semibold text-foreground">
           Agendamentos do dia
         </h2>
-        {dayAppointments.length > 0 && (
-          <button
-            type="button"
-            onClick={() => onOpenDelayModal()}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-500/20 cursor-pointer shadow-xs"
-          >
-            <AlertTriangle className="size-3.5" />
-            Notificar Atraso no Dia
-          </button>
-        )}
       </div>
 
       {dayAppointments.length === 0 ? (

@@ -22,7 +22,7 @@ export function ActionButtons({
           ? "Processando..."
           : isCompleted
             ? "Solicitar Reembolso do Serviço"
-            : "Confirmar Cancelamento e Reembolso"}
+            : "Solicitar Cancelamento e Reembolso"}
       </button>
       <Link
         href={cancelHref}

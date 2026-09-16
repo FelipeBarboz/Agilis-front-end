@@ -47,32 +47,7 @@ export function NotificationSettingsCard() {
           Canais de Envio
         </span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div
-            onClick={() => {
-              setNotifyWhatsapp(!notifyWhatsapp);
-              handleSaveNotifications();
-            }}
-            className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
-              notifyWhatsapp
-                ? "border-primary bg-primary/5 shadow-xs"
-                : "border-border bg-background"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <MessageSquare className="size-4 text-emerald-600" />
-              <span className="text-xs font-bold text-foreground">WhatsApp</span>
-            </div>
-            <div
-              className={`size-4 rounded-full border flex items-center justify-center ${
-                notifyWhatsapp
-                  ? "bg-primary border-primary text-white"
-                  : "border-input"
-              }`}
-            >
-              {notifyWhatsapp && <Check className="size-2.5" strokeWidth={3} />}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
           <div
             onClick={() => {

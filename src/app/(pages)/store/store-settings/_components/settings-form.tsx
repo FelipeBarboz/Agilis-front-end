@@ -6,7 +6,6 @@ import { CheckCircle2 } from "lucide-react";
 import { SettingsIdentityCard } from "./settings-identity-card";
 import { SettingsPresenceCard } from "./settings-presence-card";
 import { SettingsChannelsCard } from "./settings-channels-card";
-import { SettingsDocumentsCard } from "./settings-documents-card";
 import { SettingsActions } from "./settings-actions";
 
 export function SettingsForm() {
@@ -141,17 +140,6 @@ export function SettingsForm() {
         onWebsiteChange={setWebsite}
       />
 
-      {/* CARD 4: Personalização de Marca & Aplicação nos Documentos */}
-      <SettingsDocumentsCard
-        reportsChecked={reportsChecked}
-        onToggleReports={() => setReportsChecked(!reportsChecked)}
-        emailsChecked={emailsChecked}
-        onToggleEmails={() => setEmailsChecked(!emailsChecked)}
-        publicBadgeChecked={publicBadgeChecked}
-        onTogglePublicBadge={() =>
-          setPublicBadgeChecked(!publicBadgeChecked)
-        }
-      />
 
       {/* Botões de Ação */}
       <SettingsActions isSaving={isSaving} onCancel={handleCancel} />

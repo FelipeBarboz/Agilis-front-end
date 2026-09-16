@@ -78,7 +78,7 @@ export default function StoreProfilePage() {
           </div>
 
           {/* Action Buttons: Funcionários, Cargos, Configurações */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 mt-2">
             <Link
               href="/store/employees"
               className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
@@ -105,18 +105,6 @@ export default function StoreProfilePage() {
               </div>
             </Link>
 
-            <Link
-              href="/store/store-settings"
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
-            >
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-                <Settings className="size-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground">Configurações</span>
-                <span className="text-xs text-muted-foreground">Perfil da empresa</span>
-              </div>
-            </Link>
           </div>
         </div>
 

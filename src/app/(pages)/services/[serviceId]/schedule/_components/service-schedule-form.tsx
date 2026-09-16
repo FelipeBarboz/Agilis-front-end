@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { mockServices } from "@/lib/mocks/services";
+import { useAddresses } from "@/hooks/use-addresses";
 import { Calendar } from "@/components/ui/calendar";
 
 const AVAILABLE_TIMES = [
@@ -37,6 +38,7 @@ interface ServiceScheduleFormProps {
 export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { addresses } = useAddresses();
 
   const service = mockServices.find((s) => s.id === serviceId) ?? mockServices[0];
 
@@ -50,8 +52,15 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
 
   const [selectedDate, setSelectedDate] = useState<Date>(tomorrow);
   const [selectedTime, setSelectedTime] = useState<string>("14:00");
-  const [address, setAddress] = useState("R. Cristiano Elisário Bilo, 40 - Parque Erasmo, Guarulhos - SP");
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [notes, setNotes] = useState("");
+
+  // Sincroniza o endereço selecionado quando os endereços carregam do localStorage
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      setSelectedAddressId(addresses[0]!.id);
+    }
+  }, [addresses, selectedAddressId]);
 
   function handleContinueToPayment(e: React.FormEvent) {
     e.preventDefault();
@@ -69,7 +78,11 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       price: String(initialPrice),
       date: formattedDate,
       time: selectedTime,
-      address,
+      address: (() => {
+        const a = addresses.find((x) => x.id === selectedAddressId);
+        if (!a) return "";
+        return `${a.street}, ${a.number}${a.complement ? ` - ${a.complement}` : ""} - CEP ${a.cep}`;
+      })(),
       package: initialPackage,
       storeId,
       notes,
@@ -143,15 +156,31 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
               <MapPin className="h-4 w-4 text-primary" />
               Endereço de Atendimento
             </label>
-            <input
-              id="schedule-address"
-              type="text"
-              required
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Digite o endereço completo..."
-              className="w-full rounded-xl border border-input bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            {addresses.length === 0 ? (
+              <div className="flex items-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span>
+                  Nenhum endereço cadastrado.{" "}
+                  <Link href="/addresses/add" className="font-semibold text-primary hover:underline">
+                    Adicionar endereço
+                  </Link>
+                </span>
+              </div>
+            ) : (
+              <select
+                id="schedule-address"
+                required
+                value={selectedAddressId}
+                onChange={(e) => setSelectedAddressId(e.target.value)}
+                className="w-full rounded-xl border border-input bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                {addresses.map((addr) => (
+                  <option key={addr.id} value={addr.id}>
+                    {addr.street}, {addr.number}{addr.complement ? ` - ${addr.complement}` : ""} — CEP {addr.cep}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="space-y-2">

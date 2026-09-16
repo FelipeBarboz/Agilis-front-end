@@ -84,13 +84,6 @@ export function AppointmentDetails({
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Forma de Pagamento
               </span>
-              <button
-                type="button"
-                onClick={onOpenPaymentModal}
-                className="text-xs font-semibold text-primary hover:underline cursor-pointer"
-              >
-                Alterar
-              </button>
             </div>
 
             <button

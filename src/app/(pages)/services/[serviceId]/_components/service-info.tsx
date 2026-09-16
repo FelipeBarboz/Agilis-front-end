@@ -24,10 +24,6 @@ export function ServiceInfo({ service }: ServiceInfoProps) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <ShieldCheck className="size-4 text-primary" />
-          <span className="font-semibold text-foreground">Garantia Agilis</span>
-        </div>
       </div>
 
       {/* Título Principal */}
@@ -77,7 +73,7 @@ export function ServiceInfo({ service }: ServiceInfoProps) {
       </div>
 
       {/* Destaques rápidos / Agilis highlights */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 pt-1">
         <div className="flex flex-col gap-1 rounded-xl border border-border/60 bg-muted/40 p-3">
           <div className="flex items-center gap-1.5 text-primary">
             <Clock size={16} />
@@ -95,16 +91,6 @@ export function ServiceInfo({ service }: ServiceInfoProps) {
           </div>
           <span className="text-xs text-muted-foreground">
             Inclusos pelo prestador
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-1 rounded-xl border border-border/60 bg-muted/40 p-3 col-span-2 sm:col-span-1">
-          <div className="flex items-center gap-1.5 text-primary">
-            <ShieldCheck size={16} />
-            <span className="text-[11px] font-bold text-foreground">Segurança</span>
-          </div>
-          <span className="text-xs text-muted-foreground">
-            Profissionais verificados
           </span>
         </div>
       </div>

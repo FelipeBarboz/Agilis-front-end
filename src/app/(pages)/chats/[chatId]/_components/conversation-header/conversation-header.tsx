@@ -100,13 +100,6 @@ export function ConversationHeader({
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
-            aria-label="Ligar para prestador"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <Phone size={18} />
-          </button>
-          <button
-            type="button"
             onClick={onMenuOpen}
             aria-label="Mais opções"
             className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
