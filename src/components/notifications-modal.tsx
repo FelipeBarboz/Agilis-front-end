@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Info,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -37,6 +38,7 @@ const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
   promotion: Tag,
   message: MessageSquare,
   system: Info,
+  delay: AlertTriangle,
 };
 
 const TYPE_COLORS: Record<NotificationType, { bg: string; text: string }> = {
@@ -45,6 +47,7 @@ const TYPE_COLORS: Record<NotificationType, { bg: string; text: string }> = {
   promotion: { bg: "bg-purple-500/10 text-purple-600 dark:text-purple-400", text: "text-purple-600" },
   message: { bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400", text: "text-blue-600" },
   system: { bg: "bg-muted text-muted-foreground", text: "text-muted-foreground" },
+  delay: { bg: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30", text: "text-amber-700 dark:text-amber-400" },
 };
 
 export function NotificationsModal({

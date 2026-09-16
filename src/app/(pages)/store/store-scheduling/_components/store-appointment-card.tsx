@@ -1,4 +1,4 @@
-import { Clock, MapPin, User, CheckCircle2, XCircle, Hourglass, Briefcase } from "lucide-react";
+import { Clock, MapPin, User, CheckCircle2, XCircle, Hourglass, Briefcase, AlertTriangle } from "lucide-react";
 
 export type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "done";
 
@@ -48,9 +48,10 @@ interface StoreAppointmentCardProps {
   appointment: StoreAppointment;
   onConfirm?: (id: string) => void;
   onCancel?: (id: string) => void;
+  onNotifyDelay?: (id: string) => void;
 }
 
-export function StoreAppointmentCard({ appointment, onConfirm, onCancel }: StoreAppointmentCardProps) {
+export function StoreAppointmentCard({ appointment, onConfirm, onCancel, onNotifyDelay }: StoreAppointmentCardProps) {
   const { label, bgClass, textClass, Icon } = STATUS_CONFIG[appointment.status];
   const endHour = getEndTime(appointment.time, appointment.duration);
 
@@ -111,6 +112,20 @@ export function StoreAppointmentCard({ appointment, onConfirm, onCancel }: Store
             className="flex-1 rounded-xl border border-destructive py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/5 cursor-pointer"
           >
             Recusar
+          </button>
+        </div>
+      )}
+
+      {/* Action to notify delay for confirmed appointments */}
+      {appointment.status === "confirmed" && onNotifyDelay && (
+        <div className="pt-1 border-t border-border/60">
+          <button
+            type="button"
+            onClick={() => onNotifyDelay(appointment.id)}
+            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-500/20 cursor-pointer"
+          >
+            <AlertTriangle className="size-3.5" />
+            Avisar Atraso a este Cliente
           </button>
         </div>
       )}

@@ -9,8 +9,8 @@ export type MockUser = {
 
 export const mockUser: MockUser = {
   id: "user-1",
-  name: "Caio Henrique",
-  email: "caio@email.com",
+  name: "Jefferson Riper",
+  email: "profriper28@gmail.com",
   phone: "11 98765-4321",
   cpf: "123.456.789-00",
   avatarUrl: null,

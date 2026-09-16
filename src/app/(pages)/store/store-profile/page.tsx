@@ -15,6 +15,7 @@ import {
   ArrowRight,
   LogOut,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
 import { ServicesList } from "./_components/services-list";
@@ -129,13 +130,22 @@ export default function StoreProfilePage() {
               <h2 className="text-lg font-bold text-foreground">Agendamentos</h2>
               <p className="text-sm text-muted-foreground">Atendimentos marcados para sua loja</p>
             </div>
-            <Link
-              href="/store/store-scheduling"
-              className="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
-            >
-              Ver agenda
-              <ArrowRight className="size-3.5" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/store/store-scheduling?delay=true"
+                className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-500/20"
+              >
+                <AlertTriangle className="size-3.5" />
+                Avisar Atraso
+              </Link>
+              <Link
+                href="/store/store-scheduling"
+                className="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
+              >
+                Ver agenda
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
           </div>
 
           <div className="mt-2 divide-y divide-border border-t border-border">
