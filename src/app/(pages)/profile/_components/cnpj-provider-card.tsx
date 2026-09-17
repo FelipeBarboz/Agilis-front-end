@@ -4,11 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Building2, ChevronRight, Plus, CheckCircle2 } from "lucide-react";
 
-/**
- * Mostra o status do CNPJ no perfil.
- * - Se já possui CNPJ no localStorage, exibe o CNPJ formatado com badge verde.
- * - Se não possui, exibe o card interativo para cadastrar CNPJ em /register/provider.
- */
 export function CnpjProviderCard() {
   const [mounted, setMounted] = useState(false);
   const [cnpj, setCnpj] = useState<string | null>(null);

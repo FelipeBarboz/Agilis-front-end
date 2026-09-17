@@ -6,7 +6,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { mockUser } from "@/lib/mocks/user";
 import { mockAppNotifications, type AppNotification } from "@/lib/mocks/notifications";
-import { NotificationsModal } from "@/components/notifications-modal";
+import { NotificationsModal } from "@/components/notifications/notifications-modal";
 import {
   IconHome,
   IconHistory,
@@ -103,7 +103,11 @@ export function LoggedAppSidebar() {
               icon={item.icon}
               label={item.label}
               badge={item.badge}
-              isActive={item.isActive ?? pathname === item.href}
+              isActive={item.isActive ?? (
+                item.href === "/home"
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href ?? "__never__")
+              )}
             />
           ))}
         </div>

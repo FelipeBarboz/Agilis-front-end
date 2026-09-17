@@ -26,7 +26,7 @@ function StoreAboutContent() {
   const store = useMemo(() => getStoreById(storeId), [storeId]);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 overflow-y-auto bg-muted p-4 sm:p-6 lg:p-8">
+    <main className="flex flex-1 flex-col gap-6 bg-muted p-4 sm:p-6 lg:p-8">
       <PageTransition className="mx-auto w-full max-w-4xl flex flex-col gap-6">
         {/* Top bar com botão de voltar */}
         <div className="flex items-center gap-3">
@@ -81,7 +81,7 @@ function StoreAboutContent() {
           </div>
 
           {/* Estatísticas Rápidas */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
             <div className="rounded-xl bg-muted/60 p-4 text-center">
               <Award className="h-6 w-6 text-primary mx-auto mb-1" />
               <p className="text-xl font-bold text-foreground">{new Date().getFullYear() - store.about.foundedYear}+ Anos</p>
@@ -92,24 +92,6 @@ function StoreAboutContent() {
               <p className="text-xl font-bold text-foreground">{store.about.completedServices}+</p>
               <p className="text-xs text-muted-foreground">Serviços executados</p>
             </div>
-            <div className="rounded-xl bg-muted/60 p-4 text-center">
-              <ShieldCheck className="h-6 w-6 text-primary mx-auto mb-1" />
-              <p className="text-xl font-bold text-foreground">Garantia</p>
-              <p className="text-xs text-muted-foreground">Garantia e nota em todos os serviços</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* Especialidades e Diferenciais */}
-        <Card className="p-6">
-          <h3 className="text-base font-semibold text-foreground mb-4">Especialidades</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {store.about.specialties.map((item, idx) => (
-              <div key={idx} className="flex items-center gap-2.5 rounded-lg border border-border/70 p-3 text-sm">
-                <CheckCircle2 size={16} className="text-primary shrink-0" />
-                <span className="text-foreground">{item}</span>
-              </div>
-            ))}
           </div>
         </Card>
 

@@ -6,8 +6,8 @@ import { AddressForm } from "../_components/address-form/address-form";
 
 export default function AddAddressPage() {
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
-      {/* Seta de voltar no canto superior esquerdo — Padrão Agilis */}
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
+      {/* Seta de voltar */}
       <Link
         href="/addresses"
         aria-label="Voltar para endereços"

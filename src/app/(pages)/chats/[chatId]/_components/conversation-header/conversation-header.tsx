@@ -1,13 +1,9 @@
 "use client";
 
 import {
-  Phone,
   Star,
   ShieldCheck,
-  MoreVertical,
 } from "lucide-react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ConversationInfo {
   id: string;
@@ -24,8 +20,6 @@ interface ConversationHeaderProps {
   onMenuOpen?: () => void;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -34,8 +28,6 @@ function getInitials(name: string) {
     .join("")
     .toUpperCase();
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ConversationHeader({
   conversation,
@@ -102,24 +94,7 @@ export function ConversationHeader({
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            aria-label="Ligar para prestador"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <Phone size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={onMenuOpen}
-            aria-label="Mais opções"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <MoreVertical size={18} />
-          </button>
-        </div>
+
       </div>
     </div>
   );

@@ -1,38 +1,16 @@
 "use client";
 
 import { useRef } from "react";
-import { Upload, Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import type { AvatarOption } from "@/types/avatar-option";
+import { options } from "./avatar-option";
 import type React from "react";
 
 interface AvatarModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-type AvatarOption = {
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  action: "upload" | "remove";
-  danger?: boolean;
-};
-
-const options: AvatarOption[] = [
-  {
-    icon: Upload,
-    label: "Escolher do computador",
-    description: "Selecione uma imagem do seu dispositivo",
-    action: "upload",
-  },
-  {
-    icon: Trash2,
-    label: "Remover foto",
-    description: "Voltar para o avatar padrão com suas iniciais",
-    action: "remove",
-    danger: true,
-  },
-];
 
 export function AvatarModal({ isOpen, onClose }: AvatarModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +21,6 @@ export function AvatarModal({ isOpen, onClose }: AvatarModalProps) {
       return;
     }
     if (action === "remove") {
-      // TODO: remover foto via backend
       console.log("Remover foto");
       onClose();
       return;
@@ -53,7 +30,6 @@ export function AvatarModal({ isOpen, onClose }: AvatarModalProps) {
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (file) {
-      // TODO: fazer upload via backend
       console.log("Arquivo selecionado:", file.name);
       onClose();
     }

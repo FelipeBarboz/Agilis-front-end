@@ -15,7 +15,7 @@ function StorePageContent() {
   const services = useMemo(() => getServicesByStore(store), [store]);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 overflow-y-auto bg-muted p-4 sm:p-6 lg:p-8">
+    <main className="flex flex-1 flex-col gap-6 bg-muted p-4 sm:p-6 lg:p-8">
       <PageTransition className="flex flex-col gap-6 mx-auto w-full max-w-6xl">
         {/* Cabeçalho da Loja com informações, logo, distância, avaliação, disponibilidade e botão sobre nós */}
         <StoreHeader store={store} />

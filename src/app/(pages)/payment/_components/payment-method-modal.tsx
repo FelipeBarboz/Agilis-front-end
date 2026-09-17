@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { QrCode, CreditCard, Wallet, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PAYMENT_METHODS, type PaymentMethodId } from "./types";
+import { PAYMENT_METHODS, type PaymentMethodId } from "../../../../types/payment";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<PaymentMethodId, React.ElementType> = {

@@ -8,13 +8,6 @@ import {
   Store,
 } from "lucide-react";
 
-/**
- * Seção de Ações do Provedor exibida no perfil.
- * - Só é exibida se o CNPJ estiver cadastrado no localStorage (is_provider === "true" ou provider_cnpj).
- * - Quando não tem loja criada: exibe o botão "Criar Loja".
- * - Quando a loja é criada (has_active_store === "true"): o botão vira "Sua Loja" (leva para /store)
- *   e os botões de "Chat" e "Agenda" aparecem ao lado.
- */
 export function ProviderButton() {
   const [mounted, setMounted] = useState(false);
   const [isProvider, setIsProvider] = useState(false);
@@ -33,7 +26,6 @@ export function ProviderButton() {
 
     checkState();
 
-    // Ouve alterações no storage caso o usuário mude em outra aba/ação
     window.addEventListener("storage", checkState);
     return () => {
       window.removeEventListener("storage", checkState);
@@ -52,7 +44,6 @@ export function ProviderButton() {
         </h2>
 
         {hasActiveStore ? (
-          // Loja já criada: 3 botões (Chat, Agenda, Sua Loja)
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <Link
               href="/provider/chat-corporative"
@@ -97,7 +88,7 @@ export function ProviderButton() {
           // CNPJ cadastrado, mas loja ainda não criada: apenas o botão "Criar Loja"
           <div className="grid grid-cols-1">
             <Link
-              href="/create-store"
+              href="/provider/create-store"
               className="flex items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-sm transition-all hover:bg-muted/50 hover:border-primary group sm:p-5"
             >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground group-hover:scale-105 transition-transform">

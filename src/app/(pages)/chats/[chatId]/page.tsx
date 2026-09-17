@@ -11,8 +11,6 @@ import { ServiceSummaryBanner } from "./_components/service-summary-banner/servi
 import { ConversationMenu } from "./_components/conversation-menu/conversation-menu";
 import { mockConversationDetails } from "@/lib/mocks/chat";
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function ChatDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -33,11 +31,9 @@ export default function ChatDetailPage() {
     ];
   }, [data]);
 
-  // ── Not found ────────────────────────────────────────────────────────────────
-
   if (!data) {
     return (
-      <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+      <div className="relative flex flex-1 flex-col bg-muted pb-20">
         <button
           type="button"
           onClick={() => router.back()}
@@ -60,17 +56,13 @@ export default function ChatDetailPage() {
     );
   }
 
-  // ── Handle send ───────────────────────────────────────────────────────────────
-
   function handleSend(text: string) {
-    // TODO: integrar com a API de mensagens
     console.log("Sending:", text);
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-0">
+    <div className="relative flex flex-1 flex-col bg-muted pb-0">
 
       {/* Botão de voltar flutuante — padrão das outras telas */}
       <button
@@ -91,10 +83,10 @@ export default function ChatDetailPage() {
         {/* Header da página */}
         <div>
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-            {data.info.providerName}
+            {data.info.serviceName}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            {data.info.serviceName}
+            {data.info.providerName}
           </p>
         </div>
 

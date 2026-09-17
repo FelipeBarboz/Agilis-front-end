@@ -24,6 +24,9 @@ const PROTECTED_ROUTES = [
   "/create-store",
   "/store/store-scheduling",
   "/reschedule",
+  "/refund-confirmation",
+  "/cancelled",
+  "/delay-resolution",
 ];
 
 function isProtectedRoute(pathname: string): boolean {
@@ -44,7 +47,6 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Passa autenticação mockada nos headers da requisição
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("Authorization", `Bearer ${token}`);
     requestHeaders.set("apikey", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "mock-anon-key");

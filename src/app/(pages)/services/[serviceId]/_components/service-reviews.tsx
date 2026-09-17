@@ -121,14 +121,6 @@ export function ServiceReviews({ initialRating, reviewCount }: ServiceReviewsPro
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-xs font-bold text-primary transition-all hover:bg-primary/20 hover:scale-105 active:scale-95 cursor-pointer self-start sm:self-auto"
-        >
-          <MessageSquare className="size-3.5" />
-          {showForm ? "Fechar formulário" : "Avaliar este serviço"}
-        </button>
       </div>
 
       {/* Resumo de Notas em Formato Horizontal */}

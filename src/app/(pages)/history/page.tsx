@@ -4,7 +4,7 @@ import { PageTransition } from "@/components/ui/motion";
 
 export default async function HistoryPage() {
   return (
-    <main className="flex flex-1 flex-col gap-6 overflow-y-auto bg-muted p-4 sm:p-6 lg:p-8">
+    <main className="flex flex-1 flex-col gap-6 bg-muted p-4 sm:p-6 lg:p-8">
       <PageTransition className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         {/* Header da página */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

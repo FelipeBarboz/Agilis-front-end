@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AppointmentConfirmationCard } from "./_components/appointment-confirmation-card";
+import { AppointmentConfirmationCard } from "./_components/card/appointment-confirmation-card";
 import { PageTransition } from "@/components/ui/motion";
 
 export default async function ConfirmAppointmentPage({
@@ -10,7 +10,7 @@ export default async function ConfirmAppointmentPage({
   const { id } = await params;
   return (
     <div className="flex min-h-screen flex-col">
-      <main className="relative flex flex-1 flex-col overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
+      <main className="relative flex flex-1 flex-col bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
         <PageTransition className="mx-auto w-full max-w-5xl">
           <Suspense
             fallback={
@@ -28,4 +28,4 @@ export default async function ConfirmAppointmentPage({
       </main>
     </div>
   );
-}
+}

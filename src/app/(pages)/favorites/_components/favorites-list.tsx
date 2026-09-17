@@ -1,5 +1,5 @@
 import { FavoriteServiceCard } from "./favorite-service-card";
-import type { FavoriteService } from "./types";
+import type { FavoriteService } from "../../../../types/favorite-service";
 
 interface FavoritesListProps {
   services: FavoriteService[];
@@ -18,4 +18,4 @@ export function FavoritesList({ services, onToggleFavorite }: FavoritesListProps
       ))}
     </div>
   );
-}
+}

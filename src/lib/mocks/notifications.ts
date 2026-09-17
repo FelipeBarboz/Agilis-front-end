@@ -10,7 +10,8 @@ export type NotificationType =
   | "payment"
   | "promotion"
   | "message"
-  | "system";
+  | "system"
+  | "delay";
 
 export interface AppNotification {
   id: string;
@@ -25,6 +26,22 @@ export interface AppNotification {
 }
 
 export const mockAppNotifications: AppNotification[] = [
+  {
+    id: "notif-delay-1",
+    store: {
+      name: "Roberto Silveira - Hidráulica e Gás",
+      avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
+      initials: "RS",
+      category: "Hidráulica e Gás",
+    },
+    title: "Aviso de Atraso no Atendimento",
+    message: "O prestador informou um atraso devido a trânsito intenso na região. Novo horário sugerido: hoje às 11:00. Clique para escolher como prosseguir.",
+    time: "Agora mesmo",
+    date: "Hoje",
+    isRead: false,
+    type: "delay",
+    actionUrl: "/delay-resolution?id=2",
+  },
   {
     id: "notif-1",
     store: {

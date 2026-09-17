@@ -15,6 +15,7 @@ import {
   ArrowRight,
   LogOut,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
 import { ServicesList } from "./_components/services-list";
@@ -23,7 +24,7 @@ export default function StoreProfilePage() {
   const router = useRouter();
 
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
       
       {/* Seta de voltar flutuante — padrão auth, serviço, provider e perfil */}
       <button
@@ -77,7 +78,7 @@ export default function StoreProfilePage() {
           </div>
 
           {/* Action Buttons: Funcionários, Cargos, Configurações */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 mt-2">
             <Link
               href="/store/employees"
               className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
@@ -104,18 +105,6 @@ export default function StoreProfilePage() {
               </div>
             </Link>
 
-            <Link
-              href="/store/store-settings"
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
-            >
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-                <Settings className="size-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground">Configurações</span>
-                <span className="text-xs text-muted-foreground">Perfil da empresa</span>
-              </div>
-            </Link>
           </div>
         </div>
 
@@ -129,13 +118,22 @@ export default function StoreProfilePage() {
               <h2 className="text-lg font-bold text-foreground">Agendamentos</h2>
               <p className="text-sm text-muted-foreground">Atendimentos marcados para sua loja</p>
             </div>
-            <Link
-              href="/store/store-scheduling"
-              className="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
-            >
-              Ver agenda
-              <ArrowRight className="size-3.5" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/store/store-scheduling?delay=true"
+                className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-500/20"
+              >
+                <AlertTriangle className="size-3.5" />
+                Avisar Atraso
+              </Link>
+              <Link
+                href="/store/store-scheduling"
+                className="flex items-center gap-1.5 rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80"
+              >
+                Ver agenda
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
           </div>
 
           <div className="mt-2 divide-y divide-border border-t border-border">
@@ -165,19 +163,6 @@ export default function StoreProfilePage() {
 
         {/* Card 4: Gestão e Sair */}
         <div className="flex flex-col gap-3">
-          <Link
-            href="/store/store-scheduling"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:bg-muted hover:border-primary/40 group sm:p-5"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-              <CalendarDays className="size-5" />
-            </div>
-            <div className="flex flex-1 flex-col">
-              <span className="text-sm font-bold text-foreground">Agenda da Loja</span>
-              <span className="text-xs text-muted-foreground">Visualize e gerencie a grade de horários da empresa</span>
-            </div>
-            <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-          </Link>
 
           <Link
             href="/store/store-settings"

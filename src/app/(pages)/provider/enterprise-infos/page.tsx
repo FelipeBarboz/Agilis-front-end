@@ -4,7 +4,7 @@ import { EnterpriseInfosForm } from "./_components/enterprise-infos-form";
 
 export default function EnterpriseInfosPage() {
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
       {/* Seta de voltar flutuante — padrão Agilis */}
       <Link
         href="/provider/create-store"

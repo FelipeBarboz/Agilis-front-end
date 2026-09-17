@@ -59,7 +59,7 @@ function ServiceDetailContent() {
   const effectiveStoreId = storeIdParam || service.storeId || "store-super-pinturas";
 
   return (
-    <main className="relative flex flex-1 flex-col gap-6 overflow-y-auto bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
+    <main className="relative flex flex-1 flex-col gap-6 bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
       {/* Seta de voltar para a tela de pesquisar serviços — Padrão Agilis */}
       <Link
         href="/services"

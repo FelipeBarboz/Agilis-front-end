@@ -117,7 +117,7 @@ export default function SchedulingProviderPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-muted/40 pb-20">
+    <div className="flex flex-1 flex-col bg-muted/40 pb-20">
       <PageTransition className="flex flex-1 flex-col">
         <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
 

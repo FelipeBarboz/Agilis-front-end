@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { type HistoryStatus, STATUS_LABEL } from "../types";
+import { type HistoryStatus, STATUS_LABEL } from "../../../../types/history";
 import { cn } from "@/lib/utils";
 
 export type HistoryFilterValue = "todos" | HistoryStatus;

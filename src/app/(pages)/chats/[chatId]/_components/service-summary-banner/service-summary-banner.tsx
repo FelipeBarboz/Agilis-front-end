@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { CalendarDays, ChevronRight, Star } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface ServiceCardInfo {
   serviceId: string;
   serviceName: string;
@@ -16,8 +14,6 @@ export interface ServiceCardInfo {
 interface ServiceSummaryBannerProps {
   service: ServiceCardInfo;
 }
-
-// ─── Status config ─────────────────────────────────────────────────────────────
 
 const STATUS_MAP: Record<
   ServiceCardInfo["status"],
@@ -44,8 +40,6 @@ const STATUS_MAP: Record<
     dot: "bg-orange-500 animate-pulse",
   },
 };
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ServiceSummaryBanner({ service }: ServiceSummaryBannerProps) {
   const { serviceName, scheduledAt, status, price, serviceId } = service;

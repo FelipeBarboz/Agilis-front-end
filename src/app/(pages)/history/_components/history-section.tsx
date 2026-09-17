@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { MOCK_HISTORY } from "./mock-history";
+import { MOCK_HISTORY } from "../../../../lib/mocks/history";
 import { HistoryFilters, type HistoryFilterValue } from "./history-filters";
 import { HistoryList } from "./history-list";
 import { HistoryDetailModal } from "./history-detail-modal";
-import { type HistoryEntry, type HistoryStatus } from "../types";
+import { type HistoryEntry, type HistoryStatus } from "../../../../types/history";
 
 export function HistorySection() {
   const [filter, setFilter] = useState<HistoryFilterValue>("todos");

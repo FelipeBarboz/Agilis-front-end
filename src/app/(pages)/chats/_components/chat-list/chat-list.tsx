@@ -4,8 +4,6 @@ import { useMemo } from "react";
 import { ChatListItem, type ChatConversation } from "../chat-list-item/chat-list-item";
 import { ChatEmptyState } from "../chat-empty-state/chat-empty-state";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type FilterType = "todos" | "nao_lidos" | "finalizados";
 
 interface ChatListProps {
@@ -14,8 +12,6 @@ interface ChatListProps {
   search: string;
   emptyDescription?: string;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ChatList({ conversations, filter, search, emptyDescription }: ChatListProps) {
   const filtered = useMemo(() => {

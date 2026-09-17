@@ -29,7 +29,7 @@ export function useCorporateBanner(): BannerContent {
         return;
       }
 
-      // 2. Verifica se possui conta de provedor (CNPJ)
+      // 2. Verifica se possui conta de provedor
       const storedCnpj = localStorage.getItem("provider_cnpj");
       const providerFlag = localStorage.getItem("is_provider");
       const isProvider = Boolean(storedCnpj || providerFlag === "true");

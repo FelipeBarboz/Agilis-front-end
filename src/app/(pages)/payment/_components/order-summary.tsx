@@ -61,13 +61,6 @@ export function OrderSummary({
         </div>
       </div>
 
-      {/* Garantia Agilis */}
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 flex items-start gap-2.5">
-        <ShieldCheck className="size-4 shrink-0 text-primary mt-0.5" />
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          <strong className="text-foreground font-semibold">Garantia Agilis:</strong> Pagamento 100% seguro retido até a conclusão do serviço.
-        </p>
-      </div>
     </Card>
   );
 }
@@ -77,4 +70,4 @@ function formatCurrency(value: number) {
     style: "currency",
     currency: "BRL",
   });
-}
+}

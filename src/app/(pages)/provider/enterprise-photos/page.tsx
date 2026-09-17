@@ -4,7 +4,7 @@ import { EnterprisePhotosForm } from "./_components/enterprise-photos-form";
 
 export default function EnterprisePhotosPage() {
   return (
-    <div className="relative flex h-full flex-col overflow-y-auto bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
       {/* Seta de voltar flutuante — padrão Agilis */}
       <Link
         href="/provider/create-store"

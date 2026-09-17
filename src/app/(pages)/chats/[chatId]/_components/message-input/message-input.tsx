@@ -3,14 +3,10 @@
 import { useState, useRef, type KeyboardEvent } from "react";
 import { Send, Paperclip, Smile } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface MessageInputProps {
   onSend: (text: string) => void;
   disabled?: boolean;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   const [text, setText] = useState("");

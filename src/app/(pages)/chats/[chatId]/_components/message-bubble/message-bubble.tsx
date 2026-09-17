@@ -1,11 +1,9 @@
 "use client";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface ChatMessage {
   id: string;
   content: string;
-  sentAt: string; // Hora ex: "10:32"
+  sentAt: string; // Hora: "10:32"
   isOwn: boolean; // true = usuário logado, false = prestador
   status?: "sent" | "delivered" | "read";
   type?: "text" | "system";
@@ -16,12 +14,10 @@ interface MessageBubbleProps {
   message: ChatMessage;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const { content, sentAt, isOwn, status, type, systemLabel } = message;
 
-  // ── Mensagem de sistema (ex: "Serviço agendado para...") ──────────────────
   if (type === "system") {
     return (
       <div className="flex justify-center px-4 py-1">
@@ -34,7 +30,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     );
   }
 
-  // ── Mensagem normal ────────────────────────────────────────────────────────
   return (
     <div
       className={`flex w-full px-4 ${isOwn ? "justify-end" : "justify-start"}`}

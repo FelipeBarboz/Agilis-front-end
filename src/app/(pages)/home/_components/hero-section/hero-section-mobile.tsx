@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { SearchBar } from "../search-bar";
+import { SearchBar } from "../search/search-bar";
 
 export function HeroSectionMobile() {
   return (
