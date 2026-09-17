@@ -13,18 +13,6 @@ export function ModalSkeleton() {
         </div>
       </div>
 
-      {/* Counterpart skeleton */}
-      <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-card p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-full bg-muted" />
-          <div className="space-y-1.5">
-            <div className="h-3 w-16 rounded-md bg-muted" />
-            <div className="h-4 w-32 rounded-md bg-muted" />
-          </div>
-        </div>
-        <div className="h-8 w-20 rounded-lg bg-muted" />
-      </div>
-
       {/* Info block skeleton */}
       <div className="rounded-2xl border border-border/40 bg-card space-y-3 p-4">
         <div className="h-3 w-28 rounded-md bg-muted" />

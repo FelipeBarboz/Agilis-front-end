@@ -1,6 +1,13 @@
 import { ChevronDown } from "lucide-react";
+import type { AttendanceType } from "./attendance-type-selector";
 
-export function AttendanceRadiusField() {
+interface AttendanceRadiusFieldProps {
+  selectedType: AttendanceType;
+}
+
+export function AttendanceRadiusField({ selectedType }: AttendanceRadiusFieldProps) {
+  const showAddressField = selectedType === "FIXED_LOCATION" || selectedType === "BOTH";
+
   return (
     <>
       {/* Raio de atendimento */}
@@ -23,21 +30,23 @@ export function AttendanceRadiusField() {
         </div>
       </div>
 
-      {/* Endereço de referência */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="address" className="text-xs font-bold text-foreground">
-          Endereço de referência
-        </label>
-        <textarea
-          id="address"
-          rows={2}
-          placeholder="Ex: R. Cristóbal Cláudio Elilo, 88 - Parque Cecap, Guarulhos"
-          className="w-full resize-none rounded-xl border border-input bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-        />
-        <p className="text-xs text-muted-foreground">
-          Ponto de partida para calcular o raio de atendimento
-        </p>
-      </div>
+      {/* Endereço da loja — visível apenas para Local fixo ou Ambos */}
+      {showAddressField && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="address" className="text-xs font-bold text-foreground">
+            Endereço da loja
+          </label>
+          <textarea
+            id="address"
+            rows={2}
+            placeholder="Ex: R. Cristóbal Cláudio Elilo, 88 - Parque Cecap, Guarulhos"
+            className="w-full resize-none rounded-xl border border-input bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+          <p className="text-xs text-muted-foreground">
+            Ponto de partida para calcular o raio de atendimento
+          </p>
+        </div>
+      )}
     </>
   );
 }

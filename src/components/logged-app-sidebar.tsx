@@ -103,7 +103,11 @@ export function LoggedAppSidebar() {
               icon={item.icon}
               label={item.label}
               badge={item.badge}
-              isActive={item.isActive ?? pathname === item.href}
+              isActive={item.isActive ?? (
+                item.href === "/home"
+                  ? pathname === item.href
+                  : pathname.startsWith(item.href ?? "__never__")
+              )}
             />
           ))}
         </div>

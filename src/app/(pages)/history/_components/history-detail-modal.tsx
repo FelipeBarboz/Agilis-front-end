@@ -9,7 +9,6 @@ import { ModalSkeleton } from "./modal-skeleton";
 import { ModalFooterActions } from "./modal-footer-actions";
 import { ServiceHero } from "./service-hero";
 import { CancellationBanner } from "./cancellation-banner";
-import { CounterpartCard } from "./counterpart-card";
 import { SchedulingInfo } from "./scheduling-info";
 import { PaymentSummary } from "./payment-summary";
 import { NotesSection } from "./notes-section";
@@ -30,13 +29,11 @@ interface HistoryDetailModalProps {
 export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
-  const [avatarError, setAvatarError] = useState(false);
 
   useEffect(() => {
     if (open && entry) {
       setIsLoading(true);
       setImgError(false);
-      setAvatarError(false);
       const timer = setTimeout(() => setIsLoading(false), 450);
       return () => clearTimeout(timer);
     }
@@ -103,14 +100,6 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                   {entry.status === "cancelado" && entry.cancellationReason && (
                     <CancellationBanner reason={entry.cancellationReason} />
                   )}
-
-                  <CounterpartCard
-                    name={entry.counterpartName}
-                    role={entry.counterpartRole}
-                    avatarUrl={entry.counterpartAvatarUrl}
-                    avatarError={avatarError}
-                    onAvatarError={() => setAvatarError(true)}
-                  />
 
                   <SchedulingInfo
                     formattedDate={capitalizedDate}

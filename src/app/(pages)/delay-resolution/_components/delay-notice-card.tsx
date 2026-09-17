@@ -70,14 +70,6 @@ export function DelayNoticeCard({
           </div>
         </div>
       </div>
-
-      {/* Garantia do Agilis */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1 border-t border-amber-500/15">
-        <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-        <span>
-          Garantia Agilis: você pode aceitar a sugestão, receber o estorno total ou escolher outro dia com <strong>prioridade total</strong>.
-        </span>
-      </div>
     </div>
   );
 }

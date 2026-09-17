@@ -14,32 +14,6 @@ interface ConversationMenuProps {
   onClose: () => void;
 }
 
-const MENU_ITEMS = [
-  {
-    id: "schedule",
-    label: "Ver agendamento",
-    icon: CalendarDays,
-    className: "text-foreground",
-  },
-  {
-    id: "report",
-    label: "Reportar prestador",
-    icon: Flag,
-    className: "text-orange-600",
-  },
-  {
-    id: "block",
-    label: "Bloquear prestador",
-    icon: Ban,
-    className: "text-destructive",
-  },
-  {
-    id: "delete",
-    label: "Excluir conversa",
-    icon: Trash2,
-    className: "text-destructive",
-  },
-];
 
 export function ConversationMenu({ isOpen, onClose }: ConversationMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -94,21 +68,6 @@ export function ConversationMenu({ isOpen, onClose }: ConversationMenuProps) {
           </button>
         </div>
 
-        {/* Items */}
-        <div className="flex flex-col py-1">
-          {MENU_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              role="menuitem"
-              onClick={onClose}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/70 ${item.className}`}
-            >
-              <item.icon size={16} className="shrink-0" />
-              {item.label}
-            </button>
-          ))}
-        </div>
       </div>
     </>
   );

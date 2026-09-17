@@ -163,19 +163,6 @@ export default function StoreProfilePage() {
 
         {/* Card 4: Gestão e Sair */}
         <div className="flex flex-col gap-3">
-          <Link
-            href="/store/store-scheduling"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:bg-muted hover:border-primary/40 group sm:p-5"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-              <CalendarDays className="size-5" />
-            </div>
-            <div className="flex flex-1 flex-col">
-              <span className="text-sm font-bold text-foreground">Agenda da Loja</span>
-              <span className="text-xs text-muted-foreground">Visualize e gerencie a grade de horários da empresa</span>
-            </div>
-            <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
-          </Link>
 
           <Link
             href="/store/store-settings"

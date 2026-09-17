@@ -38,10 +38,10 @@ export function ConfirmProviderModal({
 
           {/* Modal */}
           <motion.div
-            className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 rounded-3xl bg-card p-6 shadow-2xl sm:inset-x-auto sm:left-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2"
-            initial={{ opacity: 0, scale: 0.92, y: "-40%" }}
-            animate={{ opacity: 1, scale: 1, y: "-50%" }}
-            exit={{ opacity: 0, scale: 0.92, y: "-40%" }}
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md rounded-3xl bg-card p-6 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.92, x: "-50%", y: "-40%" }}
+            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+            exit={{ opacity: 0, scale: 0.92, x: "-50%", y: "-40%" }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
             {/* Ícone */}

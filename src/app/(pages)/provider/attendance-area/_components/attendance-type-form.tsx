@@ -43,7 +43,7 @@ export function AttendanceTypeForm() {
       {/* Separador */}
       <div className="h-px bg-border" />
 
-      <AttendanceRadiusField />
+      <AttendanceRadiusField selectedType={selectedType} />
 
       {/* Separador */}
       <div className="h-px bg-border" />

@@ -83,10 +83,10 @@ export default function ChatDetailPage() {
         {/* Header da página */}
         <div>
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-            {data.info.providerName}
+            {data.info.serviceName}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            {data.info.serviceName}
+            {data.info.providerName}
           </p>
         </div>
 

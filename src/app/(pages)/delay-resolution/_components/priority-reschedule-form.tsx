@@ -85,13 +85,6 @@ export function PriorityRescheduleForm({
         />
       </div>
 
-      {/* Aviso de Garantia e Prioridade */}
-      <div className="flex items-start gap-2.5 rounded-xl bg-primary/5 p-3.5 border border-primary/15 text-xs text-muted-foreground">
-        <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <p>
-          Garantia Agilis de Pontualidade: O prestador assumiu compromisso prioritário para este novo horário.
-        </p>
-      </div>
 
       {/* Botões de Ação */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">

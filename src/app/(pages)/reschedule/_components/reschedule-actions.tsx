@@ -16,7 +16,7 @@ export function RescheduleActions({
         disabled={isSubmitting}
         className="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
       >
-        {isSubmitting ? "Confirmando..." : "Confirmar Novo Horário"}
+        {isSubmitting ? "Confirmando..." : "Solicitar novo horário"}
       </button>
       <Link
         href={cancelHref}

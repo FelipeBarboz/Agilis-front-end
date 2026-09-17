@@ -15,7 +15,6 @@ import {
 } from "./cancellation-reason-select";
 import { CommentsTextarea } from "./comments-textarea";
 import { RefundSummary } from "./refund-summary";
-import { SafetyBadge } from "./safety-badge";
 import { ActionButtons } from "./action-buttons";
 import { SuccessCard } from "./success-card";
 
@@ -189,7 +188,6 @@ export function RefundConfirmationForm() {
           paymentMethod={entry?.paymentMethod ?? "PIX"}
         />
 
-        <SafetyBadge />
 
         <ActionButtons isSubmitting={isSubmitting} isCompleted={isCompleted} />
       </form>

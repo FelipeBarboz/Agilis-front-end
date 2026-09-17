@@ -28,15 +28,11 @@ export function ModalFooterActions({ status, entryId }: ModalFooterActionsProps)
               <MessageSquare className="h-4 w-4" />
               Chat com Prestador
             </Link>
-            <Link href={`/reschedule?id=${entryId}`} className={secondaryLink}>
-              <CalendarSync className="h-4 w-4 text-primary" />
-              Reagendar
-            </Link>
           </div>
           <div className="flex items-center justify-between pt-1 text-xs">
             <span className="text-muted-foreground flex items-center gap-1.5">
               <Ban className="h-3.5 w-3.5 text-muted-foreground/70" />
-              Serviços em andamento não podem ser cancelados
+              Serviços em andamento não podem ser cancelados ou reagendados
             </span>
             <Link href="/support" className="text-muted-foreground hover:underline">
               Ajuda

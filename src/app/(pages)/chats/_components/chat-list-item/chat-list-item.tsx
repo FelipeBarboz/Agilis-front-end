@@ -48,7 +48,7 @@ export function ChatListItem({ conversation }: ChatListItemProps) {
       {/* Avatar com inicial */}
       <div className="relative shrink-0">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary ring-2 ring-primary/10 group-hover:ring-primary/20 transition-all">
-          {getInitials(providerName)}
+          {getInitials(serviceName)}
         </div>
         {/* Online dot */}
         {!isFinished && (
@@ -60,12 +60,12 @@ export function ChatListItem({ conversation }: ChatListItemProps) {
       <div className="flex flex-1 flex-col gap-1 overflow-hidden">
         <div className="flex items-center justify-between gap-2">
           <span className={`truncate text-sm font-bold ${unreadCount > 0 ? "text-foreground" : "text-foreground/80"}`}>
-            {providerName}
+            {serviceName}
           </span>
           <span className="shrink-0 text-xs text-muted-foreground">{lastMessageAt}</span>
         </div>
 
-        <span className="truncate text-xs font-medium text-primary/70">{serviceName}</span>
+        <span className="truncate text-xs font-medium text-primary/70">{providerName}</span>
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-1 items-center gap-1.5 overflow-hidden">

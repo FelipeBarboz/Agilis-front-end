@@ -260,13 +260,6 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
             </div>
           </div>
 
-          {/* Policy */}
-          <div className="flex items-start gap-2 rounded-xl bg-primary/5 p-3 text-[11px] text-muted-foreground">
-            <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-            <p>
-              Garantia Agilis: Agendamento protegido com direito a cancelamento e reembolso integral.
-            </p>
-          </div>
 
           {/* Submit button */}
           <button

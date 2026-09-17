@@ -9,7 +9,7 @@ export function PopularServicesDesktop() {
     <FadeInSection>
       <section>
         <h2 className="mb-4 text-lg font-bold text-foreground">
-          Serviços Populares
+          Categorias Populares
         </h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {popularCategories.map((service, index) => (

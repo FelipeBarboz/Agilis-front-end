@@ -73,13 +73,6 @@ export function PaymentSuccess({
           total={total}
         />
 
-        {/* Garantia Agilis */}
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 flex items-start gap-2.5 text-left mb-6">
-          <ShieldCheck className="size-4 shrink-0 text-primary mt-0.5" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            <strong className="text-foreground font-semibold">Garantia Agilis:</strong> O valor permanecerá protegido e só será liberado para o prestador após a conclusão do serviço.
-          </p>
-        </div>
 
         {/* Ação: Apenas Ver no Histórico */}
         <div className="flex flex-col gap-3">
