@@ -6,11 +6,13 @@ import { HomeServiceCarousels } from "./home/_components/services-carousel/home-
 export default function HomePage() {
   return (
     <main className="flex-1 bg-muted">
-      <div className="flex flex-col gap-8 p-6">
+      <div className="flex flex-col gap-0 p-0 lg:gap-8 lg:p-6">
         <HeroSection />
         <PopularServices />
         <CorporateBanner />
-        <HomeServiceCarousels />
+        <div className="hidden lg:block">
+          <HomeServiceCarousels />
+        </div>
       </div>
     </main>
   );
