@@ -17,9 +17,7 @@ export interface MockAuthHeaders {
   "Content-Type": string;
 }
 
-/**
- * Cria os cabeçalhos de autenticação mockados que simulam o Supabase Auth.
- */
+
 export function createMockAuthHeaders(token?: string): MockAuthHeaders {
   const currentToken = token || getStoredToken() || "mock-sb-access-token-agilis";
   return {
@@ -30,35 +28,27 @@ export function createMockAuthHeaders(token?: string): MockAuthHeaders {
   };
 }
 
-/**
- * Helper para leitura de cookie no cliente
- */
+
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = new RegExp(`(^|;\\s*)${name}=([^;]*)`).exec(document.cookie);
   return match ? decodeURIComponent(match[2] ?? "") : null;
 }
 
-/**
- * Helper para gravação de cookie no cliente
- */
+
 export function setCookie(name: string, value: string, maxAgeDays = 7): void {
   if (typeof document === "undefined") return;
   const maxAge = maxAgeDays * 24 * 60 * 60;
   document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
-/**
- * Helper para exclusão de cookie no cliente
- */
+
 export function removeCookie(name: string): void {
   if (typeof document === "undefined") return;
   document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
 }
 
-/**
- * Obtém o token armazenado (cookie ou localStorage)
- */
+
 export function getStoredToken(): string | null {
   if (typeof window === "undefined") return null;
   const cookieToken = getCookie(AUTH_COOKIE_NAME);
@@ -66,9 +56,7 @@ export function getStoredToken(): string | null {
   return localStorage.getItem(AUTH_COOKIE_NAME);
 }
 
-/**
- * Obtém os dados do usuário armazenados
- */
+
 export function getStoredUser(): MockUser | null {
   if (typeof window === "undefined") return null;
   try {
