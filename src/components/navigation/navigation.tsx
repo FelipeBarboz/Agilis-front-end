@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { NavigationDesktop } from "./navigation-desktop";
 import { NavigationMobile } from "./navigation-mobile";
 
@@ -9,7 +10,9 @@ export function Navigation() {
       </div>
 
       <div className="lg:hidden shrink-0 w-full">
-        <NavigationMobile />
+        <Suspense fallback={null}>
+          <NavigationMobile />
+        </Suspense>
       </div>
     </>
   );
