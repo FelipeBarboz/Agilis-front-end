@@ -7,6 +7,7 @@ import { mockPositions, type Position } from "@/lib/mocks/positions";
 import { AddPositionModal } from "./add-position-modal";
 import { EditPositionModal } from "./edit-position-modal";
 import { DeletePositionModal } from "./delete-position-modal";
+import { GenerateInviteModal } from "./generate-invite-modal";
 import { PositionCard } from "./position-card";
 import { PositionsEmptyState } from "./positions-empty-state";
 
@@ -15,6 +16,7 @@ export function PositionsList() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
 
   const handleAddPosition = (newPos: Omit<Position, "id" | "employeeCount">) => {
@@ -48,6 +50,11 @@ export function PositionsList() {
     setDeleteModalOpen(true);
   };
 
+  const openInvite = (pos: Position) => {
+    setSelectedPosition(pos);
+    setInviteModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header & Action */}
@@ -78,6 +85,7 @@ export function PositionsList() {
               position={pos}
               onEdit={openEdit}
               onDelete={openDelete}
+              onInvite={openInvite}
             />
           ))
         )}
@@ -102,6 +110,12 @@ export function PositionsList() {
         onOpenChange={setDeleteModalOpen}
         position={selectedPosition}
         onConfirmDelete={handleDeletePosition}
+      />
+
+      <GenerateInviteModal
+        isOpen={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        position={selectedPosition}
       />
     </div>
   );

@@ -18,6 +18,7 @@ import {
   IconCleaning,
   IconPlumbing,
   IconPainting,
+  IconStore,
 } from "@/components/ui/icons";
 import { useAuth } from "@/lib/auth/auth-context";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -27,6 +28,7 @@ const iconMap: Record<string, React.ReactNode> = {
   "/services": <IconServices size={20} />,
   "/support": <IconSupport size={20} />,
   "/history": <IconHistory size={20} />,
+  "/stores": <IconStore size={20} />,
   todos: <IconAll size={18} />,
   tecnologia: <IconTech size={18} />,
   eletrica: <IconElectric size={18} />,
@@ -171,11 +173,16 @@ export function NavigationMobile() {
                   <p className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Menu Principal
                   </p>
-                  {mainNavItems.map((item) => {
+                  {[
+                    ...mainNavItems,
+                    ...(isAuthenticated ? [{ href: "/stores", label: "Lojas" }] : []),
+                  ].map((item) => {
                     const isActive =
                       item.href === "/home"
                         ? pathname === "/" || pathname === "/home"
-                        : pathname.startsWith(item.href);
+                        : item.href === "/stores"
+                          ? pathname.startsWith("/stores") || pathname.startsWith("/store") || pathname.startsWith("/employee-store")
+                          : pathname.startsWith(item.href);
 
                     return (
                       <Link

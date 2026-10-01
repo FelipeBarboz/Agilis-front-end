@@ -23,7 +23,11 @@ function getPageNumbers(current: number, total: number): (number | "ellipsis")[]
   return [1, "ellipsis", current - 1, current, current + 1, "ellipsis", total];
 }
 
-export function ServicesList() {
+interface ServicesListProps {
+  isRestricted?: boolean;
+}
+
+export function ServicesList({ isRestricted = false }: ServicesListProps) {
   const [page, setPage] = useState(1);
 
   const totalPages = Math.ceil(mockProfileServices.length / PAGE_SIZE);
@@ -35,16 +39,18 @@ export function ServicesList() {
         <div>
           <h2 className="text-lg font-bold text-foreground">Serviços da Loja</h2>
           <p className="text-sm text-muted-foreground">
-            Gerencie os serviços oferecidos e seus valores
+            {isRestricted ? "Visualização dos serviços oferecidos pela loja" : "Gerencie os serviços oferecidos e seus valores"}
           </p>
         </div>
-        <Link
-          href="/provider/add-service"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus:ring-4 focus:ring-primary/20"
-        >
-          <Plus className="size-4" />
-          Novo serviço
-        </Link>
+        {!isRestricted && (
+          <Link
+            href="/provider/add-service"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus:ring-4 focus:ring-primary/20"
+          >
+            <Plus className="size-4" />
+            Novo serviço
+          </Link>
+        )}
       </div>
 
       <div className="mt-2 divide-y divide-border border-t border-border">

@@ -19,7 +19,6 @@ import {
   IconTech,
   IconAll,
   IconStore,
-  IconFavorites,
   IconBell,
 } from "@/components/ui/icons";
 
@@ -43,24 +42,6 @@ export function LoggedAppSidebar() {
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>(mockAppNotifications);
-  const [hasActiveStore, setHasActiveStore] = useState(false);
-
-  useEffect(() => {
-    const checkStore = () => {
-      const storeFlag = localStorage.getItem("has_active_store");
-      setHasActiveStore(storeFlag === "true");
-    };
-
-    checkStore();
-
-    window.addEventListener("storage", checkStore);
-    window.addEventListener("auth-change", checkStore);
-
-    return () => {
-      window.removeEventListener("storage", checkStore);
-      window.removeEventListener("auth-change", checkStore);
-    };
-  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -77,10 +58,7 @@ export function LoggedAppSidebar() {
       isActive: isNotificationsOpen,
     },
     { href: "/history",   icon: <IconHistory />,   label: "Histórico" },
-    { href: "/favorites", icon: <IconFavorites />, label: "Favoritos" },
-    ...(hasActiveStore
-      ? [{ href: "/store", icon: <IconStore />, label: "Sua Loja" }]
-      : []),
+    { href: "/stores",    icon: <IconStore />,     label: "Lojas"     },
   ];
 
   function isCategoryActive(href: string): boolean {
@@ -105,8 +83,10 @@ export function LoggedAppSidebar() {
               badge={item.badge}
               isActive={item.isActive ?? (
                 item.href === "/home"
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href ?? "__never__")
+                  ? pathname === "/" || pathname === "/home"
+                  : item.href === "/stores"
+                    ? pathname.startsWith("/stores") || pathname.startsWith("/store") || pathname.startsWith("/employee-store")
+                    : pathname.startsWith(item.href ?? "__never__")
               )}
             />
           ))}
