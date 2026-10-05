@@ -4,18 +4,18 @@ export function HomeFooterDesktop() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="flex items-center justify-between border-t border-primary/20 bg-primary px-6 py-4 text-xs text-primary-foreground font-medium">
+    <footer className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 text-xs text-gray-400 font-medium">
       <p>© Copyright {year} – Agilis Services – Todos os direitos reservados</p>
       <nav className="flex gap-6">
         <Link
           href="/terms"
-          className="text-primary-foreground/90 transition-colors hover:text-primary-foreground hover:underline"
+          className="text-gray-400 transition-colors hover:text-gray-600 hover:underline"
         >
           Termos de Uso
         </Link>
         <Link
           href="/privacy"
-          className="text-primary-foreground/90 transition-colors hover:text-primary-foreground hover:underline"
+          className="text-gray-400 transition-colors hover:text-gray-600 hover:underline"
         >
           Política de Privacidade
         </Link>

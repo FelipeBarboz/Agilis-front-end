@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, UserCheck } from "lucide-react";
+import { ShieldCheck, UserCheck, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { mockPositions, type Position } from "@/lib/mocks/positions";
@@ -11,6 +11,7 @@ interface EmployeeRoleSectionProps {
   isEditingRole: boolean;
   onToggleEditRole: () => void;
   onSelectRole: (roleTitle: string) => void;
+  onGenerateLink?: (position: Position) => void;
   selectedPositionObj?: Position;
 }
 
@@ -20,6 +21,7 @@ export function EmployeeRoleSection({
   isEditingRole,
   onToggleEditRole,
   onSelectRole,
+  onGenerateLink,
   selectedPositionObj,
 }: EmployeeRoleSectionProps) {
   return (
@@ -49,27 +51,45 @@ export function EmployeeRoleSection({
             {mockPositions.map((pos) => {
               const isSelected = selectedRole === pos.title;
               return (
-                <button
+                <div
                   key={pos.id}
-                  type="button"
-                  onClick={() => onSelectRole(pos.title)}
                   className={cn(
-                    "flex items-center justify-between p-3 rounded-xl border text-left transition-all text-sm cursor-pointer",
+                    "flex items-center justify-between p-3 rounded-xl border transition-all text-sm",
                     isSelected
                       ? "border-primary bg-primary/10 text-primary font-bold shadow-xs"
-                      : "border-border bg-card hover:bg-muted text-foreground"
+                      : "border-border bg-card text-foreground"
                   )}
                 >
-                  <div className="flex flex-col">
+                  {/* Área clicável para selecionar o cargo */}
+                  <button
+                    type="button"
+                    onClick={() => onSelectRole(pos.title)}
+                    className="flex flex-1 flex-col text-left cursor-pointer min-w-0"
+                  >
                     <span>{pos.title}</span>
                     <span className="text-xs font-normal text-muted-foreground line-clamp-1">
                       {pos.description}
                     </span>
+                  </button>
+
+                  {/* Ações à direita */}
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onGenerateLink?.(pos)}
+                      className="h-7 gap-1.5 rounded-lg border-border px-2.5 text-[11px] font-semibold text-muted-foreground hover:text-primary hover:border-primary/40 cursor-pointer"
+                      title={`Gerar link de convite para ${pos.title}`}
+                    >
+                      <Link2 className="size-3" />
+                      <span>Gerar Link</span>
+                    </Button>
+                    {isSelected && (
+                      <UserCheck className="size-4 text-primary shrink-0" />
+                    )}
                   </div>
-                  {isSelected && (
-                    <UserCheck className="size-4 text-primary shrink-0 ml-2" />
-                  )}
-                </button>
+                </div>
               );
             })}
           </div>

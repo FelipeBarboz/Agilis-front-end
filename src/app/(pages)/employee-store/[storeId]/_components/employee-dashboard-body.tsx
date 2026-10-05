@@ -81,7 +81,7 @@ export function EmployeeDashboardBody({ storeId }: EmployeeDashboardBodyProps) {
         />
 
         {/* Dashboard de Atendimentos */}
-        <EmployeeAppointmentsSection employeeName={currentUser.name} />
+        <EmployeeAppointmentsSection employeeName={currentUser.name} storeId={storeId} />
 
       </main>
     </div>

@@ -4,10 +4,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Briefcase, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { mockPositions } from "@/lib/mocks/positions";
+import { mockPositions, type Position } from "@/lib/mocks/positions";
 import { DeleteEmployeeConfirm } from "./delete-employee-confirm";
 import { EmployeeRoleSection } from "./employee-role-section";
 import { EmployeePermissionsView } from "./employee-permissions-view";
+import { GenerateInviteModal } from "../../store-positions/_components/generate-invite-modal";
 
 interface ManageEmployeeModalProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function ManageEmployeeModal({
   const [selectedRole, setSelectedRole] = useState(currentRole);
   const [isEditingRole, setIsEditingRole] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [invitePosition, setInvitePosition] = useState<Position | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -46,7 +48,8 @@ export function ManageEmployeeModal({
   const rolePermissions = selectedPositionObj?.permissions ?? ["manage_appointments"];
 
   return (
-    <AnimatePresence>
+    <>
+      <AnimatePresence>
       {open && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
@@ -116,6 +119,7 @@ export function ManageEmployeeModal({
                       setSelectedRole(title);
                       setIsEditingRole(false);
                     }}
+                    onGenerateLink={(pos) => setInvitePosition(pos)}
                     selectedPositionObj={selectedPositionObj}
                   />
 
@@ -165,5 +169,13 @@ export function ManageEmployeeModal({
         </motion.div>
       )}
     </AnimatePresence>
+
+      {/* Modal de Convite por Cargo - reutilizado da tela de Cargos */}
+      <GenerateInviteModal
+        position={invitePosition}
+        isOpen={invitePosition !== null}
+        onClose={() => setInvitePosition(null)}
+      />
+    </>
   );
 }
