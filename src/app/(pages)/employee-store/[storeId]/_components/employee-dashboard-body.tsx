@@ -13,6 +13,7 @@ import {
 } from "@/lib/mocks/invites";
 import { EmployeeDashboardHeader } from "./employee-dashboard-header";
 import { EmployeeAppointmentsSection } from "./employee-appointments-section";
+import { EmployeeChatsSection } from "./employee-chats-section";
 
 interface EmployeeDashboardBodyProps {
   storeId: string;
@@ -82,6 +83,9 @@ export function EmployeeDashboardBody({ storeId }: EmployeeDashboardBodyProps) {
 
         {/* Dashboard de Atendimentos */}
         <EmployeeAppointmentsSection employeeName={currentUser.name} storeId={storeId} />
+
+        {/* Chat com Solicitantes */}
+        <EmployeeChatsSection />
 
       </main>
     </div>
