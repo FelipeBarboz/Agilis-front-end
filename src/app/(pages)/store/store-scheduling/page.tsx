@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { PageTransition } from "@/components/ui/motion";
 import { StoreSchedulingHeader } from "./_components/store-scheduling-header";
 import { StoreCalendar } from "./_components/store-calendar";
@@ -13,6 +14,7 @@ import { MOCK_STORE_APPOINTMENTS } from "@/lib/mocks/store-appointments";
 import { today } from "./_components/date-helper";
 
 function StoreSchedulingContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const shouldOpenDelay = searchParams.get("delay") === "true";
   const queryAppointmentId = searchParams.get("id");
@@ -56,9 +58,19 @@ function StoreSchedulingContent() {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-muted pb-20">
+    <div className="relative flex flex-1 flex-col bg-muted pb-20">
+      {/* Botão de voltar flutuante — padrão Agilis */}
+      <button
+        type="button"
+        onClick={() => router.back()}
+        aria-label="Voltar"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
+      >
+        <ArrowLeft size={20} />
+      </button>
+
       <PageTransition className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-2xl space-y-5 px-4 py-6">
+        <div className="mx-auto w-full max-w-2xl space-y-5 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
 
           {/* Header da Página */}
           <StoreSchedulingHeader

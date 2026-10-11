@@ -61,15 +61,9 @@ function StoreProfileContent() {
       {/* Seta de voltar flutuante */}
       <button
         type="button"
-        onClick={() => {
-          if (isEmployee && storeIdParam) {
-            router.push(`/employee-store/${storeIdParam}`);
-          } else {
-            router.back();
-          }
-        }}
-        aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted cursor-pointer"
+        onClick={() => router.push("/stores")}
+        aria-label="Voltar para Minhas Lojas"
+        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
       >
         <ArrowLeft size={20} />
       </button>

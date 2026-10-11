@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Store, Building2, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Plus, Store, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   mockUserStoreAssociations,
@@ -15,7 +14,6 @@ import { JoinStoreCard } from "./join-store-card";
 import { StoreCardItem } from "./store-card-item";
 
 export function StoresBody() {
-  const router = useRouter();
   const [associations, setAssociations] = useState<UserStoreAssociation[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -55,19 +53,8 @@ export function StoresBody() {
 
   return (
     <div className="relative flex flex-1 flex-col bg-muted pb-20">
-      
-      {/* Botão de voltar flutuante */}
-      <button
-        type="button"
-        onClick={() => router.back()}
-        aria-label="Voltar"
-        className="absolute left-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-card cursor-pointer"
-      >
-        <ArrowLeft size={20} />
-      </button>
-
       {/* Main Content */}
-      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-7 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
+      <main className="mx-auto flex w-full max-w-4xl flex-col space-y-7 px-4 pt-8 pb-8 sm:px-6 sm:py-8 lg:px-8">
         
         {/* Header da Página */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
