@@ -10,6 +10,13 @@ export const STORE_CREATION_STEPS = [
     step: 1,
   },
   {
+    key: "enterpriseInfos" as const,
+    label: "Informações da empresa",
+    description: "Nome de exibição e CNPJ da loja",
+    href: "/provider/enterprise-infos",
+    step: 2,
+  },
+  {
     key: "attendanceArea" as const,
     label: "Área de atendimento",
     description: "Defina onde você atende seus clientes",

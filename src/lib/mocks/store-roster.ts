@@ -84,3 +84,38 @@ export const MOCK_STORE_TEAM: StoreTeamMember[] = [
     },
   },
 ];
+
+const STORE_ROSTER_KEY = "agilis_store_roster";
+
+export function getStoreTeamFromStorage(storeId?: string): StoreTeamMember[] {
+  if (typeof window === "undefined") return MOCK_STORE_TEAM;
+  const key = `${STORE_ROSTER_KEY}_${storeId || "default"}`;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      localStorage.setItem(key, JSON.stringify(MOCK_STORE_TEAM));
+      return MOCK_STORE_TEAM;
+    }
+    return JSON.parse(raw);
+  } catch {
+    return MOCK_STORE_TEAM;
+  }
+}
+
+export function saveStoreTeamToStorage(
+  team: StoreTeamMember[],
+  storeId?: string
+): void {
+  if (typeof window === "undefined") return;
+  const key = `${STORE_ROSTER_KEY}_${storeId || "default"}`;
+  try {
+    localStorage.setItem(key, JSON.stringify(team));
+    window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(
+      new CustomEvent("roster-update", { detail: { storeId, team } })
+    );
+  } catch {
+    // ignore
+  }
+}
+

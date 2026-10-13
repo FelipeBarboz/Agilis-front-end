@@ -18,12 +18,18 @@ import {
   AlertTriangle,
   ShieldAlert,
   Lock,
+  CalendarDays,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
 import { ServicesList } from "./_components/services-list";
 import { getEmployeeStoresFromStorage } from "@/lib/mocks/invites";
 import type { PermissionId } from "@/lib/mocks/positions";
+import {
+  getStoreTeamFromStorage,
+  type StoreTeamMember,
+} from "@/lib/mocks/store-roster";
 
 function StoreProfileContent() {
   const router = useRouter();
@@ -36,6 +42,23 @@ function StoreProfileContent() {
   const [isEmployee, setIsEmployee] = useState(isEmployeeParam);
   const [positionTitle, setPositionTitle] = useState(positionTitleParam || "Funcionário");
   const [permissions, setPermissions] = useState<PermissionId[]>(["manage_appointments"]);
+  const [storeTeam, setStoreTeam] = useState<StoreTeamMember[]>([]);
+  const todayDow = new Date().getDay();
+
+  useEffect(() => {
+    setStoreTeam(getStoreTeamFromStorage(storeIdParam || "store-super-pinturas"));
+
+    const handleSync = () => {
+      setStoreTeam(getStoreTeamFromStorage(storeIdParam || "store-super-pinturas"));
+    };
+    window.addEventListener("storage", handleSync);
+    window.addEventListener("roster-update", handleSync);
+
+    return () => {
+      window.removeEventListener("storage", handleSync);
+      window.removeEventListener("roster-update", handleSync);
+    };
+  }, [storeIdParam]);
 
   useEffect(() => {
     if (isEmployeeParam) {
@@ -147,8 +170,8 @@ function StoreProfileContent() {
             </div>
           </div>
 
-          {/* Action Buttons: Funcionários, Cargos */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 mt-2">
+          {/* Action Buttons: Funcionários, Cargos, Escala da Loja */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 mt-2">
             {canManageSettings ? (
               <Link
                 href="/store/employees"
@@ -204,6 +227,93 @@ function StoreProfileContent() {
                 <Lock className="size-4 text-muted-foreground" />
               </div>
             )}
+
+            {/* Escala da Loja */}
+            <Link
+              href={isEmployee && storeIdParam ? `/employee-store/${storeIdParam}/store-schedule` : "/store/store-schedule"}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card/50 p-4 transition-all hover:bg-muted hover:border-primary/40 group"
+            >
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+                <CalendarDays className="size-5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground">Escala da Loja</span>
+                <span className="text-xs text-muted-foreground">Criar e editar turnos</span>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Card: Escala da Equipe da Loja */}
+        <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="size-5 text-primary" />
+                <h2 className="text-lg font-bold text-foreground">Escala da Loja</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Veja a escala completa de todos os funcionários, crie e edite turnos
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {canManageSettings && (
+                <Link
+                  href={isEmployee && storeIdParam ? `/employee-store/${storeIdParam}/store-schedule` : "/store/store-schedule"}
+                  className="flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/20 cursor-pointer shadow-2xs"
+                >
+                  <Pencil className="size-3.5" />
+                  <span>Criar / Editar Escala</span>
+                </Link>
+              )}
+
+              <Link
+                href={isEmployee && storeIdParam ? `/employee-store/${storeIdParam}/store-schedule` : "/store/store-schedule"}
+                className="flex items-center gap-1.5 rounded-xl bg-muted px-3.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/80 cursor-pointer"
+              >
+                <span>Ver escala</span>
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Mini resumo da escala de hoje */}
+          <div className="mt-2 divide-y divide-border border-t border-border">
+            {storeTeam.slice(0, 4).map((member) => {
+              const todayShift = member.shifts[todayDow];
+              const isWorking = todayShift !== null;
+
+              return (
+                <div key={member.id} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#006b49] text-[11px] font-semibold text-white">
+                      {member.initials}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-foreground">
+                        {member.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {member.role}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {todayShift && isWorking ? (
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2.5 py-0.5">
+                        {todayShift[0].toString().padStart(2, "0")}h às {todayShift[1].toString().padStart(2, "0")}h
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground border border-dashed border-border rounded-md px-2.5 py-0.5">
+                        Folga
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

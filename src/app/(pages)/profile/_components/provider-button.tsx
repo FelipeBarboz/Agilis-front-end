@@ -32,7 +32,7 @@ export function ProviderButton() {
     };
   }, []);
 
-  if (!mounted || !isProvider) {
+  if (!mounted) {
     return null;
   }
 

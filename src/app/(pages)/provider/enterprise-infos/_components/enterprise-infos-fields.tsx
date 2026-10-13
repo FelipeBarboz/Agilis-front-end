@@ -41,10 +41,11 @@ export function EnterpriseInfosFields({
       {/* CNPJ */}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="cnpj" className="text-xs font-bold text-foreground">
-          CNPJ
+          CNPJ <span className="text-primary">*</span>
         </label>
         <Input
           id="cnpj"
+          required
           inputMode="numeric"
           placeholder="00.000.000/0000-00"
           value={cnpj}
@@ -52,7 +53,7 @@ export function EnterpriseInfosFields({
           className="h-11 rounded-xl"
         />
         <p className="text-xs text-muted-foreground">
-          Opcional — deixe em branco se for pessoa física (CPF)
+          Cadastro de CNPJ obrigatório para a criação da loja
         </p>
       </div>
     </>

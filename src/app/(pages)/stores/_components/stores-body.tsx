@@ -68,7 +68,7 @@ export function StoresBody() {
           </div>
 
           {/* Botão Criar Loja */}
-          <Link href="/register/provider">
+          <Link href="/provider/create-store">
             <Button className="gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold shadow-xs cursor-pointer">
               <Plus className="size-4" />
               <span>Criar Nova Loja</span>

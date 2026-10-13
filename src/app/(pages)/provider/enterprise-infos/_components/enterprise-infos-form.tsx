@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { EnterpriseInfosFields } from "./enterprise-infos-fields";
@@ -10,8 +10,17 @@ export function EnterpriseInfosForm() {
   const router = useRouter();
   const [cnpj, setCnpj] = useState("");
 
+  useEffect(() => {
+    const storedCnpj = localStorage.getItem("provider_cnpj");
+    if (storedCnpj) setCnpj(storedCnpj);
+  }, []);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (cnpj) {
+      localStorage.setItem("provider_cnpj", cnpj);
+      localStorage.setItem("is_provider", "true");
+    }
     sessionStorage.setItem("form_enterpriseInfos", "true");
     router.push("/provider/create-store");
   };

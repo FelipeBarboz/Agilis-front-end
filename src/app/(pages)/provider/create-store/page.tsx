@@ -14,6 +14,7 @@ export default function CreateStorePage() {
   const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState<Record<StoreStepKey, boolean>>({
     basicInfos: false,
+    enterpriseInfos: false,
     attendanceArea: false,
     storeDescription: false,
     enterprisePhotos: false,
@@ -30,6 +31,7 @@ export default function CreateStorePage() {
     setMounted(true);
     setStatus({
       basicInfos: sessionStorage.getItem("form_basicInfos") === "true",
+      enterpriseInfos: sessionStorage.getItem("form_enterpriseInfos") === "true",
       attendanceArea: sessionStorage.getItem("form_attendanceArea") === "true",
       storeDescription:
         sessionStorage.getItem("form_storeDescription") === "true",
@@ -46,6 +48,7 @@ export default function CreateStorePage() {
   const handleFinishStoreCreation = () => {
     if (!isAllCompleted) return;
     localStorage.setItem("has_active_store", "true");
+    localStorage.setItem("is_provider", "true");
     window.dispatchEvent(new Event("storage"));
     window.dispatchEvent(new Event("auth-change"));
     // Executa full refresh para carregar a nova sidebar com o item 'Sua Loja'
