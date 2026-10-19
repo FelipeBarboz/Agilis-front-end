@@ -21,7 +21,7 @@ export default function StoreRegisterPage() {
       </motion.div>
 
       {/* Form card */}
-      <div className="mx-auto w-full max-w-md px-6">
+      <div className="mx-auto w-full max-w-md px-6 pb-12">
         <motion.div
           className="-mt-24 rounded-2xl bg-primary p-6 shadow-lg"
           initial={{ opacity: 0, y: 24 }}

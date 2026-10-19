@@ -5,10 +5,10 @@ import { ArrowLeft } from "lucide-react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-screen bg-secondary">
+    <div className="relative flex h-screen flex-col overflow-y-auto overflow-x-hidden bg-secondary">
 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-brand-green-dark">
+      <header className="flex shrink-0 items-center justify-between px-6 py-4 bg-brand-green-dark">
         <Link
           href="/home"
           aria-label="Voltar para home"
@@ -26,7 +26,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         />
       </header>
 
-      {children}
+      <div className="flex flex-1 flex-col">
+        {children}
+      </div>
 
     </div>
   );
