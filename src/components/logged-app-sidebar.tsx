@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { mockUser } from "@/lib/mocks/user";
 import { mockAppNotifications, type AppNotification } from "@/lib/mocks/notifications";
 import { NotificationsModal } from "@/components/notifications/notifications-modal";
 import {
@@ -35,7 +34,7 @@ const categoryNavItems = [
 
 export function LoggedAppSidebar() {
   const { user } = useAuth();
-  const currentUser = user ?? mockUser;
+  const currentUser = user ?? { id: "me", name: "Minha Conta", email: "", avatarUrl: null };
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category");

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { mockUser } from "@/lib/mocks/user";
+import { useAuth } from "@/lib/auth/auth-context";
 import {
   EditPersonalFields,
   type PersonalFormData,
@@ -25,13 +25,25 @@ function maskPhone(value: string): string {
 
 export function EditPersonalForm() {
   const router = useRouter();
+  const { user, updateProfile } = useAuth();
 
   const [formData, setFormData] = useState<PersonalFormData>({
-    name: mockUser.name,
-    cpf: mockUser.cpf ?? "",
-    email: mockUser.email,
-    phone: mockUser.phone ?? "",
+    name: user?.name ?? "",
+    cpf: user?.cpf ?? "",
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name ?? "",
+        cpf: user.cpf ?? "",
+        email: user.email ?? "",
+        phone: user.phone ?? "",
+      });
+    }
+  }, [user]);
 
   const [errors, setErrors] = useState<PersonalFormErrors>({});
   const [isSaved, setIsSaved] = useState(false);
@@ -67,7 +79,7 @@ export function EditPersonalForm() {
     }
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const newErrors = validate();
 
@@ -76,8 +88,20 @@ export function EditPersonalForm() {
       return;
     }
 
-    setIsSaved(true);
-    setTimeout(() => router.push("/profile"), 1200);
+    try {
+      await updateProfile({
+        name: formData.name,
+        phone: formData.phone,
+        cpf: formData.cpf,
+      });
+      setIsSaved(true);
+      setTimeout(() => router.push("/profile"), 1000);
+    } catch (err) {
+      console.error("[EditProfile] Erro ao atualizar perfil:", err);
+      setErrors({
+        name: "Erro ao salvar alterações no Supabase. Tente novamente.",
+      });
+    }
   }
 
   function handleCancel() {

@@ -1,153 +1,396 @@
-import { mockUser, type MockUser } from "@/lib/mocks/user";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+import {
+  getStoredToken,
+  getStoredUser,
+  saveStoredSession,
+  clearStoredSession,
+  AUTH_COOKIE_NAME,
+  AUTH_USER_COOKIE_NAME,
+} from "./token-storage";
 
-export const AUTH_COOKIE_NAME = "sb-access-token";
-export const AUTH_USER_COOKIE_NAME = "sb-user-data";
+export {
+  getStoredToken,
+  getStoredUser,
+  saveStoredSession,
+  clearStoredSession,
+  AUTH_COOKIE_NAME,
+  AUTH_USER_COOKIE_NAME,
+};
 
-export interface MockAuthSession {
-  accessToken: string;
-  tokenType: string;
-  expiresIn: number;
-  user: MockUser;
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  cpf: string | null;
+  avatarUrl: string | null;
+  role?: string;
+  createdAt?: string;
 }
 
-export interface MockAuthHeaders {
+export interface ValidateEmailResponse {
+  valid: boolean;
+  reason: string | null;
+}
+
+export interface RegisterClientData {
+  name: string;
+  email: string;
+  phone: string;
+  cpf: string;
+}
+
+/**
+ * Valida o e-mail antes de cadastrar.
+ * Tenta a validação na API; caso indisponível, libera o fluxo para o Supabase Auth validar.
+ */
+export async function validateEmail(email: string): Promise<ValidateEmailResponse> {
+  try {
+    return await api<ValidateEmailResponse>(
+      `/api/v1/auth/validate-email?email=${encodeURIComponent(email)}`
+    );
+  } catch (err) {
+    console.warn("[Auth] Validação externa de e-mail ignorada ou indisponível:", err);
+    return { valid: true, reason: null };
+  }
+}
+
+/**
+ * Cria ou sincroniza o perfil de cliente após confirmação do OTP ou login com Google:
+ * Salva no Supabase (metadados do usuário) e tenta sincronizar com o backend.
+ */
+export async function registerClientProfile(
+  data: RegisterClientData
+): Promise<UserProfile> {
+  // Atualiza metadados no Supabase Auth para garantir persistência imediata
+  try {
+    await supabase.auth.updateUser({
+      data: {
+        name: data.name,
+        full_name: data.name,
+        phone: data.phone,
+        cpf: data.cpf,
+      },
+    });
+  } catch (err) {
+    console.warn("[Auth] Erro ao sincronizar metadados no Supabase:", err);
+  }
+
+  // Tenta persistir no backend remoto
+  try {
+    const res = await api<UserProfile>("/api/v1/auth/register/client", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (res && res.id) return res;
+  } catch (err) {
+    console.warn("[Auth] Backend remoto /api/v1/auth/register/client indisponível:", err);
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const sessionUser = sessionData.session?.user;
+
+  return {
+    id: sessionUser?.id ?? `user_${Date.now()}`,
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    cpf: data.cpf,
+    avatarUrl: null,
+    role: "Cliente",
+  };
+}
+
+/**
+ * Obtém o perfil do usuário logado:
+ * Busca na API remota (/api/v1/users/me com Bearer token).
+ * Salva no localStorage e cookies para garantir que a sessão fique persistida.
+ * Se a API remota estiver indisponível, utiliza os dados em cache ou metadados do Supabase.
+ */
+export async function getCurrentUserProfile(): Promise<UserProfile> {
+  let token = getStoredToken();
+  let sessionUser = null;
+
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    sessionUser = sessionData.session?.user;
+    if (!token && sessionData.session?.access_token) {
+      token = sessionData.session.access_token;
+    }
+  } catch {}
+
+  // 1. Tenta buscar no endpoint oficial da API: GET /api/v1/users/me
+  if (token) {
+    try {
+      const apiProfile = await api<UserProfile>("/api/v1/users/me");
+      if (apiProfile && (apiProfile.id || apiProfile.email)) {
+        const fullProfile: UserProfile = {
+          id: apiProfile.id || sessionUser?.id || "user",
+          name:
+            apiProfile.name ||
+            (sessionUser?.user_metadata?.name as string | undefined) ||
+            (sessionUser?.user_metadata?.full_name as string | undefined) ||
+            apiProfile.email?.split("@")[0] ||
+            "Usuário",
+          email: apiProfile.email || sessionUser?.email || "",
+          phone:
+            apiProfile.phone ??
+            (sessionUser?.user_metadata?.phone as string | undefined) ??
+            null,
+          cpf:
+            apiProfile.cpf ??
+            (sessionUser?.user_metadata?.cpf as string | undefined) ??
+            null,
+          avatarUrl:
+            apiProfile.avatarUrl ??
+            (sessionUser?.user_metadata?.avatar_url as string | undefined) ??
+            null,
+          role:
+            apiProfile.role ??
+            (sessionUser?.user_metadata?.role as string | undefined) ??
+            "Cliente",
+          createdAt: apiProfile.createdAt ?? sessionUser?.created_at,
+        };
+
+        saveStoredSession(token, fullProfile);
+        return fullProfile;
+      }
+    } catch (err) {
+      console.warn("[Auth] Erro ao consultar /api/v1/users/me:", err);
+    }
+  }
+
+  // 2. Se a API falhou, tenta usar perfil em cache do localStorage / cookies
+  const cachedUser = getStoredUser();
+  if (cachedUser && (cachedUser.id || cachedUser.email)) {
+    return cachedUser as UserProfile;
+  }
+
+  // 3. Fallback para metadados do Supabase
+  if (!sessionUser) {
+    throw new Error("Nenhum usuário autenticado no Supabase ou LocalStorage");
+  }
+
+  const fallbackProfile: UserProfile = {
+    id: sessionUser.id,
+    name:
+      (sessionUser.user_metadata?.name as string | undefined) ??
+      (sessionUser.user_metadata?.full_name as string | undefined) ??
+      sessionUser.email?.split("@")[0] ??
+      "Usuário",
+    email: sessionUser.email ?? "",
+    phone: (sessionUser.user_metadata?.phone as string | undefined) ?? null,
+    cpf: (sessionUser.user_metadata?.cpf as string | undefined) ?? null,
+    avatarUrl:
+      (sessionUser.user_metadata?.avatar_url as string | undefined) ?? null,
+    role: (sessionUser.user_metadata?.role as string | undefined) ?? "Cliente",
+    createdAt: sessionUser.created_at,
+  };
+
+  if (token) {
+    saveStoredSession(token, fallbackProfile);
+  }
+
+  return fallbackProfile;
+}
+
+/**
+ * Atualiza o perfil do usuário autenticado no Supabase e tenta sincronizar com a API.
+ */
+export async function updateUserProfile(
+  data: Partial<RegisterClientData & { avatarUrl?: string | null }>
+): Promise<UserProfile> {
+  const { data: updated, error } = await supabase.auth.updateUser({
+    data: {
+      ...(data.name ? { name: data.name, full_name: data.name } : {}),
+      ...(data.phone !== undefined ? { phone: data.phone } : {}),
+      ...(data.cpf !== undefined ? { cpf: data.cpf } : {}),
+      ...(data.avatarUrl !== undefined ? { avatar_url: data.avatarUrl } : {}),
+    },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  try {
+    await api<UserProfile>("/api/v1/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  } catch {
+    // Silencia se a API remota não tiver o endpoint
+  }
+
+  const user = updated.user;
+  return {
+    id: user.id,
+    name:
+      (user.user_metadata?.name as string | undefined) ??
+      (user.user_metadata?.full_name as string | undefined) ??
+      user.email?.split("@")[0] ??
+      "Usuário",
+    email: user.email ?? "",
+    phone: (user.user_metadata?.phone as string | undefined) ?? null,
+    cpf: (user.user_metadata?.cpf as string | undefined) ?? null,
+    avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+    role: (user.user_metadata?.role as string | undefined) ?? "Cliente",
+    createdAt: user.created_at,
+  };
+}
+
+/**
+ * Cria uma nova loja / prestador:
+ * POST /api/v1/stores
+ */
+export async function createStore(storeData: unknown): Promise<unknown> {
+  return await api("/api/v1/stores", {
+    method: "POST",
+    body: JSON.stringify(storeData),
+  });
+}
+
+/**
+ * Cadastro inicial no Supabase Auth:
+ * Dispara o e-mail com o código de 8 dígitos.
+ */
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  metadata?: { name?: string; phone?: string; cpf?: string }
+) {
+  return await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name: metadata?.name,
+        full_name: metadata?.name,
+        phone: metadata?.phone,
+        cpf: metadata?.cpf,
+      },
+    },
+  });
+}
+
+/**
+ * Confirma o código de 8 dígitos no Supabase Auth:
+ * type: 'signup' (para cadastro) ou 'recovery' (para redefinição de senha).
+ */
+export async function verifyOtpCode(
+  email: string,
+  token: string,
+  type: "signup" | "recovery" = "signup"
+) {
+  return await supabase.auth.verifyOtp({
+    email,
+    token,
+    type,
+  });
+}
+
+/**
+ * Login com email e senha no Supabase:
+ */
+export async function signInWithEmail(email: string, password: string) {
+  return await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+}
+
+/**
+ * Login com Google OAuth via Supabase:
+ */
+export async function signInWithGoogle(redirectPath?: string) {
+  const redirectOrigin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  const redirectTo = `${redirectOrigin}/auth/callback${
+    redirectPath ? `?redirect=${encodeURIComponent(redirectPath)}` : ""
+  }`;
+
+  return await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo,
+    },
+  });
+}
+
+/**
+ * Solicitação de redefinição de senha (envia código de 8 dígitos por email):
+ */
+export async function requestPasswordReset(email: string) {
+  return await supabase.auth.resetPasswordForEmail(email);
+}
+
+/**
+ * Atualiza a senha do usuário:
+ */
+export async function updateUserPassword(password: string) {
+  return await supabase.auth.updateUser({ password });
+}
+
+/**
+ * Logout no Supabase:
+ */
+export async function signOutUser() {
+  return await supabase.auth.signOut();
+}
+
+/**
+ * Helper para compatibilidade de tipos e headers de autorização
+ */
+export interface AuthHeaders {
   Authorization: string;
   apikey: string;
-  "x-supabase-auth": string;
   "Content-Type": string;
 }
 
-
-export function createMockAuthHeaders(token?: string): MockAuthHeaders {
-  const currentToken = token || getStoredToken() || "mock-sb-access-token-agilis";
+export function createAuthHeaders(token?: string): AuthHeaders {
   return {
-    Authorization: `Bearer ${currentToken}`,
-    apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "mock-anon-key",
-    "x-supabase-auth": "simulated-session",
+    Authorization: token ? `Bearer ${token}` : "",
+    apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
     "Content-Type": "application/json",
   };
 }
 
-
-export function getCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const match = new RegExp(`(^|;\\s*)${name}=([^;]*)`).exec(document.cookie);
-  return match ? decodeURIComponent(match[2] ?? "") : null;
-}
-
-
-export function setCookie(name: string, value: string, maxAgeDays = 7): void {
-  if (typeof document === "undefined") return;
-  const maxAge = maxAgeDays * 24 * 60 * 60;
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
-}
-
-
-export function removeCookie(name: string): void {
-  if (typeof document === "undefined") return;
-  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
-}
-
-
-export function getStoredToken(): string | null {
-  if (typeof window === "undefined") return null;
-  const cookieToken = getCookie(AUTH_COOKIE_NAME);
-  if (cookieToken) return cookieToken;
-  return localStorage.getItem(AUTH_COOKIE_NAME);
-}
-
-
-export function getStoredUser(): MockUser | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const rawCookie = getCookie(AUTH_USER_COOKIE_NAME);
-    if (rawCookie) {
-      return JSON.parse(rawCookie) as MockUser;
-    }
-    const rawStorage = localStorage.getItem(AUTH_USER_COOKIE_NAME);
-    if (rawStorage) {
-      return JSON.parse(rawStorage) as MockUser;
-    }
-  } catch {
-    // Caso de erro de parse
-  }
-  return null;
-}
+export type MockAuthHeaders = AuthHeaders;
+export const createMockAuthHeaders = createAuthHeaders;
 
 /**
- * Simula o processo de login do Supabase Auth.
- * Envia cabeçalhos mockados na simulação e persiste o token e a sessão.
- */
-export async function simulateSupabaseLogin(
-  email: string,
-  _password?: string
-): Promise<MockAuthSession> {
-  // Simulação de latência de rede da chamada de autenticação
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  const mockToken = `mock-sb-access-token-${Date.now()}`;
-  
-  // Headers que simulam o envio de autenticação para a API
-  const headers = createMockAuthHeaders(mockToken);
-  console.info("[Supabase Auth Mock] Login realizado com headers:", headers);
-
-  const authenticatedUser: MockUser = {
-    ...mockUser,
-    email: email || mockUser.email,
-  };
-
-  const session: MockAuthSession = {
-    accessToken: mockToken,
-    tokenType: "Bearer",
-    expiresIn: 60 * 60 * 24 * 7, // 7 dias
-    user: authenticatedUser,
-  };
-
-  // Persiste sessão em cookies (para o middleware Next.js) e localStorage
-  setCookie(AUTH_COOKIE_NAME, mockToken);
-  setCookie(AUTH_USER_COOKIE_NAME, JSON.stringify(authenticatedUser));
-
-  if (typeof window !== "undefined") {
-    localStorage.setItem(AUTH_COOKIE_NAME, mockToken);
-    localStorage.setItem(AUTH_USER_COOKIE_NAME, JSON.stringify(authenticatedUser));
-    // Dispara evento para sincronizar componentes na mesma aba
-    window.dispatchEvent(new Event("auth-change"));
-  }
-
-  return session;
-}
-
-/**
- * Simula o logout do Supabase Auth.
- */
-export async function simulateSupabaseLogout(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  removeCookie(AUTH_COOKIE_NAME);
-  removeCookie(AUTH_USER_COOKIE_NAME);
-
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(AUTH_COOKIE_NAME);
-    localStorage.removeItem(AUTH_USER_COOKIE_NAME);
-    window.dispatchEvent(new Event("auth-change"));
-  }
-}
-
-/**
- * Simula a verificação assíncrona (await) de autenticação nas páginas protegidas.
+ * Validação assíncrona da sessão para componentes de guarda (AuthGuard).
  */
 export async function verifyAuthSession(): Promise<{
   isAuthenticated: boolean;
-  user: MockUser | null;
+  user: UserProfile | null;
 }> {
-  // Pequeno delay assíncrono para validação da sessão (await com visual de carregamento)
-  await new Promise((resolve) => setTimeout(resolve, 350));
-
-  const token = getStoredToken();
-  if (!token) {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session?.user) {
     return { isAuthenticated: false, user: null };
   }
 
-  const user = getStoredUser() ?? mockUser;
-  return { isAuthenticated: true, user };
+  try {
+    const profile = await getCurrentUserProfile();
+    return { isAuthenticated: true, user: profile };
+  } catch {
+    const sessionUser = data.session.user;
+    const fallbackProfile: UserProfile = {
+      id: sessionUser.id,
+      name:
+        (sessionUser.user_metadata?.name as string | undefined) ??
+        (sessionUser.user_metadata?.full_name as string | undefined) ??
+        sessionUser.email?.split("@")[0] ??
+        "Usuário",
+      email: sessionUser.email ?? "",
+      phone: (sessionUser.user_metadata?.phone as string | undefined) ?? null,
+      cpf: (sessionUser.user_metadata?.cpf as string | undefined) ?? null,
+      avatarUrl:
+        (sessionUser.user_metadata?.avatar_url as string | undefined) ?? null,
+      role: (sessionUser.user_metadata?.role as string | undefined) ?? "Cliente",
+      createdAt: sessionUser.created_at,
+    };
+    return { isAuthenticated: true, user: fallbackProfile };
+  }
 }

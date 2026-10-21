@@ -24,4 +24,4 @@ export const TermsCheckbox = forwardRef<HTMLInputElement, TermsCheckboxProps>(
     </label>
   ),
 );
-TermsCheckbox.displayName = "TermsCheckbox";    
+TermsCheckbox.displayName = "TermsCheckbox";

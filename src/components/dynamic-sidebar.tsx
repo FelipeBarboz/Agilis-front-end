@@ -4,26 +4,21 @@ import { Suspense, useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { LoggedAppSidebar } from "@/components/logged-app-sidebar";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getStoredToken } from "@/lib/auth/auth-service";
 
 export function DynamicSidebar() {
   const { isAuthenticated, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setHasToken(Boolean(getStoredToken()) || isAuthenticated);
-  }, [isAuthenticated, isLoading]);
+  }, []);
 
-  // Durante SSR e primeira hidratação no cliente, renderiza AppSidebar para garantir paridade exata
-  if (!mounted) {
+  // Durante SSR e primeira hidratação, renderiza AppSidebar para paridade exata
+  if (!mounted || isLoading) {
     return <AppSidebar />;
   }
 
-  const showLoggedSidebar = isAuthenticated || hasToken;
-
-  if (showLoggedSidebar) {
+  if (isAuthenticated) {
     return (
       <Suspense fallback={<AppSidebar />}>
         <LoggedAppSidebar />
@@ -33,4 +28,3 @@ export function DynamicSidebar() {
 
   return <AppSidebar />;
 }
-

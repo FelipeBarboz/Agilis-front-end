@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { mockUser } from "@/lib/mocks/user";
+import { useAuth } from "@/lib/auth/auth-context";
 import { ProfileHeader } from "./_components/profile-header";
 import { ProfileUserCard } from "./_components/profile-user-card";
 import { ProfileInfo } from "./_components/profile-info";
@@ -10,21 +10,34 @@ import { ProfileMenu } from "./_components/profile-menu";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { user, logout, isLoading } = useAuth();
 
-  function handleLogout() {
-    // Limpa todo o localStorage
-    localStorage.clear();
-
-    // Limpa todos os cookies
-    document.cookie.split(";").forEach((cookie) => {
-      const name = (cookie.split("=")[0] ?? "").trim();
-      if (name) {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  async function handleLogout() {
+    try {
+      await logout();
+    } finally {
+      // Limpeza de segurança de cookies e storage
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        document.cookie.split(";").forEach((cookie) => {
+          const name = (cookie.split("=")[0] ?? "").trim();
+          if (name) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          }
+        });
       }
-    });
-
-    window.location.href = "/login";
+      router.push("/login");
+    }
   }
+
+  const currentUser = user ?? {
+    id: "user",
+    name: "Minha Conta",
+    email: "",
+    phone: null,
+    cpf: null,
+    avatarUrl: null,
+  };
 
   return (
     <div className="relative flex flex-1 flex-col bg-muted pb-20">
@@ -33,10 +46,10 @@ export default function ProfilePage() {
         <ProfileHeader onBack={() => router.back()} />
 
         {/* Perfil do Usuário */}
-        <ProfileUserCard user={mockUser} />
+        <ProfileUserCard user={currentUser} />
 
         {/* Informações pessoais */}
-        <ProfileInfo user={mockUser} />
+        <ProfileInfo user={currentUser} />
 
         {/* Prestador / Criar Loja */}
         <ProviderButton />

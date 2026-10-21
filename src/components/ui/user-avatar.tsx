@@ -1,8 +1,10 @@
 import Image from "next/image";
-import { type MockUser } from "@/lib/mocks/user";
 
 interface UserAvatarProps {
-  user: MockUser;
+  user: {
+    name: string;
+    avatarUrl?: string | null;
+  };
   size?: number;
 }
 

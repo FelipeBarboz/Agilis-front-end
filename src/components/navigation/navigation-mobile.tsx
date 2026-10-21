@@ -43,6 +43,13 @@ export function NavigationMobile() {
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category");
   const { isAuthenticated, user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isUserAuthenticated = mounted && isAuthenticated && !!user;
 
   // Fecha o menu ao mudar de rota
   useEffect(() => {
@@ -95,7 +102,7 @@ export function NavigationMobile() {
 
         {/* Right: User Profile Avatar / Icon */}
         <div className="flex w-11 items-center justify-end">
-          {isAuthenticated && user ? (
+          {isUserAuthenticated ? (
             <Link
               href="/profile"
               className="flex items-center justify-center transition-transform active:scale-95"
@@ -105,7 +112,7 @@ export function NavigationMobile() {
             </Link>
           ) : (
             <Link
-              href="/register/user"
+              href="/login"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-primary-foreground hover:bg-white/25 active:bg-white/30 transition-colors"
               aria-label="Entrar ou cadastrar"
             >
@@ -235,11 +242,11 @@ export function NavigationMobile() {
               {/* Drawer Footer (Profile / Auth) */}
               <div className="border-t border-border p-3">
                 <Link
-                  href={isAuthenticated ? "/profile" : "/register/user"}
+                  href={isUserAuthenticated ? "/profile" : "/login"}
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/40 p-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >
-                  {isAuthenticated && user ? (
+                  {isUserAuthenticated ? (
                     <UserAvatar user={user} size={36} />
                   ) : (
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -248,10 +255,10 @@ export function NavigationMobile() {
                   )}
                   <div className="flex flex-col min-w-0">
                     <span className="truncate text-sm font-semibold text-foreground">
-                      {isAuthenticated && user?.name ? user.name : "Minha Conta"}
+                      {isUserAuthenticated && user?.name ? user.name : "Minha Conta"}
                     </span>
                     <span className="text-[11px] text-muted-foreground">
-                      {isAuthenticated ? "Ver perfil" : "Entrar ou cadastrar"}
+                      {isUserAuthenticated ? "Ver perfil" : "Entrar ou cadastrar"}
                     </span>
                   </div>
                 </Link>

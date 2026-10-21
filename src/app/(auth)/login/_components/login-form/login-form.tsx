@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "motion/react";
@@ -22,6 +22,7 @@ function LoginFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
     register,
@@ -33,17 +34,39 @@ function LoginFormInner() {
 
   async function onSubmit(data: LoginFormData) {
     try {
+      setErrorMessage(null);
       await login(data.email, data.password);
       const redirectUrl = searchParams.get("redirect") || "/home";
       router.push(redirectUrl);
       router.refresh();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("[Login] Erro ao autenticar:", error);
+      let message = "Erro ao realizar login. Tente novamente.";
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid login credentials")) {
+          message = "E-mail ou senha incorretos.";
+        } else if (error.message.includes("Email not confirmed")) {
+          message = "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.";
+        } else if (error.message.includes("Too many requests")) {
+          message = "Muitas tentativas consecutivas. Aguarde alguns instantes e tente novamente.";
+        } else {
+          message = error.message;
+        }
+      }
+      setErrorMessage(message);
     }
   }
 
+  const redirectUrl = searchParams.get("redirect") ?? undefined;
+
   return (
     <div className="flex flex-col gap-4">
+      {errorMessage && (
+        <div className="rounded-lg bg-red-500/10 p-3 text-xs text-red-400">
+          {errorMessage}
+        </div>
+      )}
+
       {/* Google */}
       <motion.div
         variants={fieldVariants}
@@ -51,7 +74,7 @@ function LoginFormInner() {
         animate="visible"
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <GoogleButton />
+        <GoogleButton redirect={redirectUrl} />
       </motion.div>
 
       {/* Divider */}
