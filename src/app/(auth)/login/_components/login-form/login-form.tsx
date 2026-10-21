@@ -5,7 +5,7 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { GoogleButton } from "../../../../../components/google-button";
+import { GoogleButton } from "@/components/google-button";
 import { loginSchema, type LoginFormData } from "@/lib/validations/login";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -22,7 +22,9 @@ function LoginFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Pode vir do Route Handler /auth/callback quando o OAuth falha
+  const oauthError = searchParams.get("error");
+  const [errorMessage, setErrorMessage] = useState<string | null>(oauthError);
 
   const {
     register,
@@ -74,7 +76,10 @@ function LoginFormInner() {
         animate="visible"
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <GoogleButton redirect={redirectUrl} />
+        <GoogleButton
+          redirect={redirectUrl}
+          onError={(err) => setErrorMessage(err.message)}
+        />
       </motion.div>
 
       {/* Divider */}

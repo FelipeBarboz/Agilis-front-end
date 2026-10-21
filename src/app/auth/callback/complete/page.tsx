@@ -4,9 +4,21 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { saveStoredSession, type StoredUserProfile } from "@/lib/auth/token-storage";
 import { Loader2 } from "lucide-react";
 
-function AuthCallbackInner() {
+/**
+ * Página chamada APÓS o Route Handler /auth/callback/route.ts trocar o código
+ * pelo token no servidor. Aqui a sessão já está nos cookies, então o
+ * createBrowserClient consegue lê-la normalmente.
+ *
+ * Responsabilidades:
+ * 1. Sincronizar a sessão do Supabase nos storages do cliente.
+ * 2. Verificar se o perfil do usuário já existe no backend.
+ * 3. Redirecionar para complete-profile (1º acesso via Google) ou para a
+ *    rota de destino.
+ */
+function CallbackCompleteInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -14,45 +26,63 @@ function AuthCallbackInner() {
   useEffect(() => {
     let active = true;
 
-    async function handleAuth() {
+    async function finishAuth() {
       try {
-        const code = searchParams.get("code");
-        if (code) {
-          const { error: exchangeError } =
-            await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) {
-            console.error("[Auth Callback] Erro na troca de código:", exchangeError);
-          }
-        }
+        // Pequena espera para garantir que os cookies do servidor já foram
+        // propagados para o browser client
+        await new Promise((res) => setTimeout(res, 300));
 
-        // Obtém a sessão atual
         const { data } = await supabase.auth.getSession();
         let session = data.session;
+
         if (!session) {
-          // Pequena espera caso a sessão esteja sincronizando do hash
-          await new Promise((res) => setTimeout(res, 500));
+          // Retry com espera maior caso os cookies ainda não tenham chegado
+          await new Promise((res) => setTimeout(res, 700));
           const retry = await supabase.auth.getSession();
           session = retry.data.session;
           if (!session) {
-            throw new Error("Sessão não encontrada após autenticação.");
+            throw new Error("Sessão não encontrada após autenticação. Tente novamente.");
           }
         }
 
-        const redirectUrl = searchParams.get("redirect") ?? "/home";
-
         const currentUser = session.user;
+        const initialProfile: StoredUserProfile = {
+          id: currentUser.id,
+          name:
+            (currentUser.user_metadata?.name as string | undefined) ??
+            (currentUser.user_metadata?.full_name as string | undefined) ??
+            currentUser.email?.split("@")[0] ??
+            "Usuário",
+          email: currentUser.email ?? "",
+          phone: (currentUser.user_metadata?.phone as string | undefined) ?? null,
+          cpf: (currentUser.user_metadata?.cpf as string | undefined) ?? null,
+          avatarUrl:
+            (currentUser.user_metadata?.avatar_url as string | undefined) ?? null,
+          role: (currentUser.user_metadata?.role as string | undefined) ?? "Cliente",
+          createdAt: currentUser.created_at,
+        };
+
+        // Sincroniza sessão nos storages client-side (localStorage + cookies)
+        saveStoredSession(session.access_token, initialProfile);
+
+        const redirectUrl = searchParams.get("redirect") ?? "/home";
         const hasCpf = Boolean(currentUser.user_metadata?.cpf);
 
-        // Verifica se o perfil já existe na API
+        // Verifica se o perfil já existe no backend
         try {
-          await api("/api/v1/users/me");
+          const apiProfile = await api<Partial<StoredUserProfile>>("/api/v1/users/me");
           if (!active) return;
+          if (apiProfile) {
+            saveStoredSession(session.access_token, {
+              ...initialProfile,
+              ...apiProfile,
+            });
+          }
           router.replace(redirectUrl);
-          return;
         } catch {
           if (!active) return;
           if (!hasCpf) {
-            // Primeiro acesso via Google: precisa completar cadastro (CPF e telefone)
+            // Primeiro acesso via Google: solicitar CPF e telefone
             router.replace(
               `/auth/complete-profile${
                 redirectUrl !== "/home"
@@ -60,11 +90,9 @@ function AuthCallbackInner() {
                   : ""
               }`
             );
-            return;
+          } else {
+            router.replace(redirectUrl);
           }
-          // Usuário já possui dados mínimos, segue autenticado via Supabase
-          router.replace(redirectUrl);
-          return;
         }
       } catch (err: unknown) {
         if (!active) return;
@@ -76,7 +104,7 @@ function AuthCallbackInner() {
       }
     }
 
-    void handleAuth();
+    void finishAuth();
 
     return () => {
       active = false;
@@ -89,9 +117,7 @@ function AuthCallbackInner() {
         <h2 className="mb-2 text-lg font-bold text-destructive">
           Falha na autenticação
         </h2>
-        <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-          {errorMessage}
-        </p>
+        <p className="mb-6 max-w-sm text-sm text-muted-foreground">{errorMessage}</p>
         <button
           type="button"
           onClick={() => router.push("/login")}
@@ -118,7 +144,7 @@ function AuthCallbackInner() {
   );
 }
 
-export default function AuthCallbackPage() {
+export default function CallbackCompletePage() {
   return (
     <Suspense
       fallback={
@@ -127,7 +153,7 @@ export default function AuthCallbackPage() {
         </div>
       }
     >
-      <AuthCallbackInner />
+      <CallbackCompleteInner />
     </Suspense>
   );
 }

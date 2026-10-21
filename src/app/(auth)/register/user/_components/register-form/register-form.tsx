@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { GoogleButton } from "../../../../../../components/google-button";
+import { GoogleButton } from "@/components/google-button";
 import {
   registerSchema,
   type RegisterFormData,
@@ -270,7 +270,10 @@ function RegisterFormInner() {
         animate="visible"
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <GoogleButton redirect={redirectUrl} />
+        <GoogleButton
+          redirect={redirectUrl}
+          onError={(err) => setGeneralError(err.message)}
+        />
       </motion.div>
 
       {/* Divider */}

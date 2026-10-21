@@ -310,11 +310,36 @@ export async function signInWithGoogle(redirectPath?: string) {
     redirectPath ? `?redirect=${encodeURIComponent(redirectPath)}` : ""
   }`;
 
-  return await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo,
+      queryParams: {
+        access_type: "offline",
+        prompt: "select_account",
+      },
     },
+  });
+
+  if (error) {
+    return { data, error };
+  }
+
+  // Garante o redirecionamento imediato no browser caso o Supabase não o tenha feito
+  if (data?.url && typeof window !== "undefined") {
+    window.location.assign(data.url);
+  }
+
+  return { data, error: null };
+}
+
+/**
+ * Login com Google via ID Token (Google Identity Services):
+ */
+export async function signInWithGoogleIdToken(idToken: string) {
+  return await supabase.auth.signInWithIdToken({
+    provider: "google",
+    token: idToken,
   });
 }
 
