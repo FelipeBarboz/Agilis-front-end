@@ -1,29 +1,27 @@
 "use client";
 
-import { useForm, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Send, CheckCircle, MessageSquare, User, Mail, BookOpen } from "lucide-react";
+import { Send, CheckCircle, MessageSquare, User, Mail, BookOpen, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supportSchema, type SupportFormData } from "@/lib/validations/support";
-import { subjects } from "./contact-form-data";
+import { SUPPORT_SUBJECT_OPTIONS } from "./contact-form-data";
+import { useContactForm } from "./use-contact-form";
 
 export function ContactFormMobile() {
   const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<SupportFormData>({
-    resolver: zodResolver(supportSchema) as Resolver<SupportFormData>,
-  });
+    form,
+    onSubmit,
+    isSubmitting,
+    isSuccess,
+    serverError,
+    successMessageId,
+    messageLength,
+  } = useContactForm();
 
-  async function onSubmit(data: SupportFormData) {
-    // TODO: integrar com backend
-    console.log(data);
-    reset();
-  }
+  const {
+    register,
+    formState: { errors },
+  } = form;
 
   return (
     <section>
@@ -40,33 +38,67 @@ export function ContactFormMobile() {
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
         {/* Success Banner */}
         <AnimatePresence>
-          {isSubmitSuccessful && (
+          {isSuccess && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22 }}
-              className="flex items-center gap-3 border-b border-primary/20 bg-primary/8 px-4 py-3"
+              className="flex items-start gap-3 border-b border-primary/20 bg-primary/10 px-4 py-3"
             >
-              <CheckCircle size={18} className="shrink-0 text-primary" />
-              <p className="text-sm font-medium text-primary">
-                Mensagem enviada! Retornaremos em até 24 horas.
-              </p>
+              <CheckCircle size={18} className="mt-0.5 shrink-0 text-primary" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-sm font-semibold text-primary">
+                  Mensagem enviada com sucesso!
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Retornaremos em até 24 horas.
+                  {successMessageId && (
+                    <span className="block mt-0.5 font-mono text-[10px] text-foreground">
+                      Protocolo: {successMessageId}
+                    </span>
+                  )}
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-0">
+        {/* Error Banner */}
+        <AnimatePresence>
+          {serverError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22 }}
+              className="flex items-start gap-3 border-b border-destructive/20 bg-destructive/10 px-4 py-3 text-destructive"
+            >
+              <AlertCircle size={18} className="mt-0.5 shrink-0 text-destructive" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-sm font-semibold">Erro ao enviar</p>
+                <p className="text-xs">{serverError}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <form onSubmit={onSubmit} className="flex flex-col gap-0" noValidate>
           {/* Nome */}
           <div className="border-b border-border px-4 py-3.5">
-            <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="mobile-name"
+              className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               <User size={11} />
-              Nome
+              Nome completo <span className="text-destructive">*</span>
             </label>
             <Input
+              id="mobile-name"
               type="text"
               autoComplete="name"
               placeholder="Seu nome completo"
+              aria-invalid={!!errors.name}
               className="border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
               {...register("name")}
             />
@@ -77,14 +109,19 @@ export function ContactFormMobile() {
 
           {/* E-mail */}
           <div className="border-b border-border px-4 py-3.5">
-            <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="mobile-email"
+              className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               <Mail size={11} />
-              E-mail
+              E-mail para contato <span className="text-destructive">*</span>
             </label>
             <Input
+              id="mobile-email"
               type="email"
               autoComplete="email"
               placeholder="seu@email.com"
+              aria-invalid={!!errors.email}
               className="border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
               {...register("email")}
             />
@@ -95,18 +132,23 @@ export function ContactFormMobile() {
 
           {/* Assunto */}
           <div className="border-b border-border px-4 py-3.5">
-            <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="mobile-subject"
+              className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               <BookOpen size={11} />
-              Assunto
+              Assunto <span className="text-destructive">*</span>
             </label>
             <select
+              id="mobile-subject"
+              aria-invalid={!!errors.subject}
               className="w-full bg-transparent py-0.5 text-sm text-foreground focus:outline-none"
               {...register("subject")}
             >
-              <option value="">Selecione um assunto</option>
-              {subjects.map((subject) => (
-                <option key={subject} value={subject}>
-                  {subject}
+              <option value="">Selecione o tipo de assunto</option>
+              {SUPPORT_SUBJECT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -117,14 +159,24 @@ export function ContactFormMobile() {
 
           {/* Mensagem */}
           <div className="px-4 py-3.5">
-            <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              <MessageSquare size={11} />
-              Mensagem
-            </label>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label
+                htmlFor="mobile-message"
+                className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+              >
+                <MessageSquare size={11} />
+                Mensagem <span className="text-destructive">*</span>
+              </label>
+              <span className="text-[10px] text-muted-foreground">
+                {messageLength}/500
+              </span>
+            </div>
             <textarea
+              id="mobile-message"
               rows={4}
               maxLength={500}
-              placeholder="Descreva seu problema ou dúvida..."
+              placeholder="Descreva seu problema, dúvida ou sugestão..."
+              aria-invalid={!!errors.message}
               className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               {...register("message")}
             />
@@ -147,7 +199,7 @@ export function ContactFormMobile() {
                     transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
                     className="inline-block h-4 w-4 rounded-full border-2 border-current border-t-transparent"
                   />
-                  Enviando...
+                  Enviando mensagem...
                 </span>
               ) : (
                 <>
