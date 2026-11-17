@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -19,6 +19,7 @@ import {
   IconAll,
   IconStore,
   IconBell,
+  IconFavorites,
 } from "@/components/ui/icons";
 
 import { useAuth } from "@/lib/auth/auth-context";
@@ -57,6 +58,7 @@ export function LoggedAppSidebar() {
       isActive: isNotificationsOpen,
     },
     { href: "/history",   icon: <IconHistory />,   label: "Histórico" },
+    { href: "/favorites", icon: <IconFavorites />, label: "Favoritos" },
     { href: "/stores",    icon: <IconStore />,     label: "Lojas"     },
   ];
 

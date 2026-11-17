@@ -1,9 +1,9 @@
 import { FavoriteServiceCard } from "./favorite-service-card";
-import type { FavoriteService } from "../../../../types/favorite-service";
+import type { FavoriteService } from "@/types/favorite-service";
 
 interface FavoritesListProps {
   services: FavoriteService[];
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string) => void | Promise<void>;
 }
 
 export function FavoritesList({ services, onToggleFavorite }: FavoritesListProps) {

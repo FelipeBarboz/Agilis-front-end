@@ -19,6 +19,7 @@ import {
   IconPlumbing,
   IconPainting,
   IconStore,
+  IconFavorites,
 } from "@/components/ui/icons";
 import { useAuth } from "@/lib/auth/auth-context";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -28,6 +29,7 @@ const iconMap: Record<string, React.ReactNode> = {
   "/services": <IconServices size={20} />,
   "/support": <IconSupport size={20} />,
   "/history": <IconHistory size={20} />,
+  "/favorites": <IconFavorites size={20} />,
   "/stores": <IconStore size={20} />,
   todos: <IconAll size={18} />,
   tecnologia: <IconTech size={18} />,

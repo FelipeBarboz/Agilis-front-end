@@ -4,10 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star, Heart, CalendarClock, MapPin } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type Service } from "@/lib/mocks/services";
 import { Card } from "@/components/ui/card";
 import { getFallbackImagesForCategory } from "@/lib/services/services-service";
+import {
+  addFavorite,
+  removeFavorite,
+  isServiceFavorite,
+  FAVORITES_CHANGED,
+} from "@/lib/services/favorites-service";
 
 interface ServiceCardProps {
   service: Service;
@@ -15,7 +21,16 @@ interface ServiceCardProps {
 }
 
 export function ServiceCard({ service, index }: ServiceCardProps) {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(() => isServiceFavorite(service.id));
+
+  // Sincroniza quando outro card ou a página de favoritos alterar o cache
+  useEffect(() => {
+    function onFavoritesChanged() {
+      setLiked(isServiceFavorite(service.id));
+    }
+    window.addEventListener(FAVORITES_CHANGED, onFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED, onFavoritesChanged);
+  }, [service.id]);
   const fallbackUrl =
     getFallbackImagesForCategory(service.category, service.id)[0]?.url ??
     "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
@@ -56,11 +71,23 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
               <button
                 type="button"
                 aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.preventDefault();
-                  setLiked((prev) => !prev);
+                  e.stopPropagation();
+                  const wasLiked = liked;
+                  setLiked(!wasLiked);
+                  try {
+                    if (wasLiked) {
+                      await removeFavorite(service.id);
+                    } else {
+                      await addFavorite(service.id);
+                    }
+                  } catch {
+                    // Reverte apenas se não conseguiu confirmar no servidor
+                    setLiked(wasLiked);
+                  }
                 }}
-                className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-colors hover:bg-white shadow-2xs"
+                className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-colors hover:bg-white shadow-2xs cursor-pointer"
               >
                 <Heart
                   size={14}

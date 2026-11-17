@@ -11,6 +11,12 @@ import {
   normalizeSearchItemToService,
   getFallbackImagesForCategory,
 } from "@/lib/services/services-service";
+import {
+  addFavorite,
+  removeFavorite,
+  isServiceFavorite,
+  FAVORITES_CHANGED,
+} from "@/lib/services/favorites-service";
 
 interface ServiceRelatedProps {
   currentServiceId: string;
@@ -21,10 +27,30 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({});
   const [services, setServices] = useState<Service[]>([]);
 
-  function toggleLike(id: string, e: React.MouseEvent) {
+  // Sincroniza likedIds com o cache global de favoritos
+  function syncLiked(list: Service[]) {
+    const map: Record<string, boolean> = {};
+    list.forEach((s) => {
+      map[s.id] = isServiceFavorite(s.id);
+    });
+    setLikedIds(map);
+  }
+
+  async function toggleLike(id: string, e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    setLikedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+    const wasLiked = likedIds[id] ?? false;
+    setLikedIds((prev) => ({ ...prev, [id]: !wasLiked }));
+    try {
+      if (wasLiked) {
+        await removeFavorite(id);
+      } else {
+        await addFavorite(id);
+      }
+    } catch {
+      // Reverte o estado visual se a API falhar
+      setLikedIds((prev) => ({ ...prev, [id]: wasLiked }));
+    }
   }
 
   useEffect(() => {
@@ -41,6 +67,7 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
 
           if (mapped.length > 0) {
             setServices(mapped);
+            syncLiked(mapped);
             return;
           }
         }
@@ -60,6 +87,7 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
             })
             .slice(0, 4);
           setServices(related);
+          syncLiked(related);
         }
       })
       .catch(() => {
@@ -77,6 +105,7 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
             })
             .slice(0, 4);
           setServices(related);
+          syncLiked(related);
         }
       });
 
@@ -84,6 +113,21 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
       isCancelled = true;
     };
   }, [currentServiceId, category]);
+
+  // Re-sincroniza quando o cache global mudar (ex: outro card adicionou/removeu)
+  useEffect(() => {
+    function onFavoritesChanged() {
+      setLikedIds((prev) => {
+        const updated: Record<string, boolean> = {};
+        Object.keys(prev).forEach((id) => {
+          updated[id] = isServiceFavorite(id);
+        });
+        return updated;
+      });
+    }
+    window.addEventListener(FAVORITES_CHANGED, onFavoritesChanged);
+    return () => window.removeEventListener(FAVORITES_CHANGED, onFavoritesChanged);
+  }, []);
 
   if (services.length === 0) return null;
 

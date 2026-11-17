@@ -9,6 +9,7 @@ export const mainNavItems: NavItem[] = [
   { href: "/services", label: "Serviços" },
   { href: "/support", label: "Suporte" },
   { href: "/history", label: "Histórico" },
+  { href: "/favorites", label: "Favoritos" },
 ];
 
 export const categoryNavItems: NavItem[] = [

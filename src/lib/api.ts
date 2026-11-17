@@ -26,7 +26,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     process.env.SUPABASE_ANON_KEY ??
     "";
 
-  let baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
   let normalizedPath = path.trim().startsWith("/") ? path.trim() : `/${path.trim()}`;
 
   // Se baseUrl já termina com /api/v1 e o path também inicia com /api/v1, remove a duplicação
@@ -36,10 +36,13 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   const url = `${baseUrl}${normalizedPath}`;
 
+  // Envia Content-Type apenas quando houver corpo na requisição
+  const hasBody = init.body !== undefined && init.body !== null;
+
   const res = await fetch(url, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(hasBody ? { "Content-Type": "application/json" } : {}),
       ...(anonKey ? { apikey: anonKey } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init.headers,
@@ -51,23 +54,27 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     let errorData: unknown = undefined;
 
     try {
-      const parsed: unknown = await res.json();
-      errorData = parsed;
-      if (typeof parsed === "object" && parsed !== null) {
-        const errorRecord = parsed as Record<string, unknown>;
-        const msg = errorRecord.message ?? errorRecord.reason ?? errorRecord.error;
-        if (typeof msg === "string") {
-          errorMessage = msg;
-        } else {
-          errorMessage = JSON.stringify(parsed);
-        }
-      } else if (typeof parsed === "string") {
-        errorMessage = parsed;
-      }
-    } catch {
       const text = await res.text();
-      if (text) errorMessage = text;
-    }
+      if (text && text.trim().length > 0) {
+        try {
+          const parsed: unknown = JSON.parse(text);
+          errorData = parsed;
+          if (typeof parsed === "object" && parsed !== null) {
+            const errorRecord = parsed as Record<string, unknown>;
+            const msg = errorRecord.message ?? errorRecord.reason ?? errorRecord.error;
+            if (typeof msg === "string") {
+              errorMessage = msg;
+            } else {
+              errorMessage = JSON.stringify(parsed);
+            }
+          } else if (typeof parsed === "string") {
+            errorMessage = parsed;
+          }
+        } catch {
+          errorMessage = text;
+        }
+      }
+    } catch {}
 
     throw new ApiError(res.status, errorMessage, errorData);
   }
@@ -76,5 +83,14 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     return undefined as T;
   }
 
-  return (await res.json()) as T;
+  const text = await res.text();
+  if (!text || text.trim() === "") {
+    return undefined as T;
+  }
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text as unknown as T;
+  }
 }

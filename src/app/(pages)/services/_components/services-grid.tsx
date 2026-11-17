@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ServiceCard } from "./service-card";
 import { type Service } from "@/lib/mocks/services";
 import {
@@ -13,6 +13,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { Card } from "@/components/ui/card";
+import { initFavoritesCache } from "@/lib/services/favorites-service";
 
 const PAGE_SIZE = 15;
 
@@ -39,6 +40,11 @@ export function ServicesGrid({
   onPageChange,
 }: ServicesGridProps) {
   const [internalPage, setInternalPage] = useState(1);
+
+  // Pré-carrega o cache de favoritos para que os cards exibam o estado correto
+  useEffect(() => {
+    void initFavoritesCache();
+  }, []);
 
   if (isLoading) {
     return (
