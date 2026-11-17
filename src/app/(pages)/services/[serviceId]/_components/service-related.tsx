@@ -3,9 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Star, MapPin, ChevronRight, CalendarClock, Heart } from "lucide-react";
-import { mockServices } from "@/lib/mocks/services";
+import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  fetchServicesSearch,
+  normalizeSearchItemToService,
+  getFallbackImagesForCategory,
+} from "@/lib/services/services-service";
 
 interface ServiceRelatedProps {
   currentServiceId: string;
@@ -14,6 +19,7 @@ interface ServiceRelatedProps {
 
 export function ServiceRelated({ currentServiceId, category }: ServiceRelatedProps) {
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({});
+  const [services, setServices] = useState<Service[]>([]);
 
   function toggleLike(id: string, e: React.MouseEvent) {
     e.preventDefault();
@@ -21,25 +27,65 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
     setLikedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  // Combina todos os serviços para buscar recomendações relevantes
-  const allServices = [...mockServices, ...superPinturasServices];
-  
-  // Remove duplicados de ID caso existam
-  const uniqueServices = Array.from(
-    new Map(allServices.map((s) => [s.id, s])).values()
-  );
+  useEffect(() => {
+    let isCancelled = false;
 
-  // Pega serviços da mesma categoria primeiro, depois outros como recomendação
-  const relatedServices = uniqueServices
-    .filter((s) => s.id !== currentServiceId)
-    .sort((a, b) => {
-      if (a.category === category && b.category !== category) return -1;
-      if (b.category === category && a.category !== category) return 1;
-      return b.rating - a.rating;
-    })
-    .slice(0, 4);
+    // Busca serviços recomendados na API real
+    fetchServicesSearch({ category, size: 8 })
+      .then((res) => {
+        if (!isCancelled && res.items && res.items.length > 0) {
+          const mapped = res.items
+            .map(normalizeSearchItemToService)
+            .filter((s) => s.id !== currentServiceId)
+            .slice(0, 4);
 
-  if (relatedServices.length === 0) return null;
+          if (mapped.length > 0) {
+            setServices(mapped);
+            return;
+          }
+        }
+
+        // Se a API retornar vazio ou poucos, completa com fallback
+        if (!isCancelled) {
+          const allServices = [...mockServices, ...superPinturasServices];
+          const uniqueServices = Array.from(
+            new Map(allServices.map((s) => [s.id, s])).values()
+          );
+          const related = uniqueServices
+            .filter((s) => s.id !== currentServiceId)
+            .sort((a, b) => {
+              if (a.category === category && b.category !== category) return -1;
+              if (b.category === category && a.category !== category) return 1;
+              return b.rating - a.rating;
+            })
+            .slice(0, 4);
+          setServices(related);
+        }
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          const allServices = [...mockServices, ...superPinturasServices];
+          const uniqueServices = Array.from(
+            new Map(allServices.map((s) => [s.id, s])).values()
+          );
+          const related = uniqueServices
+            .filter((s) => s.id !== currentServiceId)
+            .sort((a, b) => {
+              if (a.category === category && b.category !== category) return -1;
+              if (b.category === category && a.category !== category) return 1;
+              return b.rating - a.rating;
+            })
+            .slice(0, 4);
+          setServices(related);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentServiceId, category]);
+
+  if (services.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:p-8 shadow-xs ring-1 ring-foreground/10">
@@ -64,9 +110,13 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
 
       {/* Grid Horizontal de Serviços Recomendados no PADRÃO AGILIS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {relatedServices.map((svc) => {
-          const imgUrl = svc.images[0]?.url ?? "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+        {services.map((svc) => {
+          const fallback =
+            getFallbackImagesForCategory(svc.category, svc.id)[0]?.url ??
+            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+          const imgUrl = svc.images[0]?.url ?? fallback;
           const isLiked = likedIds[svc.id] ?? false;
+          const companyInitial = svc.company?.[0] ? svc.company[0].toUpperCase() : "A";
 
           return (
             <Link
@@ -81,11 +131,12 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
                     src={imgUrl}
                     alt={svc.title}
                     fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
                     <Star className="size-3 fill-amber-400 text-amber-400" />
-                    <span>{svc.rating.toFixed(1)}</span>
+                    <span>{typeof svc.rating === "number" ? svc.rating.toFixed(1) : "5.0"}</span>
                   </div>
 
                   <button
@@ -116,7 +167,7 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
                   <div className="flex items-center justify-between gap-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                        {svc.company[0]}
+                        {companyInitial}
                       </span>
                       <span className="truncate text-xs">{svc.company}</span>
                     </div>
@@ -152,4 +203,3 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
     </div>
   );
 }
-

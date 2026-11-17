@@ -1,11 +1,12 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useState, useMemo, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { mockServices } from "@/lib/mocks/services";
+import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
+import { getServiceById } from "@/lib/services/services-service";
 import { ServiceInfo } from "./_components/service-info";
 import { ServicePackages } from "./_components/service-packages";
 import { ServiceStoreCard } from "./_components/service-store-card";
@@ -21,18 +22,56 @@ function ServiceDetailContent() {
   const serviceId = params.serviceId as string;
   const storeIdParam = searchParams.get("storeId") ?? "";
 
-  // Combina todas as fontes de serviços do mock
-  const service = useMemo(() => {
-    const all = [...mockServices, ...superPinturasServices];
-    return all.find((s) => s.id === serviceId);
+  const [service, setService] = useState<Service | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [selectedPrice, setSelectedPrice] = useState<number>(0);
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
+
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoading(true);
+
+    getServiceById(serviceId)
+      .then((data) => {
+        if (!isCancelled) {
+          setService(data);
+          setSelectedPrice(data.price.inicial);
+          setSelectedPackage(data.packages[0]?.label ?? "Padrão");
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          console.warn(`[Services] Falha ao carregar serviço ${serviceId} da API:`, err);
+          // Fallback para mock caso o ID seja de exemplo ou o backend esteja indisponível
+          const all = [...mockServices, ...superPinturasServices];
+          const localFallback = all.find((s) => s.id === serviceId);
+          if (localFallback) {
+            setService(localFallback);
+            setSelectedPrice(localFallback.price.inicial);
+            setSelectedPackage(localFallback.packages[0]?.label ?? "Padrão");
+          } else {
+            setService(null);
+          }
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [serviceId]);
 
-  const [selectedPrice, setSelectedPrice] = useState(
-    service?.price.inicial ?? 0
-  );
-  const [selectedPackage, setSelectedPackage] = useState(
-    service?.packages[0]?.label ?? ""
-  );
+  if (isLoading) {
+    return (
+      <main className="flex flex-1 items-center justify-center bg-muted p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-9 w-9 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+          <p className="text-sm font-medium text-muted-foreground">Carregando detalhes do serviço...</p>
+        </div>
+      </main>
+    );
+  }
 
   if (!service) {
     return (
@@ -70,10 +109,8 @@ function ServiceDetailContent() {
       </Link>
 
       <PageTransition className="flex flex-col gap-6 mx-auto w-full max-w-6xl">
-        
         {/* Display Principal Horizontal em Grid (Layout Wide) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          
           {/* Coluna Esquerda (7 Colunas) — Imagens + Info no mesmo card + Pacotes */}
           <div className="lg:col-span-7 flex flex-col gap-6">
             {/* Card Unificado: Fotos e Informações do Serviço */}
@@ -119,7 +156,6 @@ function ServiceDetailContent() {
           currentServiceId={service.id}
           category={service.category}
         />
-
       </PageTransition>
     </main>
   );

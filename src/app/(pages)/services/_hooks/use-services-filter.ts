@@ -1,9 +1,13 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { mockServices } from "@/lib/mocks/services";
 import { mockStores } from "@/lib/mocks/stores";
 import type { Filters, EntityType } from "../_components/filters/filter-panel";
 import { DEFAULT_FILTERS } from "../_components/filters/default-filters";
+import {
+  fetchServicesSearch,
+  normalizeSearchItemToService,
+} from "@/lib/services/services-service";
+import { type Service } from "@/lib/mocks/services";
 
 export function parseFiltersFromSearchParams(
   params: { get: (key: string) => string | null }
@@ -139,6 +143,14 @@ export function useServicesFilter() {
   const [category, setCategory] = useState<string>(initial.category);
   const [appliedFilters, setAppliedFilters] = useState<Filters>(initial.appliedFilters);
 
+  // Estados dos serviços reais carregados da API
+  const [services, setServices] = useState<Service[]>([]);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [page, setPage] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   const isInitialMount = useRef<boolean>(true);
   // Armazena a última query string enviada via router.replace para prevenir loops
   const lastPushedQueryRef = useRef<string>(searchParams.toString());
@@ -191,52 +203,79 @@ export function useServicesFilter() {
     );
   }, [searchParams]);
 
-  const filteredServices = useMemo(() => {
-    if (appliedFilters.type === "lojas") return [];
-
-    return mockServices.filter((s) => {
-      const matchesSearch =
-        search === "" ||
-        s.title.toLowerCase().includes(search.toLowerCase()) ||
-        s.description.toLowerCase().includes(search.toLowerCase()) ||
-        s.company.toLowerCase().includes(search.toLowerCase());
-
-      const matchesCategory = category === "todos" || s.category === category;
-
-      const minP =
-        appliedFilters.minPrice !== ""
-          ? Number(appliedFilters.minPrice)
-          : appliedFilters.priceRange[0];
-      const maxP =
-        appliedFilters.maxPrice !== ""
-          ? Number(appliedFilters.maxPrice)
-          : appliedFilters.priceRange[1];
-
-      const matchesPrice = s.price.inicial >= minP && s.price.inicial <= maxP;
-
-      const matchesRating =
-        appliedFilters.rating === 0 || s.rating >= appliedFilters.rating;
-
-      const matchesState =
-        appliedFilters.state === "" ||
-        s.state?.toLowerCase() === appliedFilters.state.toLowerCase();
-
-      const matchesCity =
-        appliedFilters.city === "" ||
-        Boolean(s.city?.toLowerCase().includes(appliedFilters.city.toLowerCase())) ||
-        s.availability.toLowerCase().includes(appliedFilters.city.toLowerCase());
-
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesPrice &&
-        matchesRating &&
-        matchesState &&
-        matchesCity
-      );
-    });
+  // Redefine para página 1 quando filtros mudarem
+  const prevFilterStateRef = useRef({ search, category, appliedFilters });
+  useEffect(() => {
+    const prev = prevFilterStateRef.current;
+    if (
+      prev.search !== search ||
+      prev.category !== category ||
+      !areFiltersEqual(prev.appliedFilters, appliedFilters)
+    ) {
+      setPage(1);
+      prevFilterStateRef.current = { search, category, appliedFilters };
+    }
   }, [search, category, appliedFilters]);
 
+  // Busca dados reais de serviços na API (/api/v1/services/search)
+  useEffect(() => {
+    if (appliedFilters.type === "lojas") {
+      setServices([]);
+      setTotalElements(0);
+      setTotalPages(1);
+      setIsLoading(false);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoading(true);
+    setError(null);
+
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const response = await fetchServicesSearch({
+            search,
+            q: search,
+            category,
+            state: appliedFilters.state,
+            city: appliedFilters.city,
+            minPrice: appliedFilters.minPrice,
+            maxPrice: appliedFilters.maxPrice,
+            rating: appliedFilters.rating,
+            page: Math.max(0, page - 1),
+            size: 15,
+          });
+
+          if (!isCancelled) {
+            const mapped = response.items.map(normalizeSearchItemToService);
+            setServices(mapped);
+            const total = response.totalElements ?? mapped.length;
+            setTotalElements(total);
+            const totalP =
+              response.totalPages && response.totalPages > 0
+                ? response.totalPages
+                : Math.max(1, Math.ceil(total / 15));
+            setTotalPages(totalP);
+            setIsLoading(false);
+          }
+        } catch (err) {
+          if (!isCancelled) {
+            console.error("[Services] Erro ao carregar serviços da API:", err);
+            setError("Não foi possível carregar os serviços da API.");
+            setIsLoading(false);
+          }
+        }
+      })();
+    }, 300);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [search, category, appliedFilters, page]);
+
+  // Filtro de lojas (mantém lojas mockadas disponíveis no painel de busca)
   const filteredStores = useMemo(() => {
     if (appliedFilters.type === "servicos") return [];
 
@@ -281,8 +320,8 @@ export function useServicesFilter() {
     appliedFilters.type === "lojas"
       ? filteredStores.length
       : appliedFilters.type === "servicos"
-        ? filteredServices.length
-        : filteredServices.length + filteredStores.length;
+        ? totalElements
+        : totalElements + filteredStores.length;
 
   return {
     search,
@@ -292,8 +331,13 @@ export function useServicesFilter() {
     appliedFilters,
     setAppliedFilters,
     clearFilters,
-    filteredServices,
+    filteredServices: services,
     filteredStores,
     totalResults,
+    isLoading,
+    error,
+    page,
+    totalPages,
+    setPage,
   };
 }

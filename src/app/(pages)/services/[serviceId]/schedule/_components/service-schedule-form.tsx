@@ -7,12 +7,13 @@ import {
   Clock,
   MapPin,
   MessageSquare,
-  ShieldCheck,
   ArrowRight,
   Sparkles,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { mockServices } from "@/lib/mocks/services";
+import { type Service, mockServices } from "@/lib/mocks/services";
+import { getServiceById } from "@/lib/services/services-service";
 import { useAddresses } from "@/hooks/use-addresses";
 import { Calendar } from "@/components/ui/calendar";
 
@@ -40,7 +41,19 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const searchParams = useSearchParams();
   const { addresses } = useAddresses();
 
-  const service = mockServices.find((s) => s.id === serviceId) ?? mockServices[0];
+  const [service, setService] = useState<Service | null>(() => {
+    return mockServices.find((s) => s.id === serviceId) ?? null;
+  });
+
+  useEffect(() => {
+    getServiceById(serviceId)
+      .then((data) => {
+        if (data) setService(data);
+      })
+      .catch((err) => {
+        console.warn(`[Schedule] Usando fallback local para ${serviceId}:`, err);
+      });
+  }, [serviceId]);
 
   const initialPrice = Number(searchParams.get("price")) || (service?.price.inicial ?? 150);
   const initialPackage = searchParams.get("package") ?? (service?.packages[0]?.label ?? "Padrão");
@@ -210,11 +223,15 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
           {/* Service info */}
           <div className="flex gap-3 items-center">
             {service?.images[0]?.url && (
-              <img
-                src={service.images[0].url}
-                alt={service.title}
-                className="h-16 w-16 rounded-xl object-cover"
-              />
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+                <Image
+                  src={service.images[0].url}
+                  alt={service.title}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              </div>
             )}
             <div className="min-w-0 flex-1">
               <h4 className="text-sm font-bold text-foreground leading-snug truncate">

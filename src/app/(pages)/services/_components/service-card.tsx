@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { type Service } from "@/lib/mocks/services";
 import { Card } from "@/components/ui/card";
+import { getFallbackImagesForCategory } from "@/lib/services/services-service";
 
 interface ServiceCardProps {
   service: Service;
@@ -15,6 +16,17 @@ interface ServiceCardProps {
 
 export function ServiceCard({ service, index }: ServiceCardProps) {
   const [liked, setLiked] = useState(false);
+  const fallbackUrl =
+    getFallbackImagesForCategory(service.category, service.id)[0]?.url ??
+    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+  const [imgUrl, setImgUrl] = useState(
+    service.images[0]?.url && service.images[0].url.trim().length > 0
+      ? service.images[0].url
+      : fallbackUrl
+  );
+
+  const companyName = service.company || "Prestador Agilis";
+  const initial = companyName[0] ? companyName[0].toUpperCase() : "A";
 
   return (
     <motion.div
@@ -31,11 +43,13 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
           <div>
             {/* Imagem */}
             <div className="relative h-44 w-full bg-muted">
-              {service.images[0] && (
+              {imgUrl && (
                 <Image
-                  src={service.images[0].url}
+                  src={imgUrl}
                   alt={service.title}
                   fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  onError={() => setImgUrl(fallbackUrl)}
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               )}
@@ -62,7 +76,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
                 </h3>
                 <div className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground font-medium">
                   <Star size={12} className="fill-amber-400 text-amber-400" />
-                  {service.rating} ({service.reviewCount})
+                  {typeof service.rating === "number" ? service.rating.toFixed(1) : "5.0"} ({service.reviewCount})
                 </div>
               </div>
 
@@ -70,9 +84,9 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
               <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                    {service.company[0]}
+                    {initial}
                   </span>
-                  <span className="truncate">{service.company}</span>
+                  <span className="truncate">{companyName}</span>
                 </div>
 
                 {service.city && (
@@ -91,7 +105,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
                   {service.priceType === "FROM" ? "A partir de" : "Por"}
                 </p>
                 <p className="text-xl font-bold text-foreground">
-                  R$ {service.price.inicial}
+                  R$ {service.price.inicial.toFixed(2).replace(".", ",")}
                 </p>
               </div>
 

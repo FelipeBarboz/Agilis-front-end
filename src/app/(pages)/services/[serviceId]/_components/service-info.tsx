@@ -1,4 +1,4 @@
-import { Star, Clock, ShieldCheck, MapPin, Sparkles, CheckCircle2 } from "lucide-react";
+import { Star, Clock, MapPin, Sparkles, CheckCircle2 } from "lucide-react";
 import { type Service } from "@/lib/mocks/services";
 import { ServiceImages } from "./service-images";
 
