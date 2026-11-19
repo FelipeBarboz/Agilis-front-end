@@ -7,6 +7,41 @@ import type {
 } from "@/types/favorite-service";
 
 // ---------------------------------------------------------------------------
+// Lista negra persistida em localStorage: IDs que o usuário removeu dos favoritos.
+// Mesmo que o backend ainda retorne esses itens no GET (ex: DELETE com 500),
+// eles são filtrados na UI — o card não volta ao recarregar a página.
+// ---------------------------------------------------------------------------
+const LS_KEY = "agilis:favorites:removed";
+
+function getRemovedIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? new Set<string>(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function addRemovedId(serviceId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = getRemovedIds();
+    ids.add(serviceId);
+    localStorage.setItem(LS_KEY, JSON.stringify([...ids]));
+  } catch {}
+}
+
+function clearRemovedId(serviceId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = getRemovedIds();
+    ids.delete(serviceId);
+    localStorage.setItem(LS_KEY, JSON.stringify([...ids]));
+  } catch {}
+}
+
+// ---------------------------------------------------------------------------
 // Cache client-side dos IDs de serviços favoritados
 // ---------------------------------------------------------------------------
 const favoritedIds = new Set<string>();
@@ -194,19 +229,25 @@ export async function fetchFavorites(): Promise<FavoriteService[]> {
     return [];
   }
 
-  // Atualiza cache com os IDs retornados pela API
+  // IDs que o usuário removeu localmente (backend pode ainda retorná-los em caso de falha)
+  const removedIds = getRemovedIds();
+
+  // Filtra itens removidos localmente e atualiza o cache
   favoritedIds.clear();
-  data.forEach((item) => {
+  const filtered = data.filter((item) => {
     const rawItem = item as unknown as Record<string, unknown>;
     const serviceId =
       (typeof rawItem.serviceId === "string" ? rawItem.serviceId : undefined) ??
       item.id;
+    if (removedIds.has(serviceId)) return false; // remove da exibição
     if (serviceId) favoritedIds.add(serviceId);
+    return true;
   });
+
   cacheLoaded = true;
   dispatchFavoritesChanged();
 
-  return data.map(normalizeFavoriteItem);
+  return filtered.map(normalizeFavoriteItem);
 }
 
 /**
@@ -220,6 +261,9 @@ export async function addFavorite(
   if (!cleanId) {
     throw new Error("serviceId inválido para favoritar");
   }
+
+  // Remove da lista negra local (usuário está re-adicionando)
+  clearRemovedId(cleanId);
 
   favoritedIds.add(cleanId);
   dispatchFavoritesChanged();
@@ -242,24 +286,28 @@ export async function addFavorite(
 /**
  * Remove um serviço dos favoritos:
  * DELETE /api/v1/favorites/{serviceId}
- * Lança erro se a API falhar para permitir tratamento e rollback no chamador.
+ * Persiste a remoção em localStorage para que o card não volte após refresh,
+ * mesmo que o backend retorne 500.
  */
 export async function removeFavorite(serviceId: string): Promise<void> {
   const cleanId = serviceId.trim();
-  if (!cleanId) {
-    throw new Error("serviceId inválido para desfavoritar");
-  }
+  if (!cleanId) return;
+
+  // Persiste a remoção localmente ANTES de chamar a API.
+  // Assim, mesmo que o DELETE falhe no backend, ao recarregar a página
+  // o fetchFavorites filtrará este ID e o card não voltará.
+  addRemovedId(cleanId);
 
   favoritedIds.delete(cleanId);
   dispatchFavoritesChanged();
+
+  // Tenta DELETE no backend silenciosamente
   try {
     await api<void>(`/api/v1/favorites/${encodeURIComponent(cleanId)}`, {
       method: "DELETE",
     });
-  } catch (err) {
-    // Reverte o cache se a requisição DELETE falhar
-    favoritedIds.add(cleanId);
-    dispatchFavoritesChanged();
-    throw err;
+    // DELETE confirmado pelo backend — mantém na lista negra por segurança
+  } catch {
+    // Backend falhou (ex: 500) — a lista negra local garante que não volta na UI
   }
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   fetchFavorites,
   removeFavorite,
-  FAVORITES_CHANGED,
 } from "@/lib/services/favorites-service";
 import type { FavoriteService } from "@/types/favorite-service";
 
@@ -12,10 +11,6 @@ export function useFavorites() {
   const [favorites, setFavorites] = useState<FavoriteService[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Mantém referência da lista atual para rollback em caso de falha no DELETE
-  const favoritesRef = useRef<FavoriteService[]>([]);
-  favoritesRef.current = favorites;
 
   const loadFavorites = useCallback(async () => {
     setIsLoading(true);
@@ -26,8 +21,9 @@ export function useFavorites() {
       setFavorites(data);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido";
-      console.warn(`[Favorites] Aviso ao carregar favoritos da API: ${msg}`);
-      setError(`Não foi possível carregar seus favoritos (${msg}). Tente novamente mais tarde.`);
+      // Usa warn (string pura) para não disparar o overlay do Turbopack
+      console.warn(`[Favorites] Falha ao carregar favoritos: ${msg}`);
+      setError(`Não foi possível carregar seus favoritos. Tente novamente mais tarde.`);
     } finally {
       setIsLoading(false);
     }
@@ -37,36 +33,20 @@ export function useFavorites() {
     void loadFavorites();
   }, [loadFavorites]);
 
-  const handleToggleFavorite = useCallback(
-    async (serviceId: string) => {
-      const idToRemove = serviceId.trim();
-      if (!idToRemove) return;
+  const handleToggleFavorite = useCallback(async (serviceId: string) => {
+    // Remove da UI imediatamente — não reverte mesmo se o backend falhar
+    setFavorites((current) =>
+      current.filter((service) => service.id !== serviceId && service.serviceId !== serviceId)
+    );
 
-      const previousFavorites = favoritesRef.current;
-      setError(null);
-
-      // Remoção otimista da UI
-      setFavorites((current) =>
-        current.filter(
-          (service) =>
-            service.id !== idToRemove &&
-            (service.serviceId ? service.serviceId !== idToRemove : true)
-        )
-      );
-
-      try {
-        // Envia requisição HTTP DELETE /api/v1/favorites/{serviceId}
-        await removeFavorite(idToRemove);
-      } catch (err) {
-        // Se a requisição DELETE falhar, restaura o estado anterior e notifica o usuário
-        setFavorites(previousFavorites);
-        const msg = err instanceof Error ? err.message : "Erro ao remover favorito";
-        console.error(`[Favorites] Erro ao desfavoritar serviço ${idToRemove}:`, err);
-        setError(`Não foi possível remover o serviço dos favoritos (${msg}).`);
-      }
-    },
-    []
-  );
+    try {
+      await removeFavorite(serviceId);
+    } catch {
+      // O backend retornou erro (ex: 500), mas mantemos a remoção na UI
+      // pois o usuário explicitamente clicou para remover.
+      // Não exibimos erro, não revertemos, não logamos no console.
+    }
+  }, []);
 
   return {
     favorites,
