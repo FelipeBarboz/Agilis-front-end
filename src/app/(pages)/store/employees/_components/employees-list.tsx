@@ -9,6 +9,7 @@ import { EmployeeCard } from "./employee-card";
 import { EmployeesEmptyState } from "./employees-empty-state";
 import { mockEmployees, type Employee } from "@/lib/mocks/employees";
 import { mockPositions } from "@/lib/mocks/positions";
+import { updateMemberPosition } from "@/lib/services/store-positions-service";
 
 export function EmployeesList() {
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
@@ -21,13 +22,14 @@ export function EmployeesList() {
     setManageModalOpen(true);
   };
 
-  const handleSaveEmployee = (newRole: string) => {
+  const handleSaveEmployee = async (newRole: string) => {
     if (!selectedEmployee) return;
 
     const rolePos = mockPositions.find(
       (p) => p.title.toLowerCase() === newRole.toLowerCase()
     );
     const newPermissions = rolePos?.permissions ?? ["manage_appointments"];
+    const positionId = rolePos?.id ?? "1";
 
     setEmployees((prev) =>
       prev.map((emp) =>
@@ -40,6 +42,19 @@ export function EmployeesList() {
           : emp
       )
     );
+
+    // PATCH /api/v1/stores/{storeId}/positions/members/{memberId}
+    try {
+      const effectiveStoreId =
+        (typeof window !== "undefined" &&
+          (localStorage.getItem("current_store_id") ||
+            localStorage.getItem("active_store_id"))) ||
+        "store-super-pinturas";
+
+      await updateMemberPosition(effectiveStoreId, selectedEmployee.id, positionId);
+    } catch (err) {
+      console.warn("[EmployeesList] Falha ao atualizar cargo do membro via API:", err);
+    }
   };
 
   const handleDeleteEmployee = () => {

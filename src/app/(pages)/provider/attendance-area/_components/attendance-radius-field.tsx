@@ -3,9 +3,19 @@ import type { AttendanceType } from "./attendance-type-selector";
 
 interface AttendanceRadiusFieldProps {
   selectedType: AttendanceType;
+  radiusKm: number;
+  onRadiusChange: (value: number) => void;
+  referenceAddress: string;
+  onAddressChange: (value: string) => void;
 }
 
-export function AttendanceRadiusField({ selectedType }: AttendanceRadiusFieldProps) {
+export function AttendanceRadiusField({
+  selectedType,
+  radiusKm,
+  onRadiusChange,
+  referenceAddress,
+  onAddressChange,
+}: AttendanceRadiusFieldProps) {
   const showAddressField = selectedType === "FIXED_LOCATION" || selectedType === "BOTH";
 
   return (
@@ -19,12 +29,14 @@ export function AttendanceRadiusField({ selectedType }: AttendanceRadiusFieldPro
           <select
             id="radius"
             className="h-11 w-full appearance-none rounded-xl border border-input bg-background px-3.5 pr-10 text-sm text-foreground shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
-            defaultValue="10"
+            value={radiusKm}
+            onChange={(e) => onRadiusChange(Number(e.target.value))}
           >
             <option value="5">Até 5 km</option>
             <option value="10">Até 10 km</option>
             <option value="20">Até 20 km</option>
             <option value="50">Até 50 km</option>
+            <option value="100">Até 100 km</option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         </div>
@@ -39,6 +51,8 @@ export function AttendanceRadiusField({ selectedType }: AttendanceRadiusFieldPro
           <textarea
             id="address"
             rows={2}
+            value={referenceAddress}
+            onChange={(e) => onAddressChange(e.target.value)}
             placeholder="Ex: R. Cristóbal Cláudio Elilo, 88 - Parque Cecap, Guarulhos"
             className="w-full resize-none rounded-xl border border-input bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
           />

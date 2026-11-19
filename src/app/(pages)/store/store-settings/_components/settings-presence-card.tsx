@@ -1,4 +1,5 @@
-import { MapPin, Globe, Check, Copy } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Globe, Check, Copy, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface SettingsPresenceCardProps {
@@ -37,9 +38,18 @@ export function SettingsPresenceCard({
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-foreground">
-            Área / Região de Cobertura
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-foreground">
+              Área / Região de Cobertura
+            </label>
+            <Link
+              href="/provider/attendance-area?from=settings"
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-0.5 cursor-pointer"
+            >
+              <span>Configurar tipo, raio e cidades</span>
+              <ChevronRight className="size-3" />
+            </Link>
+          </div>
           <Input
             type="text"
             value={region}
