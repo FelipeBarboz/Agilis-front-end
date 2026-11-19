@@ -28,7 +28,7 @@ export function FavoriteServiceCard({
           <CardImage
             imageUrl={service.imageUrl}
             name={service.name}
-            onToggleFavorite={() => onToggleFavorite(service.id)}
+            onToggleFavorite={() => onToggleFavorite(service.serviceId ?? service.id)}
           />
 
           {/* Conteúdo do Card */}

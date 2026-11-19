@@ -29,6 +29,7 @@ export async function initFavoritesCache(): Promise<void> {
             item.id;
           if (serviceId) favoritedIds.add(serviceId);
         });
+        dispatchFavoritesChanged();
       }
     } catch {
       // Falha silenciosa — cache fica vazio, não impede a UI
@@ -189,6 +190,7 @@ export async function fetchFavorites(): Promise<FavoriteService[]> {
   if (!Array.isArray(data)) {
     favoritedIds.clear();
     cacheLoaded = true;
+    dispatchFavoritesChanged();
     return [];
   }
 
@@ -202,6 +204,7 @@ export async function fetchFavorites(): Promise<FavoriteService[]> {
     if (serviceId) favoritedIds.add(serviceId);
   });
   cacheLoaded = true;
+  dispatchFavoritesChanged();
 
   return data.map(normalizeFavoriteItem);
 }
@@ -213,16 +216,24 @@ export async function fetchFavorites(): Promise<FavoriteService[]> {
 export async function addFavorite(
   serviceId: string
 ): Promise<FavoriteCreateResponseDTO> {
-  favoritedIds.add(serviceId);
+  const cleanId = serviceId.trim();
+  if (!cleanId) {
+    throw new Error("serviceId inválido para favoritar");
+  }
+
+  favoritedIds.add(cleanId);
   dispatchFavoritesChanged();
   try {
-    const result = await api<FavoriteCreateResponseDTO>(`/api/v1/favorites/${serviceId}`, {
-      method: "POST",
-    });
+    const result = await api<FavoriteCreateResponseDTO>(
+      `/api/v1/favorites/${encodeURIComponent(cleanId)}`,
+      {
+        method: "POST",
+      }
+    );
     return result;
   } catch (err) {
     // Reverte o cache em caso de falha
-    favoritedIds.delete(serviceId);
+    favoritedIds.delete(cleanId);
     dispatchFavoritesChanged();
     throw err;
   }
@@ -231,17 +242,24 @@ export async function addFavorite(
 /**
  * Remove um serviço dos favoritos:
  * DELETE /api/v1/favorites/{serviceId}
- * Lança erro se a API falhar — o chamador decide como reagir.
+ * Lança erro se a API falhar para permitir tratamento e rollback no chamador.
  */
 export async function removeFavorite(serviceId: string): Promise<void> {
-  favoritedIds.delete(serviceId);
+  const cleanId = serviceId.trim();
+  if (!cleanId) {
+    throw new Error("serviceId inválido para desfavoritar");
+  }
+
+  favoritedIds.delete(cleanId);
   dispatchFavoritesChanged();
   try {
-    await api<void>(`/api/v1/favorites/${serviceId}`, {
+    await api<void>(`/api/v1/favorites/${encodeURIComponent(cleanId)}`, {
       method: "DELETE",
     });
   } catch (err) {
-    // Repassa o erro para o chamador tratar
+    // Reverte o cache se a requisição DELETE falhar
+    favoritedIds.add(cleanId);
+    dispatchFavoritesChanged();
     throw err;
   }
 }

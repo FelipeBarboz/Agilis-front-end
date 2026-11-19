@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchFavorites,
   removeFavorite,
+  FAVORITES_CHANGED,
 } from "@/lib/services/favorites-service";
 import type { FavoriteService } from "@/types/favorite-service";
 
@@ -11,6 +12,10 @@ export function useFavorites() {
   const [favorites, setFavorites] = useState<FavoriteService[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Mantém referência da lista atual para rollback em caso de falha no DELETE
+  const favoritesRef = useRef<FavoriteService[]>([]);
+  favoritesRef.current = favorites;
 
   const loadFavorites = useCallback(async () => {
     setIsLoading(true);
@@ -34,17 +39,30 @@ export function useFavorites() {
 
   const handleToggleFavorite = useCallback(
     async (serviceId: string) => {
-      // Remove da UI imediatamente — não reverte mesmo se a API falhar
+      const idToRemove = serviceId.trim();
+      if (!idToRemove) return;
+
+      const previousFavorites = favoritesRef.current;
       setError(null);
+
+      // Remoção otimista da UI
       setFavorites((current) =>
-        current.filter((service) => service.id !== serviceId)
+        current.filter(
+          (service) =>
+            service.id !== idToRemove &&
+            (service.serviceId ? service.serviceId !== idToRemove : true)
+        )
       );
 
       try {
-        await removeFavorite(serviceId);
-      } catch {
-        // Backend retornou erro (ex: 500), mas mantemos a remoção na UI
-        // pois o usuário explicitamente clicou para remover.
+        // Envia requisição HTTP DELETE /api/v1/favorites/{serviceId}
+        await removeFavorite(idToRemove);
+      } catch (err) {
+        // Se a requisição DELETE falhar, restaura o estado anterior e notifica o usuário
+        setFavorites(previousFavorites);
+        const msg = err instanceof Error ? err.message : "Erro ao remover favorito";
+        console.error(`[Favorites] Erro ao desfavoritar serviço ${idToRemove}:`, err);
+        setError(`Não foi possível remover o serviço dos favoritos (${msg}).`);
       }
     },
     []
