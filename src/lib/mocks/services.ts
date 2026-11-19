@@ -7,6 +7,7 @@ export type ServicePackage = {
 export type Service = {
   id: string;
   storeId: string;
+  unitId?: string;
   title: string;
   description: string;
   price: {

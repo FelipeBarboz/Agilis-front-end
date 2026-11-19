@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mockProfileServices } from "@/lib/mocks/profile-services";
+import { getServiceById } from "@/lib/services/services-service";
 import { EditServiceHeader } from "../_components/edit-service-header";
 import { ServiceMainPhoto } from "../../add-service/_components/service-main-photo";
 import { ServiceInfoCard } from "../../add-service/_components/service-info-card";
@@ -81,6 +82,29 @@ export default function EditServicePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!rawId) return;
+    getServiceById(rawId)
+      .then((data) => {
+        if (data) {
+          setName(data.title);
+          setDescription(data.description);
+          setPriceType(data.priceType === "FIXED" ? "FIXED" : "VARIABLE");
+          setPrice(`R$ ${data.price.inicial.toFixed(2).replace(".", ",")}`);
+          setDuration(String(data.durationMinutes));
+          if (data.images[0]?.url) {
+            setMainPhotoPreview(data.images[0].url);
+          }
+          if (data.images.length > 1) {
+            setAdditionalPhotos(data.images.slice(1).map((img) => img.url));
+          }
+        }
+      })
+      .catch(() => {
+        // Fallback para os dados já inicializados pelo mock
+      });
+  }, [rawId]);
 
   const handleMainPhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

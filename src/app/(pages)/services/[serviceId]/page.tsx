@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
-import { getServiceById } from "@/lib/services/services-service";
+import { getServiceById, getServicesByStoreId } from "@/lib/services/services-service";
 import { ServiceInfo } from "./_components/service-info";
 import { ServicePackages } from "./_components/service-packages";
 import { ServiceStoreCard } from "./_components/service-store-card";
@@ -21,8 +21,10 @@ function ServiceDetailContent() {
 
   const serviceId = params.serviceId as string;
   const storeIdParam = searchParams.get("storeId") ?? "";
+  const companyParam = searchParams.get("company") ?? searchParams.get("providerName") ?? "";
 
   const [service, setService] = useState<Service | null>(null);
+  const [storeServices, setStoreServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedPrice, setSelectedPrice] = useState<number>(0);
   const [selectedPackage, setSelectedPackage] = useState<string>("");
@@ -31,7 +33,7 @@ function ServiceDetailContent() {
     let isCancelled = false;
     setIsLoading(true);
 
-    getServiceById(serviceId)
+    getServiceById(serviceId, companyParam)
       .then((data) => {
         if (!isCancelled) {
           setService(data);
@@ -60,7 +62,28 @@ function ServiceDetailContent() {
     return () => {
       isCancelled = true;
     };
-  }, [serviceId]);
+  }, [serviceId, companyParam]);
+
+  // Carrega os serviços associados a esta loja (GET /api/v1/services/store/{storeId})
+  useEffect(() => {
+    const targetStoreId = storeIdParam || service?.storeId;
+    if (!targetStoreId) return;
+
+    let isCancelled = false;
+    getServicesByStoreId(targetStoreId, companyParam || service?.company)
+      .then((items) => {
+        if (!isCancelled) {
+          setStoreServices(items);
+        }
+      })
+      .catch((err) => {
+        console.warn(`[Services] Falha ao carregar serviços da loja ${targetStoreId}:`, err);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [storeIdParam, service?.storeId, service?.company, companyParam]);
 
   if (isLoading) {
     return (
@@ -96,6 +119,7 @@ function ServiceDetailContent() {
   }
 
   const effectiveStoreId = storeIdParam || service.storeId || "store-super-pinturas";
+  const effectiveCompany = companyParam || service.company;
 
   return (
     <main className="relative flex flex-1 flex-col gap-6 bg-muted p-4 pt-14 sm:p-6 sm:pt-14 lg:p-8 lg:pt-8">
@@ -131,7 +155,8 @@ function ServiceDetailContent() {
             {/* Card da Loja com Padrão Agilis e link para o perfil */}
             <ServiceStoreCard
               storeId={effectiveStoreId}
-              companyName={service.company}
+              companyName={effectiveCompany}
+              storeServicesCount={storeServices.length}
             />
 
             {/* Card de Resumo de Preço e Agendamento */}
@@ -147,14 +172,20 @@ function ServiceDetailContent() {
         {/* Seção Horizontal 1: Avaliações e Comentários dos Usuários */}
         <ServiceReviews
           serviceId={serviceId}
+          storeId={effectiveStoreId}
           initialRating={service.rating}
           reviewCount={service.reviewCount}
         />
 
-        {/* Seção Horizontal 2: Serviços Recomendados, Parecidos e Próximos */}
+        {/* Seção Horizontal 2: Outros Serviços da Mesma Loja e Serviços Recomendados */}
         <ServiceRelated
           currentServiceId={service.id}
           category={service.category}
+          storeId={effectiveStoreId}
+          storeServices={storeServices}
+          storeName={effectiveCompany}
+          city={service.city}
+          state={service.state}
         />
       </PageTransition>
     </main>

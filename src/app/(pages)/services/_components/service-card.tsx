@@ -51,7 +51,7 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
       className="h-full"
     >
       <Link
-        href={`/services/${service.id}?storeId=${service.storeId}`}
+        href={`/services/${service.id}?storeId=${service.storeId}${companyName ? `&company=${encodeURIComponent(companyName)}` : ""}`}
         className="group block focus-visible:outline-none h-full"
       >
         <Card className="overflow-hidden h-full flex flex-col justify-between transition-all group-hover:shadow-md group-hover:border-primary/40 group-focus-visible:ring-2 group-focus-visible:ring-primary">

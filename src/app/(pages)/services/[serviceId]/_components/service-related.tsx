@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Star, MapPin, ChevronRight, CalendarClock, Heart } from "lucide-react";
-import { type Service, mockServices } from "@/lib/mocks/services";
-import { superPinturasServices } from "@/lib/mocks/stores";
-import { useState, useEffect } from "react";
+import { Star, MapPin, ChevronRight, CalendarClock, Heart, Store, Compass } from "lucide-react";
+import { type Service } from "@/lib/mocks/services";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   fetchServicesSearch,
   normalizeSearchItemToService,
@@ -21,20 +20,42 @@ import {
 interface ServiceRelatedProps {
   currentServiceId: string;
   category: string;
+  storeId?: string;
+  storeServices?: Service[];
+  storeName?: string;
+  city?: string;
+  state?: string;
 }
 
-export function ServiceRelated({ currentServiceId, category }: ServiceRelatedProps) {
+export function ServiceRelated({
+  currentServiceId,
+  category,
+  storeId,
+  storeServices,
+  storeName,
+  city,
+  state,
+}: ServiceRelatedProps) {
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({});
-  const [services, setServices] = useState<Service[]>([]);
+  const [recommendedServices, setRecommendedServices] = useState<Service[]>([]);
+
+  // Filtra outros serviços da mesma loja (excluindo o atual)
+  const otherStoreServices = useMemo(
+    () =>
+      (storeServices ?? [])
+        .filter((s) => s.id !== currentServiceId)
+        .slice(0, 4),
+    [storeServices, currentServiceId]
+  );
 
   // Sincroniza likedIds com o cache global de favoritos
-  function syncLiked(list: Service[]) {
+  const syncLiked = useCallback((list: Service[]) => {
     const map: Record<string, boolean> = {};
     list.forEach((s) => {
       map[s.id] = isServiceFavorite(s.id);
     });
-    setLikedIds(map);
-  }
+    setLikedIds((prev) => ({ ...prev, ...map }));
+  }, []);
 
   async function toggleLike(id: string, e: React.MouseEvent) {
     e.preventDefault();
@@ -53,66 +74,83 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
     }
   }
 
+  // Busca serviços recomendados e próximos
   useEffect(() => {
     let isCancelled = false;
 
-    // Busca serviços recomendados na API real
-    fetchServicesSearch({ category, size: 8 })
-      .then((res) => {
-        if (!isCancelled && res.items && res.items.length > 0) {
-          const mapped = res.items
-            .map(normalizeSearchItemToService)
-            .filter((s) => s.id !== currentServiceId)
-            .slice(0, 4);
+    async function loadRecommendations() {
+      try {
+        const otherStoreIds = new Set(otherStoreServices.map((s) => s.id));
+        let results: Service[] = [];
 
-          if (mapped.length > 0) {
-            setServices(mapped);
-            syncLiked(mapped);
-            return;
+        // 1. Tenta buscar primeiro por proximidade geográfica (cidade/estado)
+        if (city && city.trim().length > 0) {
+          const nearbyRes = await fetchServicesSearch({
+            category,
+            city: city.trim(),
+            state: state?.trim() ?? undefined,
+            size: 6,
+          });
+
+          if (!isCancelled && nearbyRes.items && nearbyRes.items.length > 0) {
+            results = nearbyRes.items
+              .map(normalizeSearchItemToService)
+              .filter((s) => s.id !== currentServiceId && !otherStoreIds.has(s.id));
           }
         }
 
-        // Se a API retornar vazio ou poucos, completa com fallback
-        if (!isCancelled) {
-          const allServices = [...mockServices, ...superPinturasServices];
-          const uniqueServices = Array.from(
-            new Map(allServices.map((s) => [s.id, s])).values()
-          );
-          const related = uniqueServices
-            .filter((s) => s.id !== currentServiceId)
-            .sort((a, b) => {
-              if (a.category === category && b.category !== category) return -1;
-              if (b.category === category && a.category !== category) return 1;
-              return b.rating - a.rating;
-            })
-            .slice(0, 4);
-          setServices(related);
-          syncLiked(related);
+        // 2. Se não encontrou o suficiente por cidade, complementa com recomendados da categoria
+        if (results.length < 4) {
+          const generalRes = await fetchServicesSearch({
+            category,
+            size: 8,
+          });
+
+          if (!isCancelled && generalRes.items && generalRes.items.length > 0) {
+            const mappedGeneral = generalRes.items
+              .map(normalizeSearchItemToService)
+              .filter(
+                (s) =>
+                  s.id !== currentServiceId &&
+                  !otherStoreIds.has(s.id) &&
+                  !results.some((r) => r.id === s.id)
+              );
+
+            results = [...results, ...mappedGeneral].slice(0, 4);
+          }
         }
-      })
-      .catch(() => {
-        if (!isCancelled) {
-          const allServices = [...mockServices, ...superPinturasServices];
-          const uniqueServices = Array.from(
-            new Map(allServices.map((s) => [s.id, s])).values()
-          );
-          const related = uniqueServices
-            .filter((s) => s.id !== currentServiceId)
-            .sort((a, b) => {
-              if (a.category === category && b.category !== category) return -1;
-              if (b.category === category && a.category !== category) return 1;
-              return b.rating - a.rating;
-            })
-            .slice(0, 4);
-          setServices(related);
-          syncLiked(related);
+
+        if (!isCancelled && results.length > 0) {
+          setRecommendedServices(results);
+          syncLiked(results);
+          return;
         }
-      });
+
+        // 3. API não retornou itens — sem fallback, mostra seção vazia
+        if (!isCancelled) {
+          setRecommendedServices([]);
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.warn("[Services] Falha ao carregar recomendações:", err);
+          setRecommendedServices([]);
+        }
+      }
+    }
+
+    void loadRecommendations();
 
     return () => {
       isCancelled = true;
     };
-  }, [currentServiceId, category]);
+  }, [currentServiceId, category, city, state, otherStoreServices, syncLiked]);
+
+  // Sincroniza likedIds de otherStoreServices
+  useEffect(() => {
+    if (otherStoreServices.length > 0) {
+      syncLiked(otherStoreServices);
+    }
+  }, [otherStoreServices, syncLiked]);
 
   // Re-sincroniza quando o cache global mudar (ex: outro card adicionou/removeu)
   useEffect(() => {
@@ -129,121 +167,184 @@ export function ServiceRelated({ currentServiceId, category }: ServiceRelatedPro
     return () => window.removeEventListener(FAVORITES_CHANGED, onFavoritesChanged);
   }, []);
 
-  if (services.length === 0) return null;
+  function renderCard(svc: Service, isFromSameStore = false) {
+    const fallback =
+      getFallbackImagesForCategory(svc.category, svc.id)[0]?.url ??
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+    const imgUrl = svc.images[0]?.url ?? fallback;
+    const isLiked = likedIds[svc.id] ?? false;
+    const companyInitial = svc.company?.[0] ? svc.company[0].toUpperCase() : "A";
+    const displayName = svc.company ?? storeName ?? "Prestador Agilis";
+    const effectiveStore = svc.storeId ?? storeId ?? "";
+    const isNearby = Boolean(svc.city?.toLowerCase() === city?.toLowerCase());
 
-  return (
-    <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:p-8 shadow-xs ring-1 ring-foreground/10">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-5">
+    return (
+      <Link
+        key={svc.id}
+        href={`/services/${svc.id}?storeId=${effectiveStore}${displayName ? `&company=${encodeURIComponent(displayName)}` : ""}`}
+        className="group flex flex-col justify-between overflow-hidden rounded-xl border border-border/80 bg-muted/20 transition-all hover:bg-muted/40 hover:border-primary/50 hover:shadow-sm"
+      >
         <div>
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
-            Serviços recomendados e próximos
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Outras opções populares e bem avaliadas na sua região
-          </p>
+          {/* Imagem do Serviço */}
+          <div className="relative h-40 w-full overflow-hidden bg-muted">
+            <Image
+              src={imgUrl}
+              alt={svc.title}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
+              <Star className="size-3 fill-amber-400 text-amber-400" />
+              <span>{typeof svc.rating === "number" ? svc.rating.toFixed(1) : "5.0"}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={(e) => toggleLike(svc.id, e)}
+              aria-label={isLiked ? "Remover dos favoritos" : "Salvar nos favoritos"}
+              className="absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm transition-transform hover:scale-110 active:scale-95 shadow-2xs cursor-pointer"
+            >
+              <Heart
+                size={13}
+                className={isLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
+              />
+            </button>
+          </div>
+
+          {/* Conteúdo */}
+          <div className="flex flex-col gap-2 p-3.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                {svc.category}
+              </span>
+              {isFromSameStore ? (
+                <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                  Mesma loja
+                </span>
+              ) : isNearby ? (
+                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  Próximo
+                </span>
+              ) : null}
+            </div>
+
+            <h3 className="font-bold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+              {svc.title}
+            </h3>
+
+            <div className="flex items-center justify-between gap-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                  {companyInitial}
+                </span>
+                <span className="truncate text-xs">{displayName}</span>
+              </div>
+
+              {svc.city && (
+                <div className="flex items-center gap-1 shrink-0 text-muted-foreground text-[11px]">
+                  <MapPin size={11} className="text-primary shrink-0" />
+                  <span>{svc.city}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <Link
-          href="/services"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline group self-start sm:self-auto"
-        >
-          <span>Ver todos os serviços</span>
-          <ChevronRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
-      </div>
+        {/* Rodapé do Card com Preço e Disponibilidade */}
+        <div className="flex items-center justify-between border-t border-border/60 p-3.5 text-xs bg-muted/10">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {svc.priceType === "FROM" ? "A partir de" : "Valor"}
+            </span>
+            <span className="font-extrabold text-foreground text-sm">
+              R$ {svc.price.inicial.toFixed(2).replace(".", ",")}
+            </span>
+          </div>
 
-      {/* Grid Horizontal de Serviços Recomendados no PADRÃO AGILIS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {services.map((svc) => {
-          const fallback =
-            getFallbackImagesForCategory(svc.category, svc.id)[0]?.url ??
-            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
-          const imgUrl = svc.images[0]?.url ?? fallback;
-          const isLiked = likedIds[svc.id] ?? false;
-          const companyInitial = svc.company?.[0] ? svc.company[0].toUpperCase() : "A";
+          <div className="flex items-center gap-1 text-[11px] text-primary font-medium">
+            <CalendarClock size={12} />
+            <span>{svc.durationMinutes}min</span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
-          return (
-            <Link
-              key={svc.id}
-              href={`/services/${svc.id}?storeId=${svc.storeId}`}
-              className="group flex flex-col justify-between overflow-hidden rounded-xl border border-border/80 bg-muted/20 transition-all hover:bg-muted/40 hover:border-primary/50 hover:shadow-sm"
-            >
+  const hasStoreServices = otherStoreServices.length > 0;
+  const hasRecommended = recommendedServices.length > 0;
+
+  if (!hasStoreServices && !hasRecommended) return null;
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Seção 1: Outros serviços desta loja (GET /api/v1/services/store/{storeId}) */}
+      {hasStoreServices && (
+        <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:p-8 shadow-xs ring-1 ring-foreground/10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Store size={18} />
+              </div>
               <div>
-                {/* Imagem do Serviço */}
-                <div className="relative h-40 w-full overflow-hidden bg-muted">
-                  <Image
-                    src={imgUrl}
-                    alt={svc.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
-                    <Star className="size-3 fill-amber-400 text-amber-400" />
-                    <span>{typeof svc.rating === "number" ? svc.rating.toFixed(1) : "5.0"}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={(e) => toggleLike(svc.id, e)}
-                    aria-label={isLiked ? "Remover dos favoritos" : "Salvar nos favoritos"}
-                    className="absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/85 backdrop-blur-sm transition-transform hover:scale-110 active:scale-95 shadow-2xs cursor-pointer"
-                  >
-                    <Heart
-                      size={13}
-                      className={isLiked ? "fill-red-500 text-red-500" : "text-muted-foreground"}
-                    />
-                  </button>
-                </div>
-
-                {/* Conteúdo */}
-                <div className="flex flex-col gap-2 p-3.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                      {svc.category}
-                    </span>
-                  </div>
-
-                  <h3 className="font-bold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                    {svc.title}
-                  </h3>
-
-                  <div className="flex items-center justify-between gap-1 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                        {companyInitial}
-                      </span>
-                      <span className="truncate text-xs">{svc.company}</span>
-                    </div>
-
-                    {svc.city && (
-                      <div className="flex items-center gap-1 shrink-0 text-muted-foreground text-[11px]">
-                        <MapPin size={11} className="text-primary shrink-0" />
-                        <span>{svc.city}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                  Mais serviços de {storeName ?? "esta loja"}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Outras soluções oferecidas pelo mesmo prestador credenciado
+                </p>
               </div>
+            </div>
 
-              {/* Rodapé do Card com Preço e Disponibilidade */}
-              <div className="flex items-center justify-between border-t border-border/60 p-3.5 text-xs bg-muted/10">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-muted-foreground font-medium">A partir de</span>
-                  <span className="font-extrabold text-foreground text-sm">
-                    R$ {svc.price.inicial.toFixed(2).replace(".", ",")}
-                  </span>
-                </div>
+            {storeId && (
+              <Link
+                href={`/store-page?id=${storeId}${storeName ? `&name=${encodeURIComponent(storeName)}` : ""}`}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline group self-start sm:self-auto"
+              >
+                <span>Ver página da loja</span>
+                <ChevronRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            )}
+          </div>
 
-                <div className="flex items-center gap-1 text-[11px] text-primary font-medium">
-                  <CalendarClock size={12} />
-                  <span>{svc.durationMinutes}min</span>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {otherStoreServices.map((svc) => renderCard(svc, true))}
+          </div>
+        </div>
+      )}
+
+      {/* Seção 2: Serviços recomendados e próximos */}
+      {hasRecommended && (
+        <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:p-8 shadow-xs ring-1 ring-foreground/10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Compass size={18} />
               </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+                  Serviços recomendados e próximos
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Opções bem avaliadas e disponíveis {city ? `em ${city}${state ? `, ${state}` : ""}` : "na sua região"}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href={`/services?category=${encodeURIComponent(category)}${city ? `&city=${encodeURIComponent(city)}` : ""}${state ? `&state=${encodeURIComponent(state)}` : ""}`}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline group self-start sm:self-auto"
+            >
+              <span>Ver todos</span>
+              <ChevronRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
-          );
-        })}
-      </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {recommendedServices.map((svc) => renderCard(svc, false))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import { type Service, mockServices } from "@/lib/mocks/services";
+import { superPinturasServices } from "@/lib/mocks/stores";
 
 export interface ServiceSearchItem {
   serviceId: string;
@@ -179,7 +180,10 @@ export function normalizeSearchItemToService(item: ServiceSearchItem): Service {
  * Converte os dados detalhados retornados por /api/v1/services/{id}
  * para o modelo de dados padrão Service.
  */
-export function normalizeDetailToService(detail: ServiceDetailDTO): Service {
+export function normalizeDetailToService(
+  detail: ServiceDetailDTO,
+  fallbackCompany?: string
+): Service {
   const priceInicial = Number(detail.price) || 0;
   const pType: "FIXED" | "FROM" =
     String(detail.priceType).toUpperCase() === "FIXED" ? "FIXED" : "FROM";
@@ -203,21 +207,23 @@ export function normalizeDetailToService(detail: ServiceDetailDTO): Service {
   // Tratamento de pacotes
   let packages = detail.packages;
   if (!packages || packages.length === 0) {
-    packages = [
-      { label: "Básico", description: "Atendimento e escopo padrão", price: priceInicial },
-      ...(pType !== "FIXED"
-        ? [
-            { label: "Médio", description: "Atendimento intermediário", price: Math.round(priceInicial * 1.5) },
-            { label: "Completo", description: "Atendimento completo premium", price: Math.round(priceInicial * 2.2) },
-          ]
-        : []),
-    ];
+    if (pType === "FIXED") {
+      packages = [
+        { label: "Serviço Completo", description: "Atendimento padrão com preço fixo", price: priceInicial },
+      ];
+    } else {
+      packages = [
+        { label: "Básico", description: "Atendimento e escopo padrão", price: priceInicial },
+        { label: "Médio", description: "Atendimento intermediário", price: Math.round(priceInicial * 1.5) },
+        { label: "Completo", description: "Atendimento completo premium", price: Math.round(priceInicial * 2.2) },
+      ];
+    }
   }
 
   const rating = detail.rating ?? detail.avgRating ?? 4.8;
   const reviewCount = detail.reviewCount ?? 12;
   const totalServices = detail.totalServices ?? Math.max(reviewCount, 15);
-  const company = detail.company ?? detail.storeName ?? "Prestador Agilis";
+  const company = detail.company ?? detail.storeName ?? fallbackCompany ?? "Prestador Agilis";
   const city = detail.city ?? "São Paulo";
   const state = detail.state ?? "SP";
   const availability = detail.availability ?? detail.nextAvailableSlot ?? "Disponível para agendamento";
@@ -225,12 +231,13 @@ export function normalizeDetailToService(detail: ServiceDetailDTO): Service {
   return {
     id: detail.id,
     storeId: detail.storeId,
+    unitId: detail.unitId,
     title: detail.title,
     description: detail.description,
     price: {
       inicial: priceInicial,
-      medio: Math.round(priceInicial * 1.5),
-      alto: Math.round(priceInicial * 2.2),
+      medio: pType === "FIXED" ? priceInicial : Math.round(priceInicial * 1.5),
+      alto: pType === "FIXED" ? priceInicial : Math.round(priceInicial * 2.2),
     },
     priceType: pType,
     durationMinutes: detail.durationMinutes || 60,
@@ -317,62 +324,11 @@ export async function fetchServicesSearch(
       totalPages: 0,
     };
   } catch (err) {
-    console.warn("[Services] Erro ao buscar serviços na API real, usando fallback de mock:", err);
-
-    // Fallback gracioso para dados locais caso o backend esteja temporariamente indisponível
-    const filteredMock = mockServices.filter((s) => {
-      const matchSearch =
-        !searchTerm ||
-        s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.company.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchCat =
-        !params.category ||
-        params.category === "todos" ||
-        s.category.toLowerCase() === params.category.toLowerCase();
-
-      const matchState =
-        !params.state ||
-        s.state.toLowerCase() === params.state.toLowerCase();
-
-      const matchCity =
-        !params.city ||
-        s.city.toLowerCase().includes(params.city.toLowerCase());
-
-      const minP = typeof params.minPrice === "number" ? params.minPrice : 0;
-      const maxP = typeof params.maxPrice === "number" ? params.maxPrice : Infinity;
-      const matchPrice = s.price.inicial >= minP && s.price.inicial <= maxP;
-
-      const matchRating = !params.rating || s.rating >= params.rating;
-
-      return matchSearch && matchCat && matchState && matchCity && matchPrice && matchRating;
-    });
-
-    const mockItems: ServiceSearchItem[] = filteredMock.map((s) => ({
-      serviceId: s.id,
-      storeId: s.storeId,
-      unitId: s.storeId,
-      title: s.title,
-      description: s.description,
-      price: s.price.inicial,
-      priceType: s.priceType,
-      durationMinutes: s.durationMinutes,
-      category: s.category.toUpperCase(),
-      hasPriceTiers: s.packages.length > 1,
-      avgRating: s.rating,
-      reviewCount: s.reviewCount,
-      city: s.city,
-      state: s.state,
-      thumbnailUrl: s.images[0]?.url ?? "",
-      storeName: s.company,
-      nextAvailableSlot: s.availability,
-    }));
-
+    console.warn("[Services] Erro ao buscar serviços na API real:", err);
     return {
-      items: mockItems,
-      totalElements: mockItems.length,
-      totalPages: Math.ceil(mockItems.length / limit),
+      items: [],
+      totalElements: 0,
+      totalPages: 0,
     };
   }
 }
@@ -390,12 +346,13 @@ export async function fetchServiceById(id: string): Promise<ServiceDetailDTO> {
     throw new Error("Formato inválido retornado pela API");
   } catch (err) {
     console.warn(`[Services] Falha ao consultar /api/v1/services/${id}, buscando fallback local:`, err);
-    const mock = mockServices.find((s) => s.id === id);
+    const allMocks = [...mockServices, ...superPinturasServices];
+    const mock = allMocks.find((s) => s.id === id);
     if (mock) {
       return {
         id: mock.id,
         storeId: mock.storeId,
-        unitId: mock.storeId,
+        unitId: mock.unitId ?? mock.storeId,
         title: mock.title,
         description: mock.description,
         price: mock.price.inicial,
@@ -423,9 +380,43 @@ export async function fetchServiceById(id: string): Promise<ServiceDetailDTO> {
 }
 
 /**
- * Função utilitária que busca e converte para o modelo Service do frontend.
+ * Busca todos os serviços de uma loja:
+ * GET /api/v1/services/store/{storeId}
  */
-export async function getServiceById(id: string): Promise<Service> {
+export async function fetchServicesByStore(
+  storeId: string
+): Promise<ServiceDetailDTO[]> {
+  try {
+    const res = await api<ServiceDetailDTO[]>(`/api/v1/services/store/${storeId}`);
+    if (Array.isArray(res)) {
+      return res;
+    }
+    return [];
+  } catch (err) {
+    console.warn(`[Services] Falha ao consultar /api/v1/services/store/${storeId}:`, err);
+    return [];
+  }
+}
+
+/**
+ * Função utilitária que busca um serviço por ID e converte para o modelo Service do frontend.
+ */
+export async function getServiceById(
+  id: string,
+  fallbackCompany?: string
+): Promise<Service> {
   const detail = await fetchServiceById(id);
-  return normalizeDetailToService(detail);
+  return normalizeDetailToService(detail, fallbackCompany);
+}
+
+/**
+ * Função utilitária que busca todos os serviços de uma loja (GET /api/v1/services/store/{storeId})
+ * e os converte para o modelo Service do frontend.
+ */
+export async function getServicesByStoreId(
+  storeId: string,
+  fallbackCompany?: string
+): Promise<Service[]> {
+  const items = await fetchServicesByStore(storeId);
+  return items.map((item) => normalizeDetailToService(item, fallbackCompany));
 }

@@ -1,8 +1,10 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { getStoreById, getServicesByStore } from "@/lib/mocks/stores";
+import { type Service } from "@/lib/mocks/services";
+import { getServicesByStoreId } from "@/lib/services/services-service";
 import { StoreHeader } from "./_components/store-header";
 import { StoreServices } from "./_components/store-services";
 import { PageTransition } from "@/components/ui/motion";
@@ -10,9 +12,53 @@ import { PageTransition } from "@/components/ui/motion";
 function StorePageContent() {
   const searchParams = useSearchParams();
   const storeId = searchParams.get("id") ?? searchParams.get("storeId") ?? "store-super-pinturas";
+  const nameParam = searchParams.get("name") ?? searchParams.get("storeName") ?? "";
 
-  const store = useMemo(() => getStoreById(storeId), [storeId]);
-  const services = useMemo(() => getServicesByStore(store), [store]);
+  const store = useMemo(() => {
+    const s = getStoreById(storeId);
+    if (nameParam && storeId !== "store-super-pinturas") {
+      return {
+        ...s,
+        id: storeId,
+        name: nameParam,
+        initials: nameParam
+          .split(" ")
+          .slice(0, 2)
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase(),
+      };
+    }
+    return s;
+  }, [storeId, nameParam]);
+
+  const [services, setServices] = useState<Service[]>(() => getServicesByStore(store));
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    // Busca serviços da loja no backend via GET /api/v1/services/store/{storeId}
+    getServicesByStoreId(storeId, store.name)
+      .then((items) => {
+        if (!isCancelled) {
+          if (items.length > 0) {
+            setServices(items);
+          } else {
+            setServices(getServicesByStore(store));
+          }
+        }
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          console.warn(`[StorePage] Falha ao carregar serviços da loja ${storeId}:`, err);
+          setServices(getServicesByStore(store));
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [storeId, store]);
 
   return (
     <main className="flex flex-1 flex-col gap-6 bg-muted p-4 sm:p-6 lg:p-8">

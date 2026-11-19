@@ -25,8 +25,14 @@ export function ServicePackages({ service, onSelect }: ServicePackagesProps) {
             <Layers size={16} />
           </div>
           <div>
-            <h2 className="text-base font-bold text-foreground">Escolha o pacote ideal</h2>
-            <p className="text-xs text-muted-foreground">Selecione o plano conforme o tamanho da sua necessidade</p>
+            <h2 className="text-base font-bold text-foreground">
+              {service.packages.length > 1 ? "Escolha o pacote ideal" : "Detalhes do pacote"}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {service.packages.length > 1
+                ? "Selecione o plano conforme o tamanho da sua necessidade"
+                : "Pacote de atendimento com preço fixo acordado"}
+            </p>
           </div>
         </div>
       </div>

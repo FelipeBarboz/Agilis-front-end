@@ -13,6 +13,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { type Service, mockServices } from "@/lib/mocks/services";
+import { superPinturasServices } from "@/lib/mocks/stores";
 import { getServiceById } from "@/lib/services/services-service";
 import { useAddresses } from "@/hooks/use-addresses";
 import { Calendar } from "@/components/ui/calendar";
@@ -41,19 +42,39 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const searchParams = useSearchParams();
   const { addresses } = useAddresses();
 
+  const companyFromParams = searchParams.get("company") ?? searchParams.get("providerName") ?? "";
+
   const [service, setService] = useState<Service | null>(() => {
-    return mockServices.find((s) => s.id === serviceId) ?? null;
+    const all = [...mockServices, ...superPinturasServices];
+    return all.find((s) => s.id === serviceId) ?? null;
   });
+  const [isLoadingService, setIsLoadingService] = useState<boolean>(!service);
 
   useEffect(() => {
-    getServiceById(serviceId)
+    let isCancelled = false;
+    setIsLoadingService(true);
+
+    getServiceById(serviceId, companyFromParams)
       .then((data) => {
-        if (data) setService(data);
+        if (!isCancelled && data) {
+          setService(data);
+          setIsLoadingService(false);
+        }
       })
       .catch((err) => {
-        console.warn(`[Schedule] Usando fallback local para ${serviceId}:`, err);
+        if (!isCancelled) {
+          console.warn(`[Schedule] Usando fallback local para ${serviceId}:`, err);
+          const all = [...mockServices, ...superPinturasServices];
+          const found = all.find((s) => s.id === serviceId);
+          if (found) setService(found);
+          setIsLoadingService(false);
+        }
       });
-  }, [serviceId]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [serviceId, companyFromParams]);
 
   const initialPrice = Number(searchParams.get("price")) || (service?.price.inicial ?? 150);
   const initialPackage = searchParams.get("package") ?? (service?.packages[0]?.label ?? "Padrão");
@@ -221,31 +242,45 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
           </h3>
 
           {/* Service info */}
-          <div className="flex gap-3 items-center">
-            {service?.images[0]?.url && (
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
-                <Image
-                  src={service.images[0].url}
-                  alt={service.title}
-                  fill
-                  sizes="64px"
-                  className="object-cover"
-                />
+          {isLoadingService && !service ? (
+            <div className="flex gap-3 items-center animate-pulse">
+              <div className="h-16 w-16 bg-muted rounded-xl shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-muted rounded w-3/4" />
+                <div className="h-3 bg-muted rounded w-1/2" />
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-foreground leading-snug truncate">
-                {service?.title}
-              </h4>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {service?.company}
-              </p>
-              <span className="inline-flex items-center gap-1 mt-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                <Sparkles className="h-3 w-3" />
-                Pacote {initialPackage}
-              </span>
             </div>
-          </div>
+          ) : (
+            <div className="flex gap-3 items-center">
+              {service?.images[0]?.url ? (
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+                  <Image
+                    src={service.images[0].url}
+                    alt={service.title}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-16 w-16 bg-muted rounded-xl shrink-0 flex items-center justify-center text-muted-foreground text-xs font-bold">
+                  Agilis
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <h4 className="text-sm font-bold text-foreground leading-snug truncate">
+                  {service?.title ?? "Serviço"}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {service?.company ?? companyFromParams ?? "Prestador Agilis"}
+                </p>
+                <span className="inline-flex items-center gap-1 mt-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  <Sparkles className="h-3 w-3" />
+                  Pacote {initialPackage}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Selection details */}
           <div className="rounded-xl bg-muted/40 p-3.5 space-y-2 text-xs border border-border">
