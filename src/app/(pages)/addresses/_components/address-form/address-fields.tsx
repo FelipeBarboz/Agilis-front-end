@@ -1,5 +1,5 @@
 import { Controller, type Control, type UseFormRegister, type FieldErrors } from "react-hook-form";
-import { MapPin, Navigation, Hash, Building, X } from "lucide-react";
+import { MapPin, Navigation, Hash, Building, X, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { type AddressSchema } from "./address-schema";
 import { formatCep } from "@/lib/masks/cep-mask";
@@ -114,6 +114,36 @@ export function AddressFields({ control, register, errors }: AddressFieldsProps)
               className={inputClass}
               {...register("complement")}
             />
+          </div>
+        </div>
+
+        {/* Cidade e Estado */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <FieldLabel htmlFor="field-city" icon={<Globe size={14} />}>
+              Cidade
+            </FieldLabel>
+            <Input
+              id="field-city"
+              placeholder="Ex: São Paulo"
+              className={inputClass}
+              {...register("city")}
+            />
+            <FieldError message={errors.city?.message} />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <FieldLabel htmlFor="field-state" icon={<Globe size={14} />}>
+              Estado (sigla)
+            </FieldLabel>
+            <Input
+              id="field-state"
+              placeholder="Ex: SP"
+              maxLength={2}
+              className={inputClass}
+              {...register("state", { setValueAs: (v: string) => v.toUpperCase() })}
+            />
+            <FieldError message={errors.state?.message} />
           </div>
         </div>
       </div>

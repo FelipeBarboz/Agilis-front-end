@@ -25,6 +25,11 @@ export function AddressCard({ address, onDelete }: AddressCardProps) {
                 {address.complement}
               </span>
             )}
+            {(address.city || address.state) && (
+              <span className="text-xs text-muted-foreground">
+                {[address.city, address.state].filter(Boolean).join(" — ")}
+              </span>
+            )}
           </div>
         </div>
 
