@@ -7,6 +7,7 @@ import { PAYMENT_METHODS, type PaymentMethodId } from "../../../../types/payment
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<PaymentMethodId, React.ElementType> = {
+  mercadopago: ShieldCheck,
   pix: QrCode,
   "credit-card": CreditCard,
   "debit-card": Wallet,
@@ -89,9 +90,16 @@ export function PaymentMethodModal({
                     </div>
 
                     <div className="flex flex-1 flex-col min-w-0">
-                      <span className="text-sm font-semibold text-foreground">
-                        {method.label}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">
+                          {method.label}
+                        </span>
+                        {method.badge && (
+                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 border border-emerald-500/20">
+                            {method.badge}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-muted-foreground truncate">
                         {method.description}
                       </span>

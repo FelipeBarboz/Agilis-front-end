@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 interface PaymentReceiptProps {
+  bookingId?: string;
   serviceName: string;
   providerName: string;
   date: string;
@@ -18,6 +19,7 @@ interface PaymentReceiptProps {
 }
 
 export function PaymentReceipt({
+  bookingId,
   serviceName,
   providerName,
   date,
@@ -33,9 +35,18 @@ export function PaymentReceipt({
           Comprovante do Agendamento
         </span>
         <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-          Pago
+          Pago via Mercado Pago
         </span>
       </div>
+
+      {bookingId && (
+        <div className="flex items-center justify-between gap-3 text-xs">
+          <span className="text-muted-foreground">Código da Reserva:</span>
+          <span className="font-mono font-medium text-foreground bg-muted px-2 py-0.5 rounded">
+            {bookingId}
+          </span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-muted-foreground">

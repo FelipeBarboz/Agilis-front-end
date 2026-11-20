@@ -1,4 +1,4 @@
-import { Receipt, ShieldCheck } from "lucide-react";
+import { Receipt } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface OrderSummaryProps {

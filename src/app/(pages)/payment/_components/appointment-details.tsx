@@ -5,6 +5,7 @@ import {
   ChevronRight,
   QrCode,
   Wallet,
+  ShieldCheck,
 } from "lucide-react";
 import type { PaymentMethod } from "../../../../types/payment";
 
@@ -24,12 +25,14 @@ export function AppointmentDetails({
   onOpenPaymentModal,
 }: AppointmentDetailsProps) {
   const PaymentIcon = selectedPayment
-    ? selectedPayment.id === "pix"
+    ? selectedPayment.id === "mercadopago"
+      ? ShieldCheck
+      : selectedPayment.id === "pix"
       ? QrCode
       : selectedPayment.id === "credit-card"
       ? CreditCard
       : Wallet
-    : CreditCard;
+    : ShieldCheck;
 
   return (
     <div className="flex flex-col gap-6">

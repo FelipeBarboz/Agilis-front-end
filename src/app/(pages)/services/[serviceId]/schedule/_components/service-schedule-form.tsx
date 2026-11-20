@@ -15,6 +15,7 @@ import Link from "next/link";
 import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
 import { getServiceById } from "@/lib/services/services-service";
+import { createBooking } from "@/lib/services/bookings-service";
 import { useAddresses } from "@/hooks/use-addresses";
 import { Calendar } from "@/components/ui/calendar";
 
@@ -88,6 +89,7 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const [selectedTime, setSelectedTime] = useState<string>("14:00");
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sincroniza o endereço selecionado quando os endereços carregam do localStorage
   useEffect(() => {
@@ -96,8 +98,10 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
     }
   }, [addresses, selectedAddressId]);
 
-  function handleContinueToPayment(e: React.FormEvent) {
+  async function handleContinueToPayment(e: React.FormEvent) {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     const formattedDate = selectedDate.toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -105,18 +109,42 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       year: "numeric",
     });
 
+    const addressText = (() => {
+      const a = addresses.find((x) => x.id === selectedAddressId);
+      if (!a) return "";
+      return `${a.street}, ${a.number}${a.complement ? ` - ${a.complement}` : ""} - CEP ${a.cep}`;
+    })();
+
+    let bookingId = "";
+    try {
+      const bookingRes = await createBooking({
+        serviceId: service?.id ?? serviceId,
+        storeId,
+        date: formattedDate,
+        time: selectedTime,
+        address: addressText,
+        notes,
+        price: initialPrice,
+        package: initialPackage,
+      });
+      bookingId = bookingRes.bookingId ?? bookingRes.id ?? "";
+    } catch (err) {
+      console.warn(
+        "[Schedule] Falha na criação remota de agendamento, gerando identificador local:",
+        err
+      );
+      bookingId = crypto.randomUUID();
+    }
+
     const query = new URLSearchParams({
+      bookingId,
       serviceId: service?.id ?? serviceId,
       serviceName: service?.title ?? "Serviço",
       providerName: service?.company ?? "Prestador Agilis",
       price: String(initialPrice),
       date: formattedDate,
       time: selectedTime,
-      address: (() => {
-        const a = addresses.find((x) => x.id === selectedAddressId);
-        if (!a) return "";
-        return `${a.street}, ${a.number}${a.complement ? ` - ${a.complement}` : ""} - CEP ${a.cep}`;
-      })(),
+      address: addressText,
       package: initialPackage,
       storeId,
       notes,
@@ -316,10 +344,20 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
           >
-            <span>Ir para o Pagamento</span>
-            <ArrowRight className="h-4 w-4" />
+            {isSubmitting ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span>Criando agendamento...</span>
+              </>
+            ) : (
+              <>
+                <span>Ir para o Pagamento</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
           </button>
 
           <Link
