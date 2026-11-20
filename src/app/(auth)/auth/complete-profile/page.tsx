@@ -11,7 +11,11 @@ import { CpfInput } from "../../register/user/_components/cpf-input";
 import { PhoneInput } from "../../register/user/_components/phone-input";
 import { TermsCheckbox } from "../../register/user/_components/terms-checkbox";
 import { supabase } from "@/lib/supabase";
-import { registerClientProfile } from "@/lib/auth/auth-service";
+import {
+  registerClientProfile,
+  formatCpf,
+  formatPhone,
+} from "@/lib/auth/auth-service";
 import { saveStoredSession } from "@/lib/auth/token-storage";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Loader2 } from "lucide-react";
@@ -93,28 +97,34 @@ function CompleteProfileInner() {
   async function onSubmit(data: CompleteProfileFormData) {
     try {
       setServerError(null);
-      const updatedProfile = await registerClientProfile({
-        name: data.name,
-        email: userEmail,
-        phone: data.phone,
-        cpf: data.cpf,
-      });
 
       const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session) {
-        saveStoredSession(sessionData.session.access_token, {
-          id: updatedProfile.id || sessionData.session.user.id,
+      const token = sessionData.session?.access_token;
+
+      const updatedProfile = await registerClientProfile(
+        {
           name: data.name,
           email: userEmail,
           phone: data.phone,
           cpf: data.cpf,
+        },
+        token
+      );
+
+      if (sessionData.session) {
+        saveStoredSession(sessionData.session.access_token, {
+          id: updatedProfile.id || sessionData.session.user.id,
+          name: data.name.trim(),
+          email: userEmail.trim(),
+          phone: formatPhone(data.phone),
+          cpf: formatCpf(data.cpf),
           avatarUrl: updatedProfile.avatarUrl ?? null,
           role: updatedProfile.role ?? "Cliente",
         });
       }
 
       await refreshUserProfile();
-      const redirectUrl = searchParams.get("redirect") || "/home";
+      const redirectUrl = searchParams.get("redirect") ?? "/home";
       router.push(redirectUrl);
       router.refresh();
     } catch (err: unknown) {

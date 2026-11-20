@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import {
   getStoredToken,
   getStoredUser,
@@ -42,6 +42,57 @@ export interface RegisterClientData {
 }
 
 /**
+ * Garante que o CPF esteja estritamente no formato com pontuação exigido pelo backend:
+ * 000.000.000-00 (Client.java valida regex: ^\d{3}\.\d{3}\.\d{3}-\d{2}$)
+ */
+export function formatCpf(value: string): string {
+  const digits = (value || "").replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+/**
+ * Garante que o telefone esteja estritamente no formato esperado pelo backend:
+ * (11) 99999-9999 ou (11) 9999-9999
+ */
+export function formatPhone(value: string): string {
+  let digits = (value || "").replace(/\D/g, "");
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
+    digits = digits.slice(2);
+  }
+  digits = digits.slice(0, 11);
+
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+/**
+ * Decodifica o cabeçalho do token JWT do Supabase para diagnosticar o algoritmo (ES256 vs HS256).
+ */
+export function checkJwtAlgorithm(token: string): string | null {
+  try {
+    const headerPart = token.split(".")[0];
+    if (!headerPart) return null;
+    let base64 = headerPart.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) {
+      base64 += "=";
+    }
+    const decodedStr =
+      typeof window !== "undefined" && typeof window.atob === "function"
+        ? window.atob(base64)
+        : Buffer.from(base64, "base64").toString("utf-8");
+    const decoded = JSON.parse(decodedStr);
+    return (decoded.alg as string) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Valida o e-mail antes de cadastrar.
  * Tenta a validação na API; caso indisponível, libera o fluxo para o Supabase Auth validar.
  */
@@ -57,35 +108,125 @@ export async function validateEmail(email: string): Promise<ValidateEmailRespons
 }
 
 /**
+ * Cria o usuário como cliente na API do backend:
+ * POST /api/v1/auth/register/client
+ * 
+ * Payload esperado pelo backend:
+ * {
+ *   "name": "Nome Completo",
+ *   "email": "usuario@exemplo.com",
+ *   "phone": "(11) 99999-9999",
+ *   "cpf": "000.000.000-00"
+ * }
+ * 
+ * Requer Bearer token para extrair o userId:
+ * String userId = getCurrentUserId();
+ */
+export async function registerClient(
+  data: RegisterClientData,
+  token?: string
+): Promise<UserProfile> {
+  const formattedCpf = formatCpf(data.cpf);
+  const formattedPhone = formatPhone(data.phone);
+
+  const payload = {
+    name: data.name.trim(),
+    email: data.email.trim().toLowerCase(),
+    phone: formattedPhone,
+    cpf: formattedCpf,
+  };
+
+  let authToken = token || getStoredToken();
+  if (!authToken) {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      authToken = sessionData.session?.access_token ?? null;
+    } catch {}
+  }
+
+  if (!authToken) {
+    throw new Error(
+      "Usuário não autenticado. O cadastro de cliente na API exige uma sessão ativa do Supabase."
+    );
+  }
+
+  try {
+    return await api<UserProfile>("/api/v1/auth/register/client", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err: unknown) {
+    if (err instanceof ApiError) {
+      if (err.status === 401) {
+        const alg = checkJwtAlgorithm(authToken);
+        console.error(
+          `[Auth] Backend 401 Unauthorized ao registrar cliente. Algoritmo do JWT: "${alg}". Mensagem: "${err.message}". Verifique se o backend espera ES256 via JWKS e o Supabase está emitindo token compatível.`
+        );
+        throw new Error(
+          `Falha de autenticação no backend (401: ${err.message}). Algoritmo do token: ${alg ?? "desconhecido"}. Verifique a configuração JWT do Supabase/Backend.`
+        );
+      }
+      if (err.status === 400) {
+        if (err.message.toLowerCase().includes("email already registered")) {
+          throw new Error("Este e-mail já está cadastrado no sistema.");
+        }
+        if (err.message.toLowerCase().includes("cpf already registered")) {
+          throw new Error("Este CPF já está cadastrado no sistema.");
+        }
+        if (err.message.toLowerCase().includes("invalid cpf")) {
+          throw new Error("CPF inválido. O formato esperado é 000.000.000-00.");
+        }
+        throw new Error(err.message);
+      }
+      if (err.status === 409) {
+        throw new Error(err.message || "Usuário ou cliente já cadastrado.");
+      }
+    }
+    throw err;
+  }
+}
+
+/**
  * Cria ou sincroniza o perfil de cliente após confirmação do OTP ou login com Google:
- * Salva no Supabase (metadados do usuário) e tenta sincronizar com o backend.
+ * Salva no Supabase (metadados do usuário) e persiste no backend (/api/v1/auth/register/client).
  */
 export async function registerClientProfile(
-  data: RegisterClientData
+  data: RegisterClientData,
+  token?: string
 ): Promise<UserProfile> {
-  // Atualiza metadados no Supabase Auth para garantir persistência imediata
+  const formattedCpf = formatCpf(data.cpf);
+  const formattedPhone = formatPhone(data.phone);
+
+  // 1. Atualiza metadados no Supabase Auth para garantir persistência imediata
   try {
     await supabase.auth.updateUser({
       data: {
-        name: data.name,
-        full_name: data.name,
-        phone: data.phone,
-        cpf: data.cpf,
+        name: data.name.trim(),
+        full_name: data.name.trim(),
+        phone: formattedPhone,
+        cpf: formattedCpf,
+        role: "Cliente",
       },
     });
   } catch (err) {
     console.warn("[Auth] Erro ao sincronizar metadados no Supabase:", err);
   }
 
-  // Tenta persistir no backend remoto
-  try {
-    const res = await api<UserProfile>("/api/v1/auth/register/client", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
-    if (res && res.id) return res;
-  } catch (err) {
-    console.warn("[Auth] Backend remoto /api/v1/auth/register/client indisponível:", err);
+  // 2. Persistir no backend remoto
+  const res = await registerClient(
+    {
+      ...data,
+      phone: formattedPhone,
+      cpf: formattedCpf,
+    },
+    token
+  );
+
+  if (res?.id) {
+    return res;
   }
 
   const { data: sessionData } = await supabase.auth.getSession();
@@ -93,10 +234,10 @@ export async function registerClientProfile(
 
   return {
     id: sessionUser?.id ?? `user_${Date.now()}`,
-    name: data.name,
-    email: data.email,
-    phone: data.phone,
-    cpf: data.cpf,
+    name: data.name.trim(),
+    email: data.email.trim(),
+    phone: formattedPhone,
+    cpf: formattedCpf,
     avatarUrl: null,
     role: "Cliente",
   };
@@ -201,11 +342,14 @@ export async function getCurrentUserProfile(): Promise<UserProfile> {
 export async function updateUserProfile(
   data: Partial<RegisterClientData & { avatarUrl?: string | null }>
 ): Promise<UserProfile> {
+  const formattedPhone = data.phone !== undefined ? formatPhone(data.phone) : undefined;
+  const formattedCpf = data.cpf !== undefined ? formatCpf(data.cpf) : undefined;
+
   const { data: updated, error } = await supabase.auth.updateUser({
     data: {
-      ...(data.name ? { name: data.name, full_name: data.name } : {}),
-      ...(data.phone !== undefined ? { phone: data.phone } : {}),
-      ...(data.cpf !== undefined ? { cpf: data.cpf } : {}),
+      ...(data.name ? { name: data.name.trim(), full_name: data.name.trim() } : {}),
+      ...(formattedPhone !== undefined ? { phone: formattedPhone } : {}),
+      ...(formattedCpf !== undefined ? { cpf: formattedCpf } : {}),
       ...(data.avatarUrl !== undefined ? { avatar_url: data.avatarUrl } : {}),
     },
   });
@@ -217,7 +361,11 @@ export async function updateUserProfile(
   try {
     await api<UserProfile>("/api/v1/users/me", {
       method: "PATCH",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        ...(formattedPhone !== undefined ? { phone: formattedPhone } : {}),
+        ...(formattedCpf !== undefined ? { cpf: formattedCpf } : {}),
+      }),
     });
   } catch {
     // Silencia se a API remota não tiver o endpoint
@@ -232,8 +380,8 @@ export async function updateUserProfile(
       user.email?.split("@")[0] ??
       "Usuário",
     email: user.email ?? "",
-    phone: (user.user_metadata?.phone as string | undefined) ?? null,
-    cpf: (user.user_metadata?.cpf as string | undefined) ?? null,
+    phone: formattedPhone ?? (user.user_metadata?.phone as string | undefined) ?? null,
+    cpf: formattedCpf ?? (user.user_metadata?.cpf as string | undefined) ?? null,
     avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
     role: (user.user_metadata?.role as string | undefined) ?? "Cliente",
     createdAt: user.created_at,
@@ -258,17 +406,21 @@ export async function createStore(storeData: unknown): Promise<unknown> {
 export async function signUpWithEmail(
   email: string,
   password: string,
-  metadata?: { name?: string; phone?: string; cpf?: string }
+  metadata?: { name?: string; phone?: string; cpf?: string; role?: string }
 ) {
+  const formattedCpf = metadata?.cpf ? formatCpf(metadata.cpf) : undefined;
+  const formattedPhone = metadata?.phone ? formatPhone(metadata.phone) : undefined;
+
   return await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        name: metadata?.name,
-        full_name: metadata?.name,
-        phone: metadata?.phone,
-        cpf: metadata?.cpf,
+        name: metadata?.name?.trim(),
+        full_name: metadata?.name?.trim(),
+        phone: formattedPhone,
+        cpf: formattedCpf,
+        role: metadata?.cpf ? "Cliente" : (metadata?.role ?? "Cliente"),
       },
     },
   });

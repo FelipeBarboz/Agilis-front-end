@@ -20,9 +20,13 @@ import { TermsField } from "./terms-field";
 import {
   validateEmail,
   signUpWithEmail,
+  signInWithEmail,
   verifyOtpCode,
   registerClientProfile,
+  formatCpf,
+  formatPhone,
 } from "@/lib/auth/auth-service";
+import { saveStoredSession } from "@/lib/auth/token-storage";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ArrowLeft, KeyRound } from "lucide-react";
 
@@ -68,7 +72,8 @@ function RegisterFormInner() {
         return;
       }
 
-      // 2. Dispara criação da conta no Supabase (envia código por e-mail)
+      // 2. Dispara criação da conta no Supabase (envia código por e-mail caso exija OTP)
+      // Todo usuário com CPF é registrado com a role "Cliente"
       const { data: signUpData, error: signUpErr } = await signUpWithEmail(
         data.email,
         data.password,
@@ -76,6 +81,7 @@ function RegisterFormInner() {
           name: data.name,
           phone: data.phone,
           cpf: data.cpf,
+          role: "Cliente",
         }
       );
 
@@ -93,18 +99,71 @@ function RegisterFormInner() {
 
       setCachedFormData(data);
 
-      // Se a confirmação de e-mail estiver desabilitada no Supabase e já tiver retornado sessão:
+      // Se a confirmação de e-mail estiver desabilitada no Supabase e já tiver retornado sessão imediata:
       if (signUpData.session) {
-        await registerClientProfile({
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          cpf: data.cpf,
+        const sessionToken = signUpData.session.access_token;
+        saveStoredSession(sessionToken, {
+          id: signUpData.session.user.id,
+          name: data.name.trim(),
+          email: data.email.trim(),
+          phone: formatPhone(data.phone),
+          cpf: formatCpf(data.cpf),
+          avatarUrl: null,
+          role: "Cliente",
         });
+
+        // Chama a API /api/v1/auth/register/client agora autenticado com o Bearer token do Supabase
+        await registerClientProfile(
+          {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            cpf: data.cpf,
+          },
+          sessionToken
+        );
+
         await refreshUserProfile();
-        const redirectUrl = searchParams.get("redirect") || "/home";
+        const redirectUrl = searchParams.get("redirect") ?? "/home";
         router.push(redirectUrl);
         return;
+      }
+
+      // Tenta login direto caso o usuário já tenha sido confirmado automaticamente
+      try {
+        const { data: signInData } = await signInWithEmail(
+          data.email,
+          data.password
+        );
+        if (signInData.session) {
+          const sessionToken = signInData.session.access_token;
+          saveStoredSession(sessionToken, {
+            id: signInData.session.user.id,
+            name: data.name.trim(),
+            email: data.email.trim(),
+            phone: formatPhone(data.phone),
+            cpf: formatCpf(data.cpf),
+            avatarUrl: null,
+            role: "Cliente",
+          });
+
+          await registerClientProfile(
+            {
+              name: data.name,
+              email: data.email,
+              phone: data.phone,
+              cpf: data.cpf,
+            },
+            sessionToken
+          );
+
+          await refreshUserProfile();
+          const redirectUrl = searchParams.get("redirect") ?? "/home";
+          router.push(redirectUrl);
+          return;
+        }
+      } catch {
+        // Se exigir confirmação de e-mail com código OTP, segue para a etapa de verificação
       }
 
       // Caso padrão: aguarda o código de 8 dígitos enviado por e-mail
@@ -131,8 +190,8 @@ function RegisterFormInner() {
       setIsVerifyingOtp(true);
       setOtpError(null);
 
-      // 3. Usuário digita o código (isso abre a sessão no Supabase)
-      const { error: otpErr } = await verifyOtpCode(
+      // 3. Usuário digita o código (isso abre a sessão autenticada no Supabase)
+      const { data: otpData, error: otpErr } = await verifyOtpCode(
         cachedFormData.email,
         otpCode.trim(),
         "signup"
@@ -142,17 +201,35 @@ function RegisterFormInner() {
         throw otpErr;
       }
 
-      // 4. Cria o perfil na API do backend (agora autenticado com o Bearer token)
-      await registerClientProfile({
-        name: cachedFormData.name,
-        email: cachedFormData.email,
-        phone: cachedFormData.phone,
-        cpf: cachedFormData.cpf,
-      });
+      const sessionToken = otpData?.session?.access_token;
+
+      if (otpData?.session) {
+        saveStoredSession(otpData.session.access_token, {
+          id: otpData.session.user.id,
+          name: cachedFormData.name.trim(),
+          email: cachedFormData.email.trim(),
+          phone: formatPhone(cachedFormData.phone),
+          cpf: formatCpf(cachedFormData.cpf),
+          avatarUrl: null,
+          role: "Cliente",
+        });
+      }
+
+      // 4. Cria o usuário como client na API do backend (/api/v1/auth/register/client)
+      // Agora devidamente autenticado com o Bearer token do Supabase
+      await registerClientProfile(
+        {
+          name: cachedFormData.name,
+          email: cachedFormData.email,
+          phone: cachedFormData.phone,
+          cpf: cachedFormData.cpf,
+        },
+        sessionToken
+      );
 
       await refreshUserProfile();
 
-      const redirectUrl = searchParams.get("redirect") || "/home";
+      const redirectUrl = searchParams.get("redirect") ?? "/home";
       router.push(redirectUrl);
       router.refresh();
     } catch (err: unknown) {
