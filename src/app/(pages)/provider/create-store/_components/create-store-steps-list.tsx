@@ -12,7 +12,7 @@ export const STORE_CREATION_STEPS = [
   {
     key: "enterpriseInfos" as const,
     label: "Informações da empresa",
-    description: "Nome de exibição e CNPJ da loja",
+    description: "Nome da unidade e CNPJ",
     href: "/provider/enterprise-infos",
     step: 2,
   },
@@ -32,8 +32,8 @@ export const STORE_CREATION_STEPS = [
   },
   {
     key: "enterprisePhotos" as const,
-    label: "Fotos da loja",
-    description: "Adicione sua logo e mostre seus trabalhos",
+    label: "Logo da loja",
+    description: "Adicione a logo da sua empresa",
     href: "/provider/enterprise-photos",
     step: 5,
   },

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { api, ApiError } from "@/lib/api";
+import { createStore as createStoreApi, type CreateStorePayload } from "@/lib/services/stores-service";
 import {
   getStoredToken,
   getStoredUser,
@@ -392,11 +393,8 @@ export async function updateUserProfile(
  * Cria uma nova loja / prestador:
  * POST /api/v1/stores
  */
-export async function createStore(storeData: unknown): Promise<unknown> {
-  return await api("/api/v1/stores", {
-    method: "POST",
-    body: JSON.stringify(storeData),
-  });
+export async function createStore(storeData: CreateStorePayload | unknown): Promise<unknown> {
+  return await createStoreApi(storeData as CreateStorePayload);
 }
 
 /**

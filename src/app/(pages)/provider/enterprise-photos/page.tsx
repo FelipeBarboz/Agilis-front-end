@@ -18,10 +18,10 @@ export default function EnterprisePhotosPage() {
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-14 pb-8 sm:px-6 lg:px-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-            Fotos da loja
+            Logo da loja
           </h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            Adicione a logo e fotos dos seus serviços para impressionar clientes
+            Adicione a logo da sua empresa para os clientes
           </p>
         </div>
 

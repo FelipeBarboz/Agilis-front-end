@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { MapPinned, Store, Users } from "lucide-react";
 
-export type AttendanceType = "CLIENT_LOCATION" | "FIXED_LOCATION" | "BOTH";
+export type AttendanceType = "ON_CLIENT" | "FIXED_LOCATION" | "BOTH";
 
 interface AttendanceOption {
   value: AttendanceType;
@@ -12,7 +12,7 @@ interface AttendanceOption {
 
 const ATTENDANCE_OPTIONS: AttendanceOption[] = [
   {
-    value: "CLIENT_LOCATION",
+    value: "ON_CLIENT",
     label: "No cliente",
     description: "Você vai até o local do cliente",
     icon: <MapPinned className="size-6" strokeWidth={1.5} />,

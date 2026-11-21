@@ -1,37 +1,36 @@
 import { Input } from "@/components/ui/input";
+import { formatCnpj } from "@/lib/services/stores-service";
 
 interface EnterpriseInfosFieldsProps {
+  unitName: string;
+  onUnitNameChange: (value: string) => void;
   cnpj: string;
   onCnpjChange: (value: string) => void;
 }
 
 export function EnterpriseInfosFields({
+  unitName,
+  onUnitNameChange,
   cnpj,
   onCnpjChange,
 }: EnterpriseInfosFieldsProps) {
-  function formatCnpj(value: string): string {
-    const digits = value.replace(/\D/g, "").slice(0, 14);
-    return digits
-      .replace(/^(\d{2})(\d)/, "$1.$2")
-      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-      .replace(/\.(\d{3})(\d)/, ".$1/$2")
-      .replace(/(\d{4})(\d)/, "$1-$2");
-  }
-
   return (
     <>
-      {/* Nome de Exibição */}
+      {/* Nome da Unidade */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="displayName" className="text-xs font-bold text-foreground">
-          Nome de exibição <span className="text-primary">*</span>
+        <label htmlFor="unitName" className="text-xs font-bold text-foreground">
+          Nome da unidade <span className="text-primary">*</span>
         </label>
         <Input
-          id="displayName"
-          placeholder="Ex: Carlão Piscinas ME"
+          id="unitName"
+          required
+          placeholder="Ex: Matriz, Unidade Centro, Filial 1"
+          value={unitName}
+          onChange={(e) => onUnitNameChange(e.target.value)}
           className="h-11 rounded-xl"
         />
         <p className="text-xs text-muted-foreground">
-          Nome que aparecerá publicamente para os clientes
+          Identificação da unidade de atendimento da loja (obrigatório)
         </p>
       </div>
 
