@@ -90,14 +90,20 @@ export default function SchedulingProviderPage() {
       const overview = await getStoreBookingsOverview(sid, date);
       if (overview?.bookings) {
         const mapped: Appointment[] = overview.bookings.map((b) => {
-          const hour = String(b.startTime?.hour ?? 0).padStart(2, "0");
-          const minute = String(b.startTime?.minute ?? 0).padStart(2, "0");
+          let timeStr = "09:00";
+          if (typeof b.startTime === "string") {
+            timeStr = b.startTime.slice(0, 5);
+          } else if (b.startTime && typeof b.startTime === "object") {
+            const hour = String(b.startTime.hour ?? 0).padStart(2, "0");
+            const minute = String(b.startTime.minute ?? 0).padStart(2, "0");
+            timeStr = `${hour}:${minute}`;
+          }
           return {
             id: b.bookingId,
             clientName: b.clientName || "Cliente",
             serviceName: b.serviceTitle || "Serviço",
             date,
-            time: `${hour}:${minute}`,
+            time: timeStr,
             duration: b.durationMinutes || 60,
             address: b.address || "Endereço não informado",
             status: mapBookingStatus(b.status),

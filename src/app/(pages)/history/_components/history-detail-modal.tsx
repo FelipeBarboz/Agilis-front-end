@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { HistoryEntry } from "../../../../types/history";
+import { getBookingDetail, type BookingDetailResponse } from "@/lib/services/bookings-service";
 
 import { ModalHeader } from "./modal-header";
 import { ModalSkeleton } from "./modal-skeleton";
@@ -29,14 +30,31 @@ interface HistoryDetailModalProps {
 export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
+  const [detail, setDetail] = useState<BookingDetailResponse | null>(null);
 
   useEffect(() => {
-    if (open && entry) {
+    let isCancelled = false;
+    if (open && entry?.id) {
       setIsLoading(true);
       setImgError(false);
-      const timer = setTimeout(() => setIsLoading(false), 450);
-      return () => clearTimeout(timer);
+      setDetail(null);
+
+      getBookingDetail(entry.id)
+        .then((data) => {
+          if (!isCancelled && data) {
+            setDetail(data);
+          }
+        })
+        .catch((err) => {
+          console.warn("[HistoryDetailModal] Usando dados do histórico:", err);
+        })
+        .finally(() => {
+          if (!isCancelled) setIsLoading(false);
+        });
     }
+    return () => {
+      isCancelled = true;
+    };
   }, [open, entry?.id]);
 
   useEffect(() => {
@@ -49,11 +67,15 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
 
   if (!entry) return null;
 
-  const dateObj = new Date(entry.date);
+  const dateObj = new Date(detail?.date ?? entry.date);
   const formattedDate = fullDateFormatter.format(dateObj);
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
-  const bookingFee = entry.bookingFee ?? 0;
+  const bookingFee = detail?.serviceFee ?? entry.bookingFee ?? 5;
+  const effectivePrice = detail?.price ?? entry.price;
+  const effectiveAddress = detail?.address ?? entry.address;
+  const effectiveTime = detail?.time ? detail.time.slice(0, 5) : entry.time;
+  const effectiveNotes = detail?.notes ?? entry.notes;
 
   return (
     <AnimatePresence>
@@ -89,10 +111,10 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto space-y-5 p-6">
                   <ServiceHero
-                    serviceName={entry.serviceName}
-                    category={entry.category}
-                    price={entry.price}
-                    imageUrl={entry.imageUrl}
+                    serviceName={detail?.serviceTitle ?? entry.serviceName}
+                    category={detail?.category ?? entry.category}
+                    price={effectivePrice}
+                    imageUrl={detail?.thumbnailUrl ?? entry.imageUrl}
                     imgError={imgError}
                     onImgError={() => setImgError(true)}
                   />
@@ -103,18 +125,18 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
 
                   <SchedulingInfo
                     formattedDate={capitalizedDate}
-                    time={entry.time}
-                    duration={entry.duration}
-                    address={entry.address}
+                    time={effectiveTime}
+                    duration={detail?.durationMinutes ? `${detail.durationMinutes} min` : entry.duration}
+                    address={effectiveAddress}
                   />
 
                   <PaymentSummary
-                    price={entry.price}
+                    price={effectivePrice}
                     bookingFee={bookingFee}
-                    paymentMethod={entry.paymentMethod}
+                    paymentMethod={detail?.paymentMethod ?? entry.paymentMethod}
                   />
 
-                  {entry.notes && <NotesSection notes={entry.notes} />}
+                  {effectiveNotes && <NotesSection notes={effectiveNotes} />}
                 </div>
 
                 <ModalFooterActions status={entry.status} entryId={entry.id} />

@@ -62,10 +62,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
           if (typeof parsed === "object" && parsed !== null) {
             const errorRecord = parsed as Record<string, unknown>;
             const msg = errorRecord.message ?? errorRecord.reason ?? errorRecord.error;
-            if (typeof msg === "string") {
+            if (typeof msg === "string" && msg.trim().length > 0) {
               errorMessage = msg;
             } else {
-              errorMessage = JSON.stringify(parsed);
+              const str = JSON.stringify(parsed);
+              errorMessage = str && str !== "{}" ? str : (res.statusText || `Erro no servidor (${res.status})`);
             }
           } else if (typeof parsed === "string") {
             errorMessage = parsed;

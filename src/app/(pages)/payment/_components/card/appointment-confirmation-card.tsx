@@ -6,10 +6,15 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { PaymentMethodModal } from "../payment-method-modal";
 import { PaymentHeader } from "../payment-header";
 import { PaymentSuccess } from "../payment-success";
+import { PaymentStatusResult } from "../payment-status-result";
 import { AppointmentDetailsCard } from "./appointment-details-card";
 import { ConfirmationSidebar } from "../confirmation-sidebar";
 import { PAYMENT_METHODS, type PaymentMethodId } from "../../../../../types/payment";
-import { createPaymentPreference } from "@/lib/services/payments-service";
+import {
+  createPaymentPreference,
+  getPaymentStatus,
+  type PaymentStatus,
+} from "@/lib/services/payments-service";
 import { createBooking, getBookingById, type BookingPaymentMethod } from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
 
@@ -138,14 +143,36 @@ export function AppointmentConfirmationCard({
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Inicializa com sucesso se o Mercado Pago redirecionou com status=success ou approved
-  const isRedirectSuccess =
-    statusParam === "success" || statusParam === "approved";
-  const isRedirectFailure =
-    statusParam === "failure" || statusParam === "rejected";
+  // Status real do pagamento vindo da API
+  const [paymentStatusData, setPaymentStatusData] = useState<PaymentStatus | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(Boolean(bookingId && statusParam));
+
+  // Consulta o status real via GET /api/v1/payments/booking/{bookingId} se houver status ou retorno do MP
+  useEffect(() => {
+    let isCancelled = false;
+    if (bookingId && statusParam) {
+      setIsCheckingStatus(true);
+      getPaymentStatus(bookingId)
+        .then((data) => {
+          if (!isCancelled && data) {
+            setPaymentStatusData(data);
+          }
+        })
+        .catch((err) => {
+          console.warn("[Payment] Erro ao buscar status real do pagamento:", err);
+        })
+        .finally(() => {
+          if (!isCancelled) {
+            setIsCheckingStatus(false);
+          }
+        });
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [bookingId, statusParam]);
 
   const [isManualSuccess, setIsManualSuccess] = useState(false);
-  const isSuccess = isRedirectSuccess || isManualSuccess;
 
   const selectedPayment = PAYMENT_METHODS.find(
     (method) => method.id === selectedPaymentId
@@ -173,15 +200,13 @@ export function AppointmentConfirmationCard({
         // Se ainda não temos um bookingId, cria o agendamento no backend
         if (!effectiveBookingId) {
           try {
-            const scheduledAt = (() => {
-              // Reconstruct ISO 8601 from date + time URL params (fallback only)
-              const rawDate = searchParams.get("date") ?? "";
-              const rawTime = searchParams.get("time") ?? "00:00";
-              if (rawDate) {
-                return new Date(`${rawDate}T${rawTime}:00`).toISOString();
-              }
-              return new Date().toISOString();
-            })();
+            const rawDate = searchParams.get("date") ?? "";
+            const rawTime = searchParams.get("time") ?? "14:00";
+            const timeFormatted = rawTime.length === 5 ? `${rawTime}:00` : rawTime;
+            const scheduledAt = rawDate
+              ? `${rawDate}T${timeFormatted}`
+              : new Date().toISOString().slice(0, 19);
+
             const bookingRes = await createBooking({
               clientId: searchParams.get("clientId") ?? "",
               serviceId: searchParams.get("serviceId") ?? "",
@@ -201,7 +226,7 @@ export function AppointmentConfirmationCard({
           }
         }
 
-        // Salva os dados do agendamento no sessionStorage para resgate após o redirecionamento do MP
+        // Salva os dados do agendamento no sessionStorage para resgate após o retorno do MP
         const payloadToSave: SavedPaymentState = {
           bookingId: effectiveBookingId,
           serviceId: searchParams.get("serviceId") ?? undefined,
@@ -218,27 +243,40 @@ export function AppointmentConfirmationCard({
         } catch {}
 
         // Passo 2: Gerar a preferência de pagamento no Mercado Pago
-        const frontendBaseUrl =
-          typeof window !== "undefined"
-            ? window.location.origin
-            : "https://agilis.com.br";
+        const preference = await createPaymentPreference(effectiveBookingId);
 
-        const preference = await createPaymentPreference({
-          bookingId: effectiveBookingId,
-          frontendBaseUrl,
-        });
-
-        // Passo 3: Redirecionar o cliente para o Checkout Pro (sandboxInitPoint em testes)
-        const redirectUrl =
-          preference.sandboxInitPoint || preference.initPoint;
+        // Passo 3: Redirecionar o cliente para o Checkout Pro
+        const isDev = process.env.NODE_ENV === "development";
+        const redirectUrl = isDev
+          ? (preference.sandboxInitPoint || preference.initPoint)
+          : (preference.initPoint || preference.sandboxInitPoint);
 
         if (!redirectUrl) {
           throw new Error("URL de redirecionamento do Mercado Pago não retornada.");
         }
 
         window.location.href = redirectUrl;
-      } catch (err) {
+      } catch (err: unknown) {
         setIsLoadingPayment(false);
+        const anyErr = err as { status?: number; message?: string };
+        if (anyErr?.status === 400) {
+          const msg = anyErr.message ?? "Não foi possível iniciar o pagamento.";
+          setErrorMessage(msg);
+          if (msg.includes("já foi confirmado e pago") && bookingId) {
+            void getPaymentStatus(bookingId).then((st) => {
+              if (st) setPaymentStatusData(st);
+            });
+          }
+          return;
+        }
+
+        if (anyErr?.status === 500) {
+          setErrorMessage(
+            "Erro interno no servidor (500). Verifique se a variável MERCADO_PAGO_ACESS_TOKEN e FRONTEND_URL estão configuradas no painel do backend no Render."
+          );
+          return;
+        }
+
         const msg =
           err instanceof Error
             ? err.message
@@ -255,8 +293,43 @@ export function AppointmentConfirmationCard({
     setIsManualSuccess(true);
   }
 
-  // Tela de pagamento aceito (sucesso vindo do Mercado Pago ou manual)
-  if (isSuccess) {
+  // 1. Estado de verificação inicial
+  if (isCheckingStatus) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center rounded-3xl bg-card border border-border p-12 shadow-xs text-center my-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent mb-3" />
+        <h3 className="text-base font-bold text-foreground">Verificando pagamento...</h3>
+        <p className="text-xs text-muted-foreground mt-1">
+          Consultando a confirmação do Mercado Pago no servidor
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Tela de resultado baseado no status real da API
+  if (paymentStatusData && paymentStatusData.status !== "NOT_CREATED") {
+    return (
+      <PaymentStatusResult
+        initialPayment={paymentStatusData}
+        bookingId={bookingId}
+        serviceName={serviceName}
+        providerName={providerName}
+        date={date}
+        time={time}
+        address={address}
+        onRetry={() => {
+          setPaymentStatusData(null);
+          setErrorMessage(null);
+          if (bookingId) {
+            router.replace(`/payment?bookingId=${bookingId}`);
+          }
+        }}
+      />
+    );
+  }
+
+  // 3. Sucesso manual (caso não-MP)
+  if (isManualSuccess) {
     return (
       <PaymentSuccess
         bookingId={bookingId}
@@ -273,33 +346,25 @@ export function AppointmentConfirmationCard({
     );
   }
 
-  // Tela de pagamento e confirmação
+  // 4. Tela de pagamento e confirmação (checkout padrão)
   return (
     <>
       <PaymentHeader onBack={() => router.back()} />
 
-      {/* Banner de erro vindo do retorno do Mercado Pago ou da chamada da API */}
-      {(isRedirectFailure || errorMessage) && (
+      {/* Banner de erro ou recusa */}
+      {errorMessage && (
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 shrink-0" />
-            <span>
-              {errorMessage ??
-                "O pagamento não foi concluído no Mercado Pago. Você pode tentar novamente abaixo."}
-            </span>
+            <span>{errorMessage}</span>
           </div>
           <button
             type="button"
-            onClick={() => {
-              setErrorMessage(null);
-              if (isRedirectFailure) {
-                router.replace("/payment");
-              }
-            }}
+            onClick={() => setErrorMessage(null)}
             className="inline-flex items-center gap-1.5 self-end sm:self-auto rounded-lg border border-destructive/30 bg-background px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10 cursor-pointer"
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            Tentar novamente
+            Fechar
           </button>
         </div>
       )}

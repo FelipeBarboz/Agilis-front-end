@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Sparkles,
   AlertCircle,
+  UserCheck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,6 +22,10 @@ import {
   getBookingsByService,
   type ServiceBookingItemDTO,
 } from "@/lib/services/bookings-service";
+import {
+  getServiceAvailability,
+  type ServiceAvailabilityResponse,
+} from "@/lib/services/employee-schedules-service";
 import { getAuthenticatedUserId } from "@/lib/services/stores-service";
 import { useAddresses } from "@/hooks/use-addresses";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -103,6 +108,42 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookings, setExistingBookings] = useState<ServiceBookingItemDTO[]>([]);
 
+  // Disponibilidade dinâmica
+  const [dynamicSlots, setDynamicSlots] = useState<string[]>([]);
+  const [canChooseEmployee, setCanChooseEmployee] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
+
+  useEffect(() => {
+    let isCancelled = false;
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const d = String(selectedDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
+
+    getServiceAvailability(serviceId, dateStr, selectedEmployeeId || undefined)
+      .then((res: ServiceAvailabilityResponse) => {
+        if (!isCancelled && res) {
+          if (Array.isArray(res.availableSlots) && res.availableSlots.length > 0) {
+            setDynamicSlots(res.availableSlots);
+            // Se o horário selecionado não estiver nos novos horários, seleciona o primeiro
+            if (!res.availableSlots.includes(selectedTime)) {
+              setSelectedTime(res.availableSlots[0]!);
+            }
+          }
+          if (res.canChooseEmployee !== undefined) {
+            setCanChooseEmployee(res.canChooseEmployee);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn("[Schedule] Não foi possível carregar disponibilidade dinâmica:", err);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [serviceId, selectedDate, selectedEmployeeId]);
+
   useEffect(() => {
     let isCancelled = false;
     getBookingsByService(serviceId)
@@ -163,11 +204,13 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       return `${a.street}, ${a.number}${a.complement ? ` - ${a.complement}` : ""} - CEP ${a.cep}`;
     })();
 
-    // Converte a data e hora selecionadas para o padrão ISO 8601 exigido pela API
-    const [hours, minutes] = selectedTime.split(":").map(Number);
-    const scheduledDate = new Date(selectedDate);
-    scheduledDate.setHours(hours ?? 0, minutes ?? 0, 0, 0);
-    const scheduledAt = scheduledDate.toISOString();
+    // Converte a data e hora selecionadas para o formato LocalDateTime "YYYY-MM-DDTHH:mm:ss"
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const d = String(selectedDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
+    const timeFormatted = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
+    const scheduledAt = `${dateStr}T${timeFormatted}`;
 
     let bookingId = "";
     try {
@@ -181,7 +224,7 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       const bookingRes = await createBooking({
         clientId: effectiveClientId,
         serviceId: service?.id ?? serviceId,
-        employeeId: undefined,
+        employeeId: selectedEmployeeId || undefined,
         scheduledAt,
         notes: notes.trim() || undefined,
         // Compatibilidade adicional
@@ -253,32 +296,34 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
             </div>
 
             {/* Time Slots */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Horários Disponíveis
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-2">
-                {AVAILABLE_TIMES.map((time) => {
-                  const isSelected = selectedTime === time;
-                  const isBooked = bookedTimes.includes(time);
-                  return (
-                    <button
-                      key={time}
-                      type="button"
-                      disabled={isBooked}
-                      onClick={() => setSelectedTime(time)}
-                      className={`rounded-xl border py-2.5 px-3 text-xs font-semibold transition-all ${
-                        isBooked
-                          ? "border-border/50 bg-muted/20 text-muted-foreground/50 line-through cursor-not-allowed"
-                          : isSelected
-                            ? "border-primary bg-primary text-primary-foreground shadow-xs cursor-pointer"
-                            : "border-border bg-muted/40 text-foreground hover:bg-muted cursor-pointer"
-                      }`}
-                    >
-                      {time} {isBooked ? "(Ocupado)" : ""}
-                    </button>
-                  );
-                })}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Horários Disponíveis
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-2">
+                  {(dynamicSlots.length > 0 ? dynamicSlots : AVAILABLE_TIMES).map((time) => {
+                    const isSelected = selectedTime === time;
+                    const isBooked = bookedTimes.includes(time);
+                    return (
+                      <button
+                        key={time}
+                        type="button"
+                        disabled={isBooked}
+                        onClick={() => setSelectedTime(time)}
+                        className={`rounded-xl border py-2.5 px-3 text-xs font-semibold transition-all ${
+                          isBooked
+                            ? "border-border/50 bg-muted/20 text-muted-foreground/50 line-through cursor-not-allowed"
+                            : isSelected
+                              ? "border-primary bg-primary text-primary-foreground shadow-xs cursor-pointer"
+                              : "border-border bg-muted/40 text-foreground hover:bg-muted cursor-pointer"
+                        }`}
+                      >
+                        {time} {isBooked ? "(Ocupado)" : ""}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

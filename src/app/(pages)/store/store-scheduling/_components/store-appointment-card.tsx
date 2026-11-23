@@ -47,11 +47,18 @@ const STATUS_CONFIG: Record<
 interface StoreAppointmentCardProps {
   appointment: StoreAppointment;
   onConfirm?: (id: string) => void;
+  onComplete?: (id: string) => void;
   onCancel?: (id: string) => void;
   onNotifyDelay?: (id: string) => void;
 }
 
-export function StoreAppointmentCard({ appointment, onConfirm, onCancel, onNotifyDelay }: StoreAppointmentCardProps) {
+export function StoreAppointmentCard({
+  appointment,
+  onConfirm,
+  onComplete,
+  onCancel,
+  onNotifyDelay,
+}: StoreAppointmentCardProps) {
   const { label, bgClass, textClass, Icon } = STATUS_CONFIG[appointment.status];
   const endHour = getEndTime(appointment.time, appointment.duration);
 
@@ -117,16 +124,28 @@ export function StoreAppointmentCard({ appointment, onConfirm, onCancel, onNotif
       )}
 
       {/* Action to notify delay for confirmed appointments */}
-      {appointment.status === "confirmed" && onNotifyDelay && (
-        <div className="pt-1 border-t border-border/60">
-          <button
-            type="button"
-            onClick={() => onNotifyDelay(appointment.id)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-500/20 cursor-pointer"
-          >
-            <AlertTriangle className="size-3.5" />
-            Avisar Atraso a este Cliente
-          </button>
+      {appointment.status === "confirmed" && (
+        <div className="flex flex-col gap-2 pt-1 border-t border-border/60">
+          {onComplete && (
+            <button
+              type="button"
+              onClick={() => onComplete(appointment.id)}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2 text-xs font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 cursor-pointer"
+            >
+              Concluir Atendimento
+            </button>
+          )}
+
+          {onNotifyDelay && (
+            <button
+              type="button"
+              onClick={() => onNotifyDelay(appointment.id)}
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300 transition-colors hover:bg-amber-500/20 cursor-pointer"
+            >
+              <AlertTriangle className="size-3.5" />
+              Avisar Atraso a este Cliente
+            </button>
+          )}
         </div>
       )}
     </div>

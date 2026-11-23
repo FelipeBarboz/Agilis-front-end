@@ -5,7 +5,11 @@ import { HistoryFilters, type HistoryFilterValue } from "./history-filters";
 import { HistoryList } from "./history-list";
 import { HistoryDetailModal } from "./history-detail-modal";
 import { type HistoryEntry, type HistoryStatus } from "../../../../types/history";
-import { getMyBookings, type MyBookingItemDTO } from "@/lib/services/bookings-service";
+import {
+  getBookingHistory,
+  getMyBookings,
+  type BookingHistoryResponse,
+} from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
 import { Loader2 } from "lucide-react";
 
@@ -14,7 +18,7 @@ function mapBookingStatus(status: string): HistoryStatus {
   if (s.includes("CANCEL")) return "cancelado";
   if (s.includes("COMPLET") || s.includes("CONCLU")) return "concluido";
   if (s.includes("PROGRESS") || s.includes("EXEC") || s.includes("ANDAMENTO")) return "em_andamento";
-  return "agendado"; // PENDING, CONFIRMED, etc.
+  return "agendado"; // PENDING, CONFIRMED, AGENDADO, etc.
 }
 
 export function HistorySection() {
@@ -22,6 +26,13 @@ export function HistorySection() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [backendCounts, setBackendCounts] = useState<{
+    total: number;
+    agendado: number;
+    emAndamento: number;
+    concluido: number;
+    cancelado: number;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,8 +41,52 @@ export function HistorySection() {
     async function loadClientBookings() {
       setIsLoading(true);
       try {
-        const bookings: MyBookingItemDTO[] = await getMyBookings();
+        // Tenta buscar pelo endpoint rico GET /api/v1/bookings/history?role=CLIENT&statusFilter=TODOS
+        const historyData: BookingHistoryResponse = await getBookingHistory({
+          role: "CLIENT",
+          statusFilter: "TODOS",
+        });
 
+        if (!isCancelled && historyData?.items) {
+          setBackendCounts(historyData.counts);
+
+          const mapped: HistoryEntry[] = historyData.items.map((item) => {
+            const timeFormatted = item.time ? item.time.slice(0, 5) : "14:00";
+            return {
+              id: item.bookingId,
+              serviceName: item.serviceTitle,
+              imageUrl:
+                item.thumbnailUrl ||
+                "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800",
+              counterpartName: item.otherPartyName || "Prestador Agilis",
+              counterpartRole: "prestador" as const,
+              date: item.date,
+              time: timeFormatted,
+              price: item.price,
+              bookingFee: 5,
+              status: mapBookingStatus(item.status),
+              category: item.category || "Geral",
+            };
+          });
+
+          // Inicializa favoritos retornados pelo backend
+          const favSet = new Set<string>();
+          historyData.items.forEach((it) => {
+            if (it.isFavorited) favSet.add(it.bookingId);
+          });
+          setFavorites(favSet);
+
+          setEntries(mapped);
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn("[History] Erro na API rica de histórico, tentando fallback my bookings:", err);
+      }
+
+      // Fallback para getMyBookings caso a rota de histórico ainda não esteja disponível no backend local
+      try {
+        const bookings = await getMyBookings();
         if (Array.isArray(bookings)) {
           const enriched: HistoryEntry[] = await Promise.all(
             bookings.map(async (b) => {
@@ -52,9 +107,7 @@ export function HistorySection() {
                     price = s.price.inicial ?? price;
                     category = s.category ?? category;
                   }
-                } catch {
-                  // Fallback se o serviço específico não puder ser carregado
-                }
+                } catch {}
               }
 
               const dateObj = new Date(b.scheduledAt);
@@ -74,7 +127,7 @@ export function HistorySection() {
                 date: b.scheduledAt,
                 time: timeStr,
                 price,
-                bookingFee: 10,
+                bookingFee: 5,
                 status: mapBookingStatus(b.status),
                 category,
               };
@@ -85,15 +138,11 @@ export function HistorySection() {
             setEntries(enriched);
           }
         }
-      } catch (err) {
-        console.warn("[History] Erro ao buscar agendamentos do cliente:", err);
-        if (!isCancelled) {
-          setEntries([]);
-        }
+      } catch (fallbackErr) {
+        console.warn("[History] Erro no fallback de agendamentos:", fallbackErr);
+        if (!isCancelled) setEntries([]);
       } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
+        if (!isCancelled) setIsLoading(false);
       }
     }
 
@@ -105,6 +154,16 @@ export function HistorySection() {
   }, []);
 
   const filterCounts = useMemo(() => {
+    if (backendCounts) {
+      return {
+        todos: backendCounts.total,
+        agendado: backendCounts.agendado,
+        em_andamento: backendCounts.emAndamento,
+        concluido: backendCounts.concluido,
+        cancelado: backendCounts.cancelado,
+      };
+    }
+
     const counts: Record<HistoryFilterValue, number> = {
       todos: entries.length,
       agendado: 0,
@@ -120,7 +179,7 @@ export function HistorySection() {
     }
 
     return counts;
-  }, [entries]);
+  }, [entries, backendCounts]);
 
   const filteredEntries = useMemo(() => {
     if (filter === "todos") return entries;

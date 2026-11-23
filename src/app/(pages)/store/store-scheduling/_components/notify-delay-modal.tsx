@@ -12,6 +12,7 @@ export interface NotifyDelayModalProps {
   dayAppointments: StoreAppointment[];
   allAppointments: StoreAppointment[];
   selectedDate: string;
+  storeId?: string;
   initialAppointmentId?: string | null;
   onSuccessNotification?: (count: number) => void;
 }

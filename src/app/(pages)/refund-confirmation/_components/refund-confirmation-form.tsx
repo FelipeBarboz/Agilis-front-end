@@ -17,7 +17,12 @@ import { CommentsTextarea } from "./comments-textarea";
 import { RefundSummary } from "./refund-summary";
 import { ActionButtons } from "./action-buttons";
 import { SuccessCard } from "./success-card";
-import { cancelBooking, getBookingById } from "@/lib/services/bookings-service";
+import {
+  cancelBooking,
+  getBookingById,
+  getBookingDetail,
+  requestRefund,
+} from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
 import { type HistoryEntry } from "@/types/history";
 
@@ -51,6 +56,32 @@ export function RefundConfirmationForm() {
 
     async function loadBookingDetails() {
       try {
+        // Tenta obter os detalhes ricos primeiro
+        try {
+          const detail = await getBookingDetail(id!);
+          if (!isCancelled && detail) {
+            setEntry({
+              id: detail.bookingId,
+              serviceName: detail.serviceTitle,
+              imageUrl:
+                detail.thumbnailUrl ||
+                "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800",
+              counterpartName: detail.storeName || "Prestador Agilis",
+              counterpartRole: "prestador" as const,
+              date: detail.date,
+              time: detail.time ? detail.time.slice(0, 5) : "14:00",
+              price: detail.price,
+              bookingFee: detail.serviceFee ?? 5,
+              status: detail.status.toLowerCase().includes("conclu") ? "concluido" : "agendado",
+              category: detail.category,
+              address: detail.address ?? undefined,
+              paymentMethod: typeof detail.paymentMethod === "string" ? detail.paymentMethod : "PIX",
+            });
+            setIsLoading(false);
+            return;
+          }
+        } catch {}
+
         const b = await getBookingById(id!);
         if (!isCancelled && b) {
           let serviceTitle = b.serviceTitle ?? "Serviço";
@@ -132,10 +163,18 @@ export function RefundConfirmationForm() {
     setIsSubmitting(true);
     try {
       if (id) {
-        await cancelBooking(id);
+        if (isCompleted) {
+          const desc =
+            comments.trim() ||
+            selectedReason ||
+            "Solicitação de reembolso por insatisfação ou problema com o serviço concluído.";
+          await requestRefund(id, desc);
+        } else {
+          await cancelBooking(id);
+        }
       }
     } catch (err) {
-      console.warn("[CancelBooking] Falha ao cancelar no servidor:", err);
+      console.warn("[CancelBooking] Falha ao cancelar/solicitar reembolso no servidor:", err);
     } finally {
       setIsSubmitting(false);
       setIsSuccess(true);

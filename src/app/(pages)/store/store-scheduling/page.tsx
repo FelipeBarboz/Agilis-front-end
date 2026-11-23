@@ -15,6 +15,7 @@ import {
   getStoreBookingsCalendar,
   getStoreBookingsOverview,
   confirmBooking,
+  completeBooking,
   cancelBooking,
 } from "@/lib/services/bookings-service";
 import { getMyStores } from "@/lib/services/stores-service";
@@ -88,15 +89,21 @@ function StoreSchedulingContent() {
       const overview = await getStoreBookingsOverview(sid, date);
       if (overview?.bookings) {
         const mapped: StoreAppointment[] = overview.bookings.map((b) => {
-          const hour = String(b.startTime?.hour ?? 0).padStart(2, "0");
-          const minute = String(b.startTime?.minute ?? 0).padStart(2, "0");
+          let timeStr = "09:00";
+          if (typeof b.startTime === "string") {
+            timeStr = b.startTime.slice(0, 5);
+          } else if (b.startTime && typeof b.startTime === "object") {
+            const hour = String(b.startTime.hour ?? 0).padStart(2, "0");
+            const minute = String(b.startTime.minute ?? 0).padStart(2, "0");
+            timeStr = `${hour}:${minute}`;
+          }
           return {
             id: b.bookingId,
             clientName: b.clientName || "Cliente",
             serviceName: b.serviceTitle || "Serviço",
             employeeName: b.employeeName || "Prestador",
             date,
-            time: `${hour}:${minute}`,
+            time: timeStr,
             duration: b.durationMinutes || 60,
             address: b.address || "Endereço não informado",
             status: mapStoreBookingStatus(b.status),
@@ -148,6 +155,18 @@ function StoreSchedulingContent() {
       }
     } catch (err) {
       console.warn("[StoreScheduling] Erro ao confirmar agendamento:", err);
+    }
+  }
+
+  async function handleComplete(id: string) {
+    try {
+      await completeBooking(id);
+      if (storeId) {
+        await loadOverview(storeId, selectedDate);
+        await loadCalendar(storeId);
+      }
+    } catch (err) {
+      console.warn("[StoreScheduling] Erro ao concluir agendamento:", err);
     }
   }
 
@@ -215,6 +234,7 @@ function StoreSchedulingContent() {
               selectedDate={selectedDate}
               dayAppointments={dayAppointments}
               onConfirm={handleConfirm}
+              onComplete={handleComplete}
               onCancel={handleCancel}
               onOpenDelayModal={(id) => handleOpenDelayModal(id)}
             />
@@ -227,10 +247,16 @@ function StoreSchedulingContent() {
               setIsNotifyDelayOpen(false);
               setDelayAppointmentId(null);
             }}
+            storeId={storeId}
             dayAppointments={dayAppointments}
             allAppointments={appointments}
             selectedDate={selectedDate}
             initialAppointmentId={delayAppointmentId}
+            onSuccessNotification={() => {
+              if (storeId) {
+                void loadOverview(storeId, selectedDate);
+              }
+            }}
           />
 
         </div>
