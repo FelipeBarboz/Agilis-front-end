@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { MOCK_HISTORY } from "../../../../lib/mocks/history";
 import { ServiceCard } from "./service-card";
 import { CancellationWarning } from "./cancellation-warning";
@@ -17,7 +17,9 @@ import { CommentsTextarea } from "./comments-textarea";
 import { RefundSummary } from "./refund-summary";
 import { ActionButtons } from "./action-buttons";
 import { SuccessCard } from "./success-card";
-import { cancelBooking } from "@/lib/services/bookings-service";
+import { cancelBooking, getBookingById } from "@/lib/services/bookings-service";
+import { getServiceById } from "@/lib/services/services-service";
+import { type HistoryEntry } from "@/types/history";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -29,11 +31,84 @@ export function RefundConfirmationForm() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
-  // Busca por id ou pega o primeiro serviço agendado (cancelável)
-  const entry =
-    MOCK_HISTORY.find((item) => item.id === id) ??
-    MOCK_HISTORY.find((item) => item.status === "agendado") ??
-    MOCK_HISTORY[1];
+  const [entry, setEntry] = useState<HistoryEntry | null>(() => {
+    return (
+      MOCK_HISTORY.find((item) => item.id === id) ??
+      MOCK_HISTORY.find((item) => item.status === "agendado") ??
+      MOCK_HISTORY[1] ??
+      null
+    );
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(Boolean(id));
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!id) {
+      setIsLoading(false);
+      return;
+    }
+
+    async function loadBookingDetails() {
+      try {
+        const b = await getBookingById(id!);
+        if (!isCancelled && b) {
+          let serviceTitle = b.serviceTitle ?? "Serviço";
+          let companyName = "Prestador Agilis";
+          let imageUrl = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+          let price = 120;
+          let category = "Geral";
+
+          if (b.serviceId) {
+            try {
+              const s = await getServiceById(b.serviceId);
+              if (s) {
+                serviceTitle = s.title;
+                companyName = s.company ?? companyName;
+                imageUrl = s.images[0]?.url ?? imageUrl;
+                price = s.price.inicial ?? price;
+                category = s.category ?? category;
+              }
+            } catch {}
+          }
+
+          const dateObj = new Date(b.scheduledAt);
+          const timeStr = !isNaN(dateObj.getTime())
+            ? dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+            : "14:00";
+          const formattedDate = !isNaN(dateObj.getTime())
+            ? dateObj.toLocaleDateString("pt-BR")
+            : b.scheduledAt;
+
+          setEntry({
+            id: b.bookingId,
+            serviceName: serviceTitle,
+            imageUrl,
+            counterpartName: companyName,
+            counterpartRole: "prestador",
+            date: formattedDate,
+            time: timeStr,
+            price,
+            bookingFee: 10,
+            status: b.status.toUpperCase().includes("COMPLET") ? "concluido" : "agendado",
+            category,
+          });
+        }
+      } catch (err) {
+        console.warn("[RefundConfirmation] Erro ao buscar agendamento pelo ID:", err);
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadBookingDetails();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [id]);
 
   const isCompleted = entry?.status === "concluido";
 
@@ -65,6 +140,17 @@ export function RefundConfirmationForm() {
       setIsSubmitting(false);
       setIsSuccess(true);
     }
+  }
+
+  // Estado de carregamento
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+        <p className="text-sm font-semibold text-foreground">Carregando agendamento...</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Buscando informações do serviço</p>
+      </div>
+    );
   }
 
   // Estado de sucesso

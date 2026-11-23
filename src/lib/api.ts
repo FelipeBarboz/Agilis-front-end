@@ -76,6 +76,12 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       }
     } catch {}
 
+    console.error(`[API ERROR ${res.status}] ${init.method ?? "GET"} ${url}:`, {
+      errorMessage,
+      errorData,
+      payload: init.body,
+    });
+
     throw new ApiError(res.status, errorMessage, errorData);
   }
 

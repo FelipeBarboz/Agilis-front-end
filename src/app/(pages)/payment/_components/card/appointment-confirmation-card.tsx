@@ -10,7 +10,8 @@ import { AppointmentDetailsCard } from "./appointment-details-card";
 import { ConfirmationSidebar } from "../confirmation-sidebar";
 import { PAYMENT_METHODS, type PaymentMethodId } from "../../../../../types/payment";
 import { createPaymentPreference } from "@/lib/services/payments-service";
-import { createBooking } from "@/lib/services/bookings-service";
+import { createBooking, getBookingById, type BookingPaymentMethod } from "@/lib/services/bookings-service";
+import { getServiceById } from "@/lib/services/services-service";
 
 interface AppointmentConfirmationCardProps {
   appointmentId: string;
@@ -30,6 +31,7 @@ const STORAGE_KEY = "agilis:pending-payment";
 
 interface SavedPaymentState {
   bookingId: string;
+  serviceId?: string;
   serviceName: string;
   providerName: string;
   date: string;
@@ -67,14 +69,57 @@ export function AppointmentConfirmationCard({
 
   const bookingId = bookingIdFromUrl ?? savedData?.bookingId ?? "";
 
+  const [asyncServiceName, setAsyncServiceName] = useState<string>("");
+  const [asyncProviderName, setAsyncProviderName] = useState<string>("");
+
+  useEffect(() => {
+    let isCancelled = false;
+    const rawServiceName = searchParams.get("serviceName");
+    const rawServiceId = searchParams.get("serviceId");
+    const rawBookingId = bookingId;
+
+    async function resolveServiceDetails() {
+      try {
+        let sid = rawServiceId;
+        if (!sid && rawBookingId) {
+          const booking = await getBookingById(rawBookingId);
+          if (booking?.serviceId) sid = booking.serviceId;
+        }
+        if (sid) {
+          const s = await getServiceById(sid);
+          if (!isCancelled && s) {
+            if (s.title) setAsyncServiceName(s.title);
+            if (s.company) setAsyncProviderName(s.company);
+          }
+        }
+      } catch (err) {
+        console.warn("[Payment] Não foi possível carregar detalhes do serviço:", err);
+      }
+    }
+
+    if (!rawServiceName || rawServiceName === "Serviço") {
+      void resolveServiceDetails();
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [searchParams, bookingId]);
+
+  const rawUrlServiceName = searchParams.get("serviceName");
+  const rawUrlProviderName = searchParams.get("providerName");
+
   const serviceName =
-    searchParams.get("serviceName") ??
-    savedData?.serviceName ??
+    (rawUrlServiceName && rawUrlServiceName !== "Serviço" ? rawUrlServiceName : null) ??
+    (asyncServiceName ? asyncServiceName : null) ??
+    (savedData?.serviceName && savedData.serviceName !== "Serviço" ? savedData.serviceName : null) ??
     defaultMockAppointment.serviceName;
+
   const providerName =
-    searchParams.get("providerName") ??
+    rawUrlProviderName ??
+    (asyncProviderName ? asyncProviderName : null) ??
     savedData?.providerName ??
-    defaultMockAppointment.providerName;
+    "";
   const date =
     searchParams.get("date") ?? savedData?.date ?? defaultMockAppointment.date;
   const time =
@@ -143,7 +188,7 @@ export function AppointmentConfirmationCard({
               employeeId: searchParams.get("employeeId") ?? "",
               scheduledAt,
               notes: searchParams.get("notes") ?? "",
-              paymentMethod: (searchParams.get("paymentMethod") as import("@/lib/services/bookings-service").BookingPaymentMethod) ?? "CREDIT_CARD",
+              paymentMethod: (searchParams.get("paymentMethod") as BookingPaymentMethod | null) ?? "CREDIT_CARD",
               couponCode: searchParams.get("couponCode") ?? "",
             });
             effectiveBookingId = bookingRes.bookingId ?? "";
@@ -159,6 +204,7 @@ export function AppointmentConfirmationCard({
         // Salva os dados do agendamento no sessionStorage para resgate após o redirecionamento do MP
         const payloadToSave: SavedPaymentState = {
           bookingId: effectiveBookingId,
+          serviceId: searchParams.get("serviceId") ?? undefined,
           serviceName,
           providerName,
           date,

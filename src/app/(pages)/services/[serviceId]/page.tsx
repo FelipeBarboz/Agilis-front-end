@@ -178,6 +178,8 @@ function ServiceDetailContent() {
             <ScheduleButton
               serviceId={serviceId}
               storeId={effectiveStoreId}
+              serviceTitle={service.title}
+              companyName={effectiveCompany}
               selectedPrice={selectedPrice || service.price.inicial}
               selectedPackage={selectedPackage || (service.packages[0]?.label ?? "Padrão")}
             />

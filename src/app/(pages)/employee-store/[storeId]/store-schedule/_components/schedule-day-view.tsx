@@ -1,349 +1,254 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  isSameDay,
-  addDays,
-  getMondayWeekStart,
-  formatLongDate,
-  DOW_SHORT,
-  pad2,
-} from "@/lib/utils/date-schedule-helpers";
-import type { StoreTeamMember } from "@/lib/mocks/store-roster";
-import { ScheduleStatsCards } from "./schedule-stats-cards";
-import { ScheduleLegend } from "./schedule-legend";
+  Users,
+  Moon,
+  Clock,
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
+import type { StoreDailyScheduleResponse } from "@/lib/services/employee-schedules-service";
 
 interface ScheduleDayViewProps {
-  selectedDate: Date;
-  onSelectDate: (d: Date) => void;
-  team: StoreTeamMember[];
-  onGoToToday: () => void;
+  data: StoreDailyScheduleResponse | null;
+  isLoading: boolean;
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
 }
 
 export function ScheduleDayView({
+  data,
+  isLoading,
   selectedDate,
   onSelectDate,
-  team,
-  onGoToToday,
 }: ScheduleDayViewProps) {
-  const [currentTime, setCurrentTime] = useState(() => new Date());
-
-  // Atualizar relógio a cada minuto para o marcador "Agora"
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const today = new Date();
-  const isSelectedToday = isSameDay(selectedDate, today);
-
-  const weekStart = getMondayWeekStart(selectedDate);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
-  function handleDayNav(dir: number) {
-    onSelectDate(addDays(selectedDate, dir));
+  function handleNavDay(offsetDays: number) {
+    const cur = new Date(`${selectedDate}T00:00:00`);
+    cur.setDate(cur.getDate() + offsetDays);
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, "0");
+    const d = String(cur.getDate()).padStart(2, "0");
+    onSelectDate(`${y}-${m}-${d}`);
   }
 
-  const dayOfWeek = selectedDate.getDay();
+  const weekStrip = data?.weekStrip ?? [];
+  const employees = data?.employees ?? [];
+  const hourlyCoverage = data?.hourlyCoverage ?? [];
 
-  // Membros trabalhando no dia selecionado
-  const workingMembers = team.filter((m) => m.shifts[dayOfWeek] !== null);
-  const offCount = team.length - workingMembers.length;
-
-  // Calcular cobertura de horário
-  const coverageText = (() => {
-    if (workingMembers.length === 0) return "—";
-    const startHours = workingMembers.map((m) => m.shifts[dayOfWeek]![0]);
-    const endHours = workingMembers.map((m) => m.shifts[dayOfWeek]![1]);
-    const minStart = Math.min(...startHours);
-    const maxEnd = Math.max(...endHours);
-    return `${pad2(minStart)}:00 – ${pad2(maxEnd)}:00`;
-  })();
-
-  // Faixa de horas dinâmica (padrão 06h a 20h, expande se necessário)
-  const baseStart = 6;
-  const baseEnd = 20;
-  let axisStart = baseStart;
-  let axisEnd = baseEnd;
-
-  workingMembers.forEach((m) => {
-    const shift = m.shifts[dayOfWeek]!;
-    if (shift[0] < axisStart) axisStart = Math.floor(shift[0]);
-    if (shift[1] > axisEnd) axisEnd = Math.ceil(shift[1]);
-  });
-
-  const totalSlots = axisEnd - axisStart;
-  const hourSlots = Array.from({ length: totalSlots }, (_, i) => axisStart + i);
-
-  // Helper para porcentagem no eixo
-  function pct(h: number) {
-    return ((h - axisStart) / totalSlots) * 100;
-  }
-
-  // Marcador "Agora"
-  const currentFractionalHour = currentTime.getHours() + currentTime.getMinutes() / 60;
-  const isLive =
-    isSelectedToday &&
-    currentFractionalHour >= axisStart &&
-    currentFractionalHour <= axisEnd;
+  const workingEmployees = employees.filter((e) => !e.isDayOff);
+  const offEmployees = employees.filter((e) => e.isDayOff);
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Card 1: Navegação do dia + faixa dos 7 dias */}
-      <section className="rounded-[22px] border border-border bg-card p-6 sm:px-7 sm:py-6 shadow-sm">
-        {/* Navegação */}
-        <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="space-y-6">
+      {/* Navegador e Week Strip dos 7 dias */}
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
+        <div className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => handleDayNav(-1)}
+            onClick={() => handleNavDay(-1)}
             aria-label="Dia anterior"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-foreground transition-colors hover:bg-primary/10 cursor-pointer"
+            className="flex size-8 items-center justify-center rounded-xl border border-border hover:bg-muted transition-colors cursor-pointer"
           >
-            <ChevronLeft className="size-5" />
+            <ChevronLeft className="size-4" />
           </button>
 
-          <div className="flex flex-col items-center gap-1.5">
-            <h2 className="text-base font-bold text-foreground text-center" aria-live="polite">
-              {formatLongDate(selectedDate)}
-            </h2>
-            {!isSelectedToday && (
-              <button
-                type="button"
-                onClick={onGoToToday}
-                className="rounded-full border border-border bg-card px-3.5 py-1 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/10 cursor-pointer shadow-xs"
-              >
-                Voltar para hoje
-              </button>
-            )}
-          </div>
+          <span className="text-sm font-bold text-foreground">
+            {formatDateFull(selectedDate)}
+          </span>
 
           <button
             type="button"
-            onClick={() => handleDayNav(1)}
+            onClick={() => handleNavDay(1)}
             aria-label="Próximo dia"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-foreground transition-colors hover:bg-primary/10 cursor-pointer"
+            className="flex size-8 items-center justify-center rounded-xl border border-border hover:bg-muted transition-colors cursor-pointer"
           >
-            <ChevronRight className="size-5" />
+            <ChevronRight className="size-4" />
           </button>
         </div>
 
-        {/* Faixa dos 7 dias */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-          {weekDays.map((d, idx) => {
-            const isDayToday = isSameDay(d, today);
-            const isSelected = isSameDay(d, selectedDate);
-            const dayShiftCount = team.filter((m) => m.shifts[d.getDay()] !== null).length;
-
-            return (
-              <button
-                key={d.toISOString()}
-                type="button"
-                onClick={() => onSelectDate(d)}
-                aria-pressed={isSelected}
-                aria-label={`${d.getDate()} de ${formatLongDate(d)}, ${dayShiftCount} na escala`}
-                className={[
-                  "flex flex-col items-center gap-0.5 rounded-[14px] border p-2 sm:py-2.5 sm:px-1 transition-colors cursor-pointer text-center",
-                  isSelected
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card hover:bg-muted/50",
-                ].join(" ")}
-              >
-                <small className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  {DOW_SHORT[d.getDay()]}
-                </small>
-                <b
-                  className={[
-                    "text-[18px] font-bold leading-tight tabular-nums",
-                    isDayToday ? "text-primary" : "text-foreground",
-                  ].join(" ")}
-                >
-                  {d.getDate()}
-                </b>
-                <span className="text-[11.5px] text-muted-foreground hidden sm:block whitespace-nowrap">
-                  {dayShiftCount} na escala
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Métricas do dia */}
-      <ScheduleStatsCards
-        scheduledCount={workingMembers.length}
-        offCount={offCount}
-        coverageText={coverageText}
-      />
-
-      {/* Card 2: Equipe do dia com Timeline Gantt */}
-      <section className="rounded-[22px] border border-border bg-card p-6 sm:px-7 sm:py-6 shadow-sm flex flex-col gap-1">
-        <div>
-          <h3 className="text-xl font-bold text-foreground">Equipe do dia</h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Quem trabalha em cada horário
-          </p>
-        </div>
-
-        {/* Linha do tempo com scroll horizontal */}
-        <div className="overflow-x-auto pt-7 pb-2 -mx-2 px-2 sm:mx-0 sm:px-0">
-          <div className="relative min-w-[800px]">
-            {/* Cabeçalho de Horas */}
-            <div className="grid grid-cols-[185px_1fr] border-b border-border">
-              <div className="sticky left-0 z-30 bg-card py-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center border-r border-border w-[185px]">
-                Equipe
-              </div>
-              <div
-                className="grid text-[11.5px] text-muted-foreground py-2 tabular-nums"
-                style={{ gridTemplateColumns: `repeat(${totalSlots}, minmax(0, 1fr))` }}
-              >
-                {hourSlots.map((h) => (
-                  <span key={h} className="pl-1 text-left font-medium">
-                    {pad2(h)}h
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Linha "Na loja" */}
-            <div className="grid grid-cols-[185px_1fr] border-b border-border">
-              <div className="sticky left-0 z-30 bg-card py-2 px-3 text-[12.5px] text-muted-foreground flex items-center font-medium border-r border-border w-[185px]">
-                Na loja
-              </div>
-              <div
-                className="grid text-[12.5px] font-bold tabular-nums"
-                style={{ gridTemplateColumns: `repeat(${totalSlots}, minmax(0, 1fr))` }}
-              >
-                {hourSlots.map((h) => {
-                  const countPresent = team.filter((m) => {
-                    const shift = m.shifts[dayOfWeek];
-                    return shift && shift[0] <= h && shift[1] > h;
-                  }).length;
-                  const intensityPct = Math.round((countPresent / team.length) * 38);
-
-                  return (
-                    <span
-                      key={h}
-                      className="flex items-center justify-center py-2 text-center transition-colors"
-                      style={{
-                        backgroundColor:
-                          countPresent > 0
-                            ? `color-mix(in srgb, var(--primary) ${intensityPct}%, transparent)`
-                            : "transparent",
-                      }}
-                    >
-                      {countPresent}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Linhas das pessoas */}
-            {team.map((member) => {
-              const isMe = !!member.isCurrentUser;
-              const shift = member.shifts[dayOfWeek];
-
+        {/* 7-Day Strip */}
+        {weekStrip.length > 0 && (
+          <div className="grid grid-cols-7 gap-1.5 pt-1 border-t border-border/60">
+            {weekStrip.map((item) => {
+              const isSelected = item.date === selectedDate || item.isSelected;
               return (
-                <div
-                  key={member.id}
-                  className={[
-                    "grid grid-cols-[185px_1fr] border-b border-border last:border-b-0",
-                    isMe ? "bg-primary/[0.03]" : "",
-                  ].join(" ")}
+                <button
+                  key={item.date}
+                  type="button"
+                  onClick={() => onSelectDate(item.date)}
+                  className={`flex flex-col items-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                      : "hover:bg-muted/60 text-muted-foreground"
+                  }`}
                 >
-                  {/* Coluna da pessoa fixa à esquerda com fundo 100% opaco e divisor à direita */}
-                  <div
-                    style={{
-                      backgroundColor: isMe
-                        ? "color-mix(in srgb, var(--primary) 10%, var(--card))"
-                        : "var(--card)",
-                    }}
-                    className="sticky left-0 z-20 py-2.5 px-3 flex items-center min-w-0 border-r border-border w-[185px]"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#006b49] text-xs font-semibold text-white shadow-2xs select-none">
-                        {member.initials}
-                      </div>
-                      <div className="flex flex-col min-w-0 overflow-hidden">
-                        <b className="flex items-center gap-1.5 text-[13.5px] font-semibold text-foreground whitespace-nowrap leading-tight truncate">
-                          <span className="truncate">{member.name}</span>
-                          {isMe && (
-                            <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-[10.5px] font-semibold text-emerald-800 dark:text-emerald-300 leading-none">
-                              Você
-                            </span>
-                          )}
-                        </b>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap truncate">
-                          {member.role}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Pista com turno ou folga */}
-                  <div
-                    className={[
-                      "relative min-h-[56px]",
-                      isMe ? "bg-primary/[0.03]" : "",
-                    ].join(" ")}
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(to right, var(--border) 1px, transparent 1px)",
-                      backgroundSize: `calc(100% / ${totalSlots}) 100%`,
-                    }}
-                  >
-                    {shift ? (
-                      <div
-                        className={[
-                          "absolute top-[9px] bottom-[9px] flex items-center px-3 rounded-[11px] text-[12.5px] font-semibold whitespace-nowrap overflow-hidden tabular-nums shadow-2xs",
-                          isMe
-                            ? "bg-primary text-primary-foreground border border-primary"
-                            : "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20",
-                        ].join(" ")}
-                        style={{
-                          left: `${pct(shift[0])}%`,
-                          width: `${pct(shift[1]) - pct(shift[0])}%`,
-                        }}
-                      >
-                        {pad2(shift[0])}:00 – {pad2(shift[1])}:00
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="rounded-full border border-dashed border-border px-3.5 py-1 text-xs text-muted-foreground font-medium bg-card/60">
-                          Folga
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <span className="text-[11px] font-medium uppercase tracking-wider">
+                    {item.dayLabel}
+                  </span>
+                  <span className={`text-base font-extrabold ${isSelected ? "text-primary-foreground" : "text-foreground"}`}>
+                    {item.dayOfMonth}
+                  </span>
+                  <span className={`text-[10px] mt-0.5 ${isSelected ? "text-primary-foreground/90" : "text-muted-foreground"}`}>
+                    {item.scheduledCount} trab.
+                  </span>
+                </button>
               );
             })}
+          </div>
+        )}
+      </div>
 
-            {/* Marcador "Agora" */}
-            {isLive && (
+      {/* Cards de Métricas do Dia */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-card p-4 text-center shadow-sm">
+          <Users className="size-5 text-primary" />
+          <strong className="text-2xl font-bold text-foreground tabular-nums">
+            {data?.scheduledCount ?? workingEmployees.length}
+          </strong>
+          <span className="text-xs text-muted-foreground font-medium">Escalados</span>
+        </div>
+
+        <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-card p-4 text-center shadow-sm">
+          <Moon className="size-5 text-primary" />
+          <strong className="text-2xl font-bold text-foreground tabular-nums">
+            {data?.daysOffCount ?? offEmployees.length}
+          </strong>
+          <span className="text-xs text-muted-foreground font-medium">Folgas</span>
+        </div>
+
+        <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-card p-4 text-center shadow-sm">
+          <Clock className="size-5 text-primary" />
+          <strong className="text-base font-bold text-foreground whitespace-nowrap">
+            {data?.coverageInterval ?? "—"}
+          </strong>
+          <span className="text-xs text-muted-foreground font-medium">Cobertura</span>
+        </div>
+      </div>
+
+      {/* Cobertura por Hora (se fornecida pela API) */}
+      {hourlyCoverage.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Clock className="size-3.5 text-primary" />
+            Cobertura por Horário
+          </h3>
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+            {hourlyCoverage.map((hc) => (
               <div
-                className="absolute top-0 bottom-0 left-[185px] right-0 pointer-events-none z-10"
-                aria-hidden="true"
+                key={hc.hour}
+                className={`flex flex-col items-center p-2 rounded-xl border text-center ${
+                  hc.workingCount > 0
+                    ? "bg-primary/5 border-primary/20 text-foreground"
+                    : "bg-muted/30 border-border text-muted-foreground opacity-60"
+                }`}
               >
-                <div
-                  className="absolute top-0 bottom-0 w-[2px] -ml-[1px] bg-destructive rounded-[2px]"
-                  style={{ left: `${pct(currentFractionalHour)}%` }}
-                >
-                  <span className="absolute -top-6 left-1/2 -translate-x-1/2 rounded-full bg-destructive text-white text-[11px] font-semibold px-2 py-0.5 whitespace-nowrap tabular-nums shadow-xs">
-                    Agora {pad2(currentTime.getHours())}:{pad2(currentTime.getMinutes())}
-                  </span>
+                <span className="text-[11px] font-semibold">{hc.hourLabel || `${hc.hour}h`}</span>
+                <span className={`text-xs font-bold ${hc.workingCount > 0 ? "text-primary" : "text-muted-foreground"}`}>
+                  {hc.workingCount} {hc.workingCount === 1 ? "colab." : "colabs."}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lista de Colaboradores do Dia */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm space-y-4">
+        <h3 className="text-sm font-bold text-foreground border-b border-border pb-2.5">
+          Equipe no Dia ({employees.length})
+        </h3>
+
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center">
+            <Loader2 className="size-6 animate-spin text-primary mb-2" />
+            <p className="text-xs text-muted-foreground">Carregando escala do dia...</p>
+          </div>
+        ) : employees.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-6">
+            Nenhum colaborador registrado na escala deste dia.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {/* Trabalhando */}
+            {workingEmployees.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                  Trabalhando ({workingEmployees.length})
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {workingEmployees.map((emp) => (
+                    <div
+                      key={emp.employeeId}
+                      className="flex items-center justify-between p-3 rounded-xl border border-border bg-muted/20"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+                          {emp.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-foreground truncate">{emp.name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+                            <Briefcase className="size-3" />
+                            {emp.positionTitle || "Funcionário"}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-lg bg-primary/10 border border-primary/20 px-2 py-0.5 text-xs font-semibold text-primary shrink-0">
+                        {emp.formattedHours || `${emp.startTime?.hour ?? 8}h - ${emp.endTime?.hour ?? 18}h`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Folgas */}
+            {offEmployees.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-border/60">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Folgas ({offEmployees.length})
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {offEmployees.map((emp) => (
+                    <div
+                      key={emp.employeeId}
+                      className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/10 opacity-75"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-xs">
+                          {emp.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-foreground truncate">{emp.name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {emp.positionTitle || "Funcionário"}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground shrink-0">
+                        Folga
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Legenda no rodapé do card */}
-        <ScheduleLegend showNow={isLive} />
-      </section>
+        )}
+      </div>
     </div>
   );
+}
+
+function formatDateFull(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
+  return dateObj.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 }

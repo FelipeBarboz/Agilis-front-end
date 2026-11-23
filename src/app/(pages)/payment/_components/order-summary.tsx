@@ -32,12 +32,11 @@ export function OrderSummary({
       <div className="rounded-xl border border-border/70 bg-muted/30 p-3.5 flex flex-col gap-1">
         <span className="text-xs text-muted-foreground font-medium">Serviço Selecionado</span>
         <p className="text-sm font-semibold text-foreground leading-snug">{serviceName}</p>
-        <div className="flex items-center gap-2 mt-1 pt-1 border-t border-border/50 text-xs text-muted-foreground">
-          <div className="flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-            {providerName.charAt(0)}
+        {providerName ? (
+          <div className="flex items-center gap-1.5 mt-1 pt-1 border-t border-border/50 text-xs text-muted-foreground">
+            <span className="truncate font-medium">{providerName}</span>
           </div>
-          <span className="truncate">{providerName}</span>
-        </div>
+        ) : null}
       </div>
 
       {/* Tabela de valores */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
@@ -9,8 +9,6 @@ import {
   MessageSquare,
   ArrowRight,
   Sparkles,
-  CreditCard,
-  Tag,
   AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
@@ -18,7 +16,12 @@ import Link from "next/link";
 import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
 import { getServiceById } from "@/lib/services/services-service";
-import { createBooking, type BookingPaymentMethod } from "@/lib/services/bookings-service";
+import {
+  createBooking,
+  getBookingsByService,
+  type ServiceBookingItemDTO,
+} from "@/lib/services/bookings-service";
+import { getAuthenticatedUserId } from "@/lib/services/stores-service";
 import { useAddresses } from "@/hooks/use-addresses";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Calendar } from "@/components/ui/calendar";
@@ -47,8 +50,9 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const searchParams = useSearchParams();
   const { addresses } = useAddresses();
   const { user, supabaseUser } = useAuth();
-  const clientId = user?.id || supabaseUser?.id || "";
+  const clientId = user?.id ?? supabaseUser?.id ?? "";
 
+  const titleFromParams = searchParams.get("serviceTitle") ?? searchParams.get("title") ?? searchParams.get("serviceName") ?? "";
   const companyFromParams = searchParams.get("company") ?? searchParams.get("providerName") ?? "";
 
   const [service, setService] = useState<Service | null>(() => {
@@ -95,10 +99,44 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const [selectedTime, setSelectedTime] = useState<string>("14:00");
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<BookingPaymentMethod>("CREDIT_CARD");
-  const [couponCode, setCouponCode] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingBookings, setExistingBookings] = useState<ServiceBookingItemDTO[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    getBookingsByService(serviceId)
+      .then((data) => {
+        if (!isCancelled && Array.isArray(data)) {
+          setExistingBookings(data);
+        }
+      })
+      .catch((err) => {
+        console.warn("[Schedule] Não foi possível carregar agendamentos existentes:", err);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, [serviceId]);
+
+  const bookedTimes = useMemo(() => {
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const d = String(selectedDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
+
+    return existingBookings
+      .filter((b) => {
+        const isNotCancelled = !b.status.toUpperCase().includes("CANCEL");
+        return isNotCancelled && b.scheduledAt.startsWith(dateStr);
+      })
+      .map((b) => {
+        const dateObj = new Date(b.scheduledAt);
+        return !isNaN(dateObj.getTime())
+          ? dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+          : "";
+      });
+  }, [existingBookings, selectedDate]);
 
   // Sincroniza o endereço selecionado quando os endereços carregam do localStorage
   useEffect(() => {
@@ -128,19 +166,24 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
     // Converte a data e hora selecionadas para o padrão ISO 8601 exigido pela API
     const [hours, minutes] = selectedTime.split(":").map(Number);
     const scheduledDate = new Date(selectedDate);
-    scheduledDate.setHours(hours || 0, minutes || 0, 0, 0);
+    scheduledDate.setHours(hours ?? 0, minutes ?? 0, 0, 0);
     const scheduledAt = scheduledDate.toISOString();
 
     let bookingId = "";
     try {
+      const effectiveClientId = clientId || (await getAuthenticatedUserId());
+      if (!effectiveClientId) {
+        setErrorMessage("Identificação do cliente não encontrada. Por favor, realize o login novamente.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const bookingRes = await createBooking({
-        clientId,
+        clientId: effectiveClientId,
         serviceId: service?.id ?? serviceId,
-        employeeId: "",
+        employeeId: undefined,
         scheduledAt,
-        notes,
-        paymentMethod,
-        couponCode: couponCode.trim() || undefined,
+        notes: notes.trim() || undefined,
         // Compatibilidade adicional
         storeId,
         address: addressText,
@@ -155,15 +198,18 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       );
       const msg = err instanceof Error ? err.message : "Não foi possível criar o agendamento no servidor.";
       setErrorMessage(msg);
-      // Fallback temporário para não interromper navegação do usuário se offline
-      bookingId = crypto.randomUUID();
+      setIsSubmitting(false);
+      return;
     }
+
+    const resolvedServiceName = service?.title ?? (titleFromParams ? titleFromParams : "Serviço");
+    const resolvedProviderName = service?.company ?? (companyFromParams ? companyFromParams : "Prestador Agilis");
 
     const query = new URLSearchParams({
       bookingId,
       serviceId: service?.id ?? serviceId,
-      serviceName: service?.title ?? "Serviço",
-      providerName: service?.company ?? companyFromParams ?? "Prestador Agilis",
+      serviceName: resolvedServiceName,
+      providerName: resolvedProviderName,
       price: String(initialPrice),
       date: formattedDate,
       time: selectedTime,
@@ -171,8 +217,6 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       package: initialPackage,
       storeId,
       notes,
-      paymentMethod,
-      couponCode: couponCode.trim(),
     });
 
     router.push(`/payment?${query.toString()}`);
@@ -216,18 +260,22 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-2">
                 {AVAILABLE_TIMES.map((time) => {
                   const isSelected = selectedTime === time;
+                  const isBooked = bookedTimes.includes(time);
                   return (
                     <button
                       key={time}
                       type="button"
+                      disabled={isBooked}
                       onClick={() => setSelectedTime(time)}
                       className={`rounded-xl border py-2.5 px-3 text-xs font-semibold transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                          : "border-border bg-muted/40 text-foreground hover:bg-muted"
+                        isBooked
+                          ? "border-border/50 bg-muted/20 text-muted-foreground/50 line-through cursor-not-allowed"
+                          : isSelected
+                            ? "border-primary bg-primary text-primary-foreground shadow-xs cursor-pointer"
+                            : "border-border bg-muted/40 text-foreground hover:bg-muted cursor-pointer"
                       }`}
                     >
-                      {time}
+                      {time} {isBooked ? "(Ocupado)" : ""}
                     </button>
                   );
                 })}
@@ -285,65 +333,6 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
             />
           </div>
         </div>
-
-        {/* Payment Preferences & Coupon */}
-        <div className="rounded-2xl border border-border bg-background p-6 shadow-sm space-y-4">
-          <div>
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" />
-              Preferência de Pagamento
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Escolha a forma como deseja realizar o pagamento
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { id: "CREDIT_CARD", label: "Cartão de Crédito" },
-              { id: "PIX", label: "Pix" },
-              { id: "DEBIT_CARD", label: "Cartão de Débito" },
-            ].map((method) => {
-              const isSelected = paymentMethod === method.id;
-              return (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => setPaymentMethod(method.id as BookingPaymentMethod)}
-                  className={`flex items-center justify-center p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                    isSelected
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary shadow-xs"
-                      : "border-border bg-muted/40 text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {method.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="pt-2 border-t border-border/60 space-y-2">
-            <label htmlFor="schedule-coupon" className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Tag className="h-4 w-4 text-primary" />
-              Cupom de Desconto (opcional)
-            </label>
-            <input
-              id="schedule-coupon"
-              type="text"
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder="Digite seu cupom (ex: AGILIS10)"
-              className="w-full rounded-xl border border-input bg-background p-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary uppercase tracking-wider"
-            />
-          </div>
-
-          {errorMessage && (
-            <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-xs text-rose-600">
-              <AlertCircle size={16} className="shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Right Column: Service Summary & Payment Action */}
@@ -381,7 +370,7 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
               )}
               <div className="min-w-0 flex-1">
                 <h4 className="text-sm font-bold text-foreground leading-snug truncate">
-                  {service?.title ?? "Serviço"}
+                  {service?.title ?? (titleFromParams ? titleFromParams : "Serviço")}
                 </h4>
                 <p className="text-xs text-muted-foreground mt-0.5 truncate">
                   {service?.company ?? companyFromParams ?? "Prestador Agilis"}
@@ -424,6 +413,14 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
             </div>
           </div>
 
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-xs text-rose-600">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           {/* Submit button */}
           <button

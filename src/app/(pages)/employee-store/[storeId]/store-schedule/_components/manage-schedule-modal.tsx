@@ -1,470 +1,450 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Clock, Plus, Trash2, Check, Copy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { StoreTeamMember } from "@/lib/mocks/store-roster";
-import { DOW_SHORT, pad2 } from "@/lib/utils/date-schedule-helpers";
+import { X, Clock, Check, Loader2, Trash2 } from "lucide-react";
+import {
+  saveEmployeeWeeklySchedule,
+  createEmployeeSchedule,
+  removeEmployeeFromSchedule,
+  type WeeklyScheduleDaySlotPayload,
+  type WeeklyScheduleEmployee,
+} from "@/lib/services/employee-schedules-service";
+import { getAuthenticatedUserId, getMyStores } from "@/lib/services/stores-service";
 
 interface ManageScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  team: StoreTeamMember[];
-  onSaveTeam: (updatedTeam: StoreTeamMember[]) => void;
-  initialMemberId?: string | null;
+  storeId: string;
+  employees: WeeklyScheduleEmployee[];
+  initialEmployeeId?: string | null;
+  onSuccess: () => Promise<void>;
 }
 
-const DAYS_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Seg a Dom
-const DAY_NAMES = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+const DAYS_OF_WEEK = [
+  { id: 1, label: "Segunda-feira", short: "Seg" },
+  { id: 2, label: "Terça-feira", short: "Ter" },
+  { id: 3, label: "Quarta-feira", short: "Qua" },
+  { id: 4, label: "Quinta-feira", short: "Qui" },
+  { id: 5, label: "Sexta-feira", short: "Sex" },
+  { id: 6, label: "Sábado", short: "Sáb" },
+  { id: 7, label: "Domingo", short: "Dom" },
+];
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
+interface DayConfig {
+  dayOfWeek: number;
+  isDayOff: boolean;
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+}
 
 export function ManageScheduleModal({
   isOpen,
   onClose,
-  team,
-  onSaveTeam,
-  initialMemberId,
+  storeId,
+  employees,
+  initialEmployeeId,
+  onSuccess,
 }: ManageScheduleModalProps) {
-  const [selectedMemberId, setSelectedMemberId] = useState<string>("new");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("Atendente Operacional");
-  const [shifts, setShifts] = useState<Record<number, [number, number] | null>>({
-    0: null,
-    1: [8, 18],
-    2: [8, 18],
-    3: [8, 18],
-    4: [8, 18],
-    5: [8, 18],
-    6: null,
-  });
+  const [employeeId, setEmployeeId] = useState<string>("");
+  const [customEmployeeId, setCustomEmployeeId] = useState<string>("");
+  const [days, setDays] = useState<DayConfig[]>(() =>
+    DAYS_OF_WEEK.map((d) => ({
+      dayOfWeek: d.id,
+      isDayOff: d.id === 6 || d.id === 7, // Fim de semana folga por padrão
+      startHour: 8,
+      startMinute: 0,
+      endHour: 18,
+      endMinute: 0,
+    }))
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+    setErrorMessage(null);
 
-    if (initialMemberId && team.some((m) => m.id === initialMemberId)) {
-      const member = team.find((m) => m.id === initialMemberId)!;
-      setSelectedMemberId(member.id);
-      setName(member.name);
-      setRole(member.role);
-      setShifts({ ...member.shifts });
-    } else if (team.length > 0 && team[0]) {
-      const first = team[0];
-      setSelectedMemberId(first.id);
-      setName(first.name);
-      setRole(first.role);
-      setShifts({ ...first.shifts });
-    } else {
-      setSelectedMemberId("new");
-      setName("");
-      setRole("Atendente Operacional");
-      setShifts({
-        0: null,
-        1: [8, 18],
-        2: [8, 18],
-        3: [8, 18],
-        4: [8, 18],
-        5: [8, 18],
-        6: null,
-      });
-    }
-  }, [isOpen, initialMemberId, team]);
+    const targetId = initialEmployeeId ?? employees[0]?.employeeId ?? "";
+    setEmployeeId(targetId);
 
-  function handleSelectMember(id: string) {
-    setSelectedMemberId(id);
-    if (id === "new") {
-      setName("");
-      setRole("Atendente Operacional");
-      setShifts({
-        0: null,
-        1: [8, 18],
-        2: [8, 18],
-        3: [8, 18],
-        4: [8, 18],
-        5: [8, 18],
-        6: null,
-      });
-    } else {
-      const member = team.find((m) => m.id === id);
-      if (member) {
-        setName(member.name);
-        setRole(member.role);
-        setShifts({ ...member.shifts });
-      }
-    }
-  }
-
-  function handleToggleDay(day: number) {
-    setShifts((prev) => {
-      const current = prev[day];
-      if (current) {
-        return { ...prev, [day]: null };
-      } else {
-        return { ...prev, [day]: [8, 18] };
-      }
-    });
-  }
-
-  function handleShiftHourChange(day: number, isStart: boolean, hour: number) {
-    setShifts((prev) => {
-      const current = prev[day] ?? [8, 18];
-      const newShift: [number, number] = isStart
-        ? [hour, Math.max(hour + 1, current[1])]
-        : [Math.min(current[0], hour - 1), hour];
-      return { ...prev, [day]: newShift };
-    });
-  }
-
-  function applyPresetToAllWeekdays(start: number, end: number) {
-    setShifts((prev) => {
-      const next = { ...prev };
-      [1, 2, 3, 4, 5].forEach((d) => {
-        next[d] = [start, end];
-      });
-      return next;
-    });
-  }
-
-  function copyMondayToWeekdays() {
-    const mondayShift = shifts[1];
-    setShifts((prev) => {
-      const next = { ...prev };
-      [2, 3, 4, 5].forEach((d) => {
-        next[d] = mondayShift ? [...mondayShift] : null;
-      });
-      return next;
-    });
-  }
-
-  // Carga horária semanal total
-  const totalWeeklyHours = Object.values(shifts).reduce((acc, curr) => {
-    if (!curr) return acc;
-    return acc + Math.max(0, curr[1] - curr[0]);
-  }, 0);
-
-  function handleSave() {
-    if (!name.trim()) return;
-
-    let initials = "AG";
-    const parts = name.trim().split(" ").filter(Boolean);
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      initials = `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-    } else if (parts.length === 1 && parts[0] && parts[0].length >= 2) {
-      initials = parts[0].slice(0, 2).toUpperCase();
-    }
-
-    if (selectedMemberId === "new") {
-      const newMember: StoreTeamMember = {
-        id: `emp-${Date.now()}`,
-        name: name.trim(),
-        initials,
-        role: role.trim() || "Colaborador",
-        isCurrentUser: false,
-        shifts,
-      };
-      onSaveTeam([...team, newMember]);
-    } else {
-      const updated = team.map((m) =>
-        m.id === selectedMemberId
-          ? {
-              ...m,
-              name: name.trim(),
-              initials,
-              role: role.trim() || m.role,
-              shifts,
-            }
-          : m
+    // Se encontramos os dias do funcionário na escala existente, pré-carrega
+    const existing = employees.find((e) => e.employeeId === targetId);
+    if (existing && existing.days.length > 0) {
+      setDays(
+        DAYS_OF_WEEK.map((d) => {
+          const dayData = existing.days.find(
+            (item) => item.dayOfWeek === d.id || (d.id === 7 && item.dayOfWeek === 0)
+          );
+          if (dayData) {
+            return {
+              dayOfWeek: d.id,
+              isDayOff: dayData.isDayOff,
+              startHour: dayData.startTime?.hour ?? 8,
+              startMinute: dayData.startTime?.minute ?? 0,
+              endHour: dayData.endTime?.hour ?? 18,
+              endMinute: dayData.endTime?.minute ?? 0,
+            };
+          }
+          return {
+            dayOfWeek: d.id,
+            isDayOff: d.id === 6 || d.id === 7,
+            startHour: 8,
+            startMinute: 0,
+            endHour: 18,
+            endMinute: 0,
+          };
+        })
       );
-      onSaveTeam(updated);
+    } else {
+      // Padrão Seg-Sex 08-18h
+      setDays(
+        DAYS_OF_WEEK.map((d) => ({
+          dayOfWeek: d.id,
+          isDayOff: d.id === 6 || d.id === 7,
+          startHour: 8,
+          startMinute: 0,
+          endHour: 18,
+          endMinute: 0,
+        }))
+      );
     }
+  }, [isOpen, initialEmployeeId, employees]);
 
-    onClose();
+  function handleToggleDayOff(dayOfWeek: number) {
+    setDays((prev) =>
+      prev.map((d) => (d.dayOfWeek === dayOfWeek ? { ...d, isDayOff: !d.isDayOff } : d))
+    );
   }
 
-  function handleDeleteMember() {
-    if (selectedMemberId === "new") return;
-    const filtered = team.filter((m) => m.id !== selectedMemberId);
-    onSaveTeam(filtered);
-    onClose();
+  function handleTimeChange(
+    dayOfWeek: number,
+    field: "startHour" | "endHour",
+    val: number
+  ) {
+    setDays((prev) =>
+      prev.map((d) => (d.dayOfWeek === dayOfWeek ? { ...d, [field]: val } : d))
+    );
+  }
+
+  function handleApplyStandardHours() {
+    setDays((prev) =>
+      prev.map((d) => ({
+        ...d,
+        isDayOff: d.dayOfWeek === 6 || d.dayOfWeek === 7,
+        startHour: 8,
+        startMinute: 0,
+        endHour: 18,
+        endMinute: 0,
+      }))
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    const effectiveId = employeeId === "custom" ? customEmployeeId.trim() : employeeId;
+    if (!effectiveId) {
+      setErrorMessage("Por favor, selecione ou informe o identificador do funcionário.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Garante storeId válido
+      let effectiveStoreId = storeId;
+      if (!effectiveStoreId) {
+        const myStores = await getMyStores();
+        if (myStores.length > 0 && myStores[0]?.storeId) {
+          effectiveStoreId = myStores[0].storeId;
+        }
+      }
+
+      if (!effectiveStoreId) {
+        setErrorMessage("Identificador da loja não encontrado.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Payload conforme spec da API: zeros para dias de folga (nunca null)
+      const buildPayload = (sundayValue: 7 | 0): WeeklyScheduleDaySlotPayload[] =>
+        days.map((d) => ({
+          dayOfWeek: d.dayOfWeek === 7 || d.dayOfWeek === 0 ? sundayValue : d.dayOfWeek,
+          isDayOff: d.isDayOff,
+          startTime: { hour: d.isDayOff ? 0 : d.startHour, minute: d.isDayOff ? 0 : d.startMinute, second: 0, nano: 0 },
+          endTime:   { hour: d.isDayOff ? 0 : d.endHour,   minute: d.isDayOff ? 0 : d.endMinute,   second: 0, nano: 0 },
+        }));
+
+      console.info("[Schedule] storeId:", effectiveStoreId, "| employeeId:", effectiveId);
+      console.info("[Schedule] payload:", JSON.stringify(buildPayload(7), null, 2));
+
+      // ETAPA 1 — Garantir escala-pai (POST /schedules). Ignora erros (pode já existir).
+      const requesterId = await getAuthenticatedUserId();
+      try {
+        await createEmployeeSchedule(effectiveStoreId, {
+          requesterId: requesterId || undefined,
+          storeId: effectiveStoreId,
+          employeeId: effectiveId,
+          scheduleType: "WEEKLY",
+          monthlyHoursQuota: 160,
+          monthlyDaysQuota: 22,
+        });
+        console.info("[Schedule] Escala-pai criada.");
+      } catch (createErr: unknown) {
+        console.info("[Schedule] POST /schedules ignorado (pode já existir):", createErr);
+      }
+
+      // ETAPA 2 — Salvar turnos semanais com fallback de domingo
+      let saved = false;
+      let lastError: unknown = null;
+
+      for (const sundayVal of [7, 0] as const) {
+        try {
+          await saveEmployeeWeeklySchedule(effectiveStoreId, effectiveId, buildPayload(sundayVal));
+          saved = true;
+          break;
+        } catch (err: unknown) {
+          lastError = err;
+          console.warn(`[Schedule] PUT /weekly com domingo=${sundayVal} falhou:`, err);
+        }
+      }
+
+      if (!saved) {
+        throw lastError;
+      }
+      await onSuccess();
+      onClose();
+    } catch (err) {
+      console.error("[Schedule] Falha definitiva ao salvar escala:", err);
+      const msg = err instanceof Error ? err.message : "Erro ao salvar a escala no servidor.";
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    const effectiveId = employeeId === "custom" ? customEmployeeId.trim() : employeeId;
+    if (!effectiveId) return;
+
+    if (!window.confirm("Deseja realmente remover este funcionário da escala?")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await removeEmployeeFromSchedule(storeId, effectiveId);
+      await onSuccess();
+      onClose();
+    } catch (err) {
+      console.warn("[ManageScheduleModal] Erro ao remover escala:", err);
+      const msg = err instanceof Error ? err.message : "Erro ao remover a escala no servidor.";
+      setErrorMessage(msg);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   if (!isOpen) return null;
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
-    >
-      <div className="relative flex flex-col w-full max-w-xl max-h-[90vh] overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Clock className="size-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground leading-tight">
-                {selectedMemberId === "new" ? "Criar Nova Escala" : "Editar Escala da Loja"}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Defina os horários de trabalho e folgas do colaborador
-              </p>
-            </div>
-          </div>
+  const isExistingEmployee = employees.some((e) => e.employeeId === employeeId);
 
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+      <div className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border p-5">
+          <div>
+            <h2 className="text-base font-bold text-foreground">
+              {isExistingEmployee ? "Editar Escala do Funcionário" : "Configurar Escala de Funcionário"}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Defina os dias de trabalho, folgas e horários da semana
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar modal"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+            className="flex size-8 items-center justify-center rounded-xl hover:bg-muted text-muted-foreground transition-colors cursor-pointer"
           >
-            <X className="size-5" />
+            <X className="size-4" />
           </button>
         </div>
 
-        {/* Corpo com Scroll */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {/* Seletor de Colaborador */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-bold text-foreground">
-              Colaborador da Escala
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-5">
+          {/* Seleção do Funcionário */}
+          <div className="space-y-2">
+            <label htmlFor="select-employee" className="text-xs font-bold text-foreground uppercase tracking-wider">
+              Funcionário
             </label>
-            <div className="flex flex-wrap gap-2">
-              {team.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => handleSelectMember(m.id)}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-colors cursor-pointer border ${
-                    selectedMemberId === m.id
-                      ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                      : "border-border bg-card hover:bg-muted/50 text-foreground"
+            <select
+              id="select-employee"
+              value={employeeId}
+              onChange={(e) => setEmployeeId(e.target.value)}
+              className="w-full rounded-xl border border-input bg-background p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+            >
+              {employees.map((emp) => (
+                <option key={emp.employeeId} value={emp.employeeId}>
+                  {emp.name} ({emp.positionTitle || "Funcionário"})
+                </option>
+              ))}
+              <option value="custom">+ Outro funcionário (digitar ID)</option>
+            </select>
+
+            {employeeId === "custom" && (
+              <input
+                type="text"
+                value={customEmployeeId}
+                onChange={(e) => setCustomEmployeeId(e.target.value)}
+                placeholder="Informe o ID do funcionário (ex: UUID)"
+                className="w-full rounded-xl border border-input bg-background p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary mt-2"
+              />
+            )}
+          </div>
+
+          {/* Atalho para padrão Seg-Sex */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
+              Dias da Semana
+            </span>
+            <button
+              type="button"
+              onClick={handleApplyStandardHours}
+              className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+            >
+              Padrão Seg–Sex (08h às 18h)
+            </button>
+          </div>
+
+          {/* Lista dos 7 dias */}
+          <div className="space-y-2">
+            {DAYS_OF_WEEK.map((d) => {
+              const config = days.find((item) => item.dayOfWeek === d.id)!;
+              return (
+                <div
+                  key={d.id}
+                  className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                    config.isDayOff
+                      ? "bg-muted/20 border-border/60 text-muted-foreground"
+                      : "bg-card border-border text-foreground"
                   }`}
                 >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/15 text-[10px] font-bold">
-                    {m.initials}
-                  </span>
-                  <span>{m.name}</span>
-                </button>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => handleSelectMember("new")}
-                className={`flex items-center gap-1.5 rounded-xl border border-dashed px-3 py-2 text-xs font-semibold transition-colors cursor-pointer ${
-                  selectedMemberId === "new"
-                    ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                    : "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10"
-                }`}
-              >
-                <Plus className="size-3.5" />
-                <span>+ Novo Membro</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Dados do Colaborador */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="member-name" className="text-xs font-bold text-foreground">
-                Nome completo <span className="text-primary">*</span>
-              </label>
-              <Input
-                id="member-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Jefferson Riper"
-                className="h-10 rounded-xl"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="member-role" className="text-xs font-bold text-foreground">
-                Cargo / Função
-              </label>
-              <Input
-                id="member-role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="Ex: Atendente Operacional"
-                className="h-10 rounded-xl"
-              />
-            </div>
-          </div>
-
-          {/* Ações Rápidas de Presets */}
-          <div className="rounded-2xl border border-border bg-muted/40 p-3 space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-              Preenchimento Rápido (Segunda a Sexta)
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => applyPresetToAllWeekdays(8, 18)}
-                className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-              >
-                Comercial (08h–18h)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPresetToAllWeekdays(7, 16)}
-                className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-              >
-                Manhã (07h–16h)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPresetToAllWeekdays(9, 18)}
-                className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
-              >
-                Integral (09h–18h)
-              </button>
-              <button
-                type="button"
-                onClick={copyMondayToWeekdays}
-                className="flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-              >
-                <Copy className="size-3" />
-                Copiar Segunda para Ter–Sex
-              </button>
-            </div>
-          </div>
-
-          {/* Grade de Dias da Semana */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-foreground">
-                Turnos por dia da semana
-              </label>
-              <span className="text-xs font-semibold text-primary">
-                Total: {totalWeeklyHours}h semanais
-              </span>
-            </div>
-
-            <div className="divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden">
-              {DAYS_ORDER.map((day) => {
-                const shift = shifts[day];
-                const isWorking = shift !== null;
-
-                return (
-                  <div
-                    key={day}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 gap-2.5 hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleDay(day)}
-                        className={`flex h-6 w-6 items-center justify-center rounded-lg border transition-colors cursor-pointer ${
-                          isWorking
-                            ? "bg-primary border-primary text-primary-foreground"
-                            : "border-border bg-card text-transparent"
-                        }`}
-                        aria-label={`Alternar dia ${DAY_NAMES[day]}`}
-                      >
-                        <Check className="size-3.5 stroke-[3]" />
-                      </button>
-
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-foreground">
-                          {DAY_NAMES[day]}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {shift && isWorking
-                            ? `${pad2(shift[0])}h às ${pad2(shift[1])}h (${shift[1] - shift[0]}h)`
-                            : "Folga programada"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {shift && isWorking ? (
-                      <div className="flex items-center gap-2 self-end sm:self-center">
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] text-muted-foreground">De:</span>
-                          <select
-                            value={shift[0]}
-                            onChange={(e) =>
-                              handleShiftHourChange(day, true, Number(e.target.value))
-                            }
-                            className="rounded-lg border border-border bg-card px-2 py-1 text-xs font-bold text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
-                          >
-                            {HOUR_OPTIONS.map((h) => (
-                              <option key={h} value={h}>
-                                {pad2(h)}:00
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <span className="text-[11px] text-muted-foreground">Até:</span>
-                          <select
-                            value={shift[1]}
-                            onChange={(e) =>
-                              handleShiftHourChange(day, false, Number(e.target.value))
-                            }
-                            className="rounded-lg border border-border bg-card px-2 py-1 text-xs font-bold text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
-                          >
-                            {HOUR_OPTIONS.map((h) => (
-                              <option key={h} value={h}>
-                                {pad2(h)}:00
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="rounded-lg border border-dashed border-border px-2.5 py-1 text-xs font-medium text-muted-foreground self-end sm:self-center">
-                        Dia de Folga
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleDayOff(d.id)}
+                      className={`flex size-6 items-center justify-center rounded-lg border text-xs font-bold transition-all cursor-pointer ${
+                        !config.isDayOff
+                          ? "bg-primary border-primary text-primary-foreground shadow-xs"
+                          : "border-border bg-background text-muted-foreground"
+                      }`}
+                    >
+                      {!config.isDayOff && <Check className="size-3.5" />}
+                    </button>
+                    <div>
+                      <p className="text-xs font-bold leading-tight">{d.label}</p>
+                      <span className="text-[11px] text-muted-foreground">
+                        {config.isDayOff ? "Folga programada" : "Dia de trabalho"}
                       </span>
-                    )}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
-        {/* Rodapé de Ações */}
-        <div className="flex items-center justify-between border-t border-border px-6 py-4 bg-muted/20">
-          {selectedMemberId !== "new" && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleDeleteMember}
-              className="text-destructive hover:bg-destructive/10 border-destructive/30 gap-1.5 cursor-pointer rounded-xl"
-            >
-              <Trash2 className="size-4" />
-              <span>Remover da escala</span>
-            </Button>
+                  {!config.isDayOff && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <Clock className="size-3 text-primary" />
+                        <select
+                          value={config.startHour}
+                          onChange={(e) =>
+                            handleTimeChange(d.id, "startHour", Number(e.target.value))
+                          }
+                          className="rounded-lg border border-input bg-background p-1 text-xs"
+                        >
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <option key={i} value={i}>
+                              {String(i).padStart(2, "0")}:00
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <span className="text-muted-foreground">até</span>
+
+                      <select
+                        value={config.endHour}
+                        onChange={(e) =>
+                          handleTimeChange(d.id, "endHour", Number(e.target.value))
+                        }
+                        className="rounded-lg border border-input bg-background p-1 text-xs"
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i}>
+                            {String(i).padStart(2, "0")}:00
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {errorMessage && (
+            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+              {errorMessage}
+            </div>
           )}
 
-          <div className="flex items-center gap-2 ml-auto">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="rounded-xl cursor-pointer"
-            >
-              Cancelar
-            </Button>
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            {isExistingEmployee ? (
+              <button
+                type="button"
+                disabled={isDeleting || isSubmitting}
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 text-xs font-semibold text-destructive hover:underline cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="size-3.5" />
+                )}
+                <span>Remover da escala</span>
+              </button>
+            ) : (
+              <div />
+            )}
 
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              disabled={!name.trim()}
-              onClick={handleSave}
-              className="rounded-xl cursor-pointer"
-            >
-              Salvar Escala
-            </Button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <span>Salvar Escala</span>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

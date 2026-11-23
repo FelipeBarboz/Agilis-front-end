@@ -114,8 +114,8 @@ export function SchedulingCalendar({
                 isSelected
                   ? "bg-primary text-white shadow-md"
                   : isToday
-                  ? "border border-primary text-primary"
-                  : "text-foreground hover:bg-muted",
+                    ? "border border-primary text-primary"
+                    : "text-foreground hover:bg-muted",
               ].join(" ")}
             >
               {day}

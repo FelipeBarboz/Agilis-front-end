@@ -47,9 +47,10 @@ interface AppointmentCardProps {
   appointment: Appointment;
   onConfirm?: (id: string) => void;
   onCancel?: (id: string) => void;
+  onComplete?: (id: string) => void;
 }
 
-export function AppointmentCard({ appointment, onConfirm, onCancel }: AppointmentCardProps) {
+export function AppointmentCard({ appointment, onConfirm, onCancel, onComplete }: AppointmentCardProps) {
   const { label, bgClass, textClass, Icon } = STATUS_CONFIG[appointment.status];
   const endHour = getEndTime(appointment.time, appointment.duration);
 
@@ -95,15 +96,27 @@ export function AppointmentCard({ appointment, onConfirm, onCancel }: Appointmen
         <div className="flex gap-2 pt-1">
           <button
             onClick={() => onConfirm?.(appointment.id)}
-            className="flex-1 rounded-xl bg-primary py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90"
+            className="flex-1 rounded-xl bg-primary py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90 cursor-pointer"
           >
             Confirmar
           </button>
           <button
             onClick={() => onCancel?.(appointment.id)}
-            className="flex-1 rounded-xl border border-destructive py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/5"
+            className="flex-1 rounded-xl border border-destructive py-2 text-xs font-bold text-destructive transition-colors hover:bg-destructive/5 cursor-pointer"
           >
             Recusar
+          </button>
+        </div>
+      )}
+
+      {/* Actions for confirmed */}
+      {appointment.status === "confirmed" && onComplete && (
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={() => onComplete?.(appointment.id)}
+            className="flex-1 rounded-xl bg-primary py-2 text-xs font-bold text-white transition-colors hover:bg-primary/90 cursor-pointer"
+          >
+            Concluir Atendimento
           </button>
         </div>
       )}

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 interface ScheduleButtonProps {
   serviceId: string;
   storeId: string;
+  serviceTitle?: string;
+  companyName?: string;
   selectedPrice: number;
   selectedPackage: string;
 }
@@ -14,6 +16,8 @@ interface ScheduleButtonProps {
 export function ScheduleButton({
   serviceId,
   storeId,
+  serviceTitle,
+  companyName,
   selectedPrice,
   selectedPackage,
 }: ScheduleButtonProps) {
@@ -23,6 +27,8 @@ export function ScheduleButton({
     const params = new URLSearchParams({
       storeId,
       serviceId,
+      ...(serviceTitle ? { serviceTitle } : {}),
+      ...(companyName ? { company: companyName } : {}),
       price: String(selectedPrice),
       package: selectedPackage,
     });

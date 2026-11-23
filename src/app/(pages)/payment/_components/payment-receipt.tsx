@@ -64,9 +64,6 @@ export function PaymentReceipt({
           <span>Prestador:</span>
         </div>
         <div className="flex items-center gap-1.5 font-semibold text-foreground">
-          <div className="flex size-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-            {providerName.charAt(0)}
-          </div>
           <span>{providerName}</span>
         </div>
       </div>

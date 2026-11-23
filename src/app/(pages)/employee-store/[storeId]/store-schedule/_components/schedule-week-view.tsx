@@ -5,469 +5,302 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
-  Clock,
+  Trash2,
   Users,
+  Clock,
+  Briefcase,
+  CheckCircle2,
   CalendarDays,
-  Info,
-  Search,
+  Loader2,
 } from "lucide-react";
-import {
-  isSameDay,
-  addDays,
-  getMondayWeekStart,
-  formatWeekRangeTitle,
-  DOW_SHORT,
-  pad2,
-} from "@/lib/utils/date-schedule-helpers";
-import type { StoreTeamMember } from "@/lib/mocks/store-roster";
-import { ScheduleLegend } from "./schedule-legend";
+import type { StoreWeeklyScheduleResponse } from "@/lib/services/employee-schedules-service";
 
 interface ScheduleWeekViewProps {
-  selectedDate: Date;
-  onSelectDate: (d: Date) => void;
-  onJumpToDay: (d: Date) => void;
-  team: StoreTeamMember[];
-  onGoToToday: () => void;
-  onOpenEditModal?: (memberId?: string) => void;
+  data: StoreWeeklyScheduleResponse | null;
+  isLoading: boolean;
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+  onOpenEditModal: (employeeId?: string) => void;
+  onDeleteEmployee?: (employeeId: string) => Promise<void>;
   canEdit?: boolean;
 }
 
 export function ScheduleWeekView({
+  data,
+  isLoading,
   selectedDate,
   onSelectDate,
-  onJumpToDay,
-  team,
-  onGoToToday,
   onOpenEditModal,
+  onDeleteEmployee,
   canEdit = true,
 }: ScheduleWeekViewProps) {
-  const [selectedRole, setSelectedRole] = useState<string>("Todos");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedPosition, setSelectedPosition] = useState<string>("Todos");
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
-  const today = new Date();
-  const weekStart = getMondayWeekStart(selectedDate);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const weekEnd = addDays(weekStart, 6);
-
-  const currentWeekStart = getMondayWeekStart(today);
-  const isCurrentWeek = isSameDay(weekStart, currentWeekStart);
-
-  function handleWeekNav(dir: number) {
-    onSelectDate(addDays(selectedDate, dir * 7));
+  // Helper para navegar semanas (-7 ou +7 dias)
+  function handleNavWeek(direction: number) {
+    const cur = new Date(`${selectedDate}T00:00:00`);
+    cur.setDate(cur.getDate() + direction * 7);
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, "0");
+    const d = String(cur.getDate()).padStart(2, "0");
+    onSelectDate(`${y}-${m}-${d}`);
   }
 
-  // Helper para formatar o chip de horário (ex: 08h–18h)
-  function formatChip(shift: [number, number] | null | undefined) {
-    if (!shift) return null;
-    return `${pad2(shift[0])}h–${pad2(shift[1])}h`;
+  function handleGoToday() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    onSelectDate(`${y}-${m}-${d}`);
   }
 
-  // Contagem de pessoas escaladas no dia
-  function countOn(d: Date) {
-    const dayOfWeek = d.getDay();
-    return team.filter((member) => member.shifts[dayOfWeek] !== null).length;
-  }
+  const employees = data?.employees ?? [];
+  const metrics = data?.metrics;
+  const dayHeaders = data?.dayHeaders ?? [];
+  const availablePositions = ["Todos", ...(data?.availablePositions ?? [])];
 
-  // Cálculo de estatísticas da semana
-  const totalWeeklyHours = team.reduce((acc, member) => {
-    let mHours = 0;
-    Object.values(member.shifts).forEach((s) => {
-      if (s) mHours += s[1] - s[0];
-    });
-    return acc + mHours;
-  }, 0);
-
-  const avgDailyStaff = (
-    weekDays.reduce((acc, d) => acc + countOn(d), 0) / 7
-  ).toFixed(1);
-
-  const todayWorking = team.filter((m) => m.shifts[today.getDay()] !== null).length;
-  const todayOff = team.length - todayWorking;
-
-  // Filtragem
-  const rolesSet = new Set(team.map((m) => m.role));
-  const availableRoles = ["Todos", ...Array.from(rolesSet)];
-
-  const filteredTeam = team.filter((member) => {
-    const matchesRole =
-      selectedRole === "Todos" || member.role.toLowerCase() === selectedRole.toLowerCase();
-    const matchesSearch =
-      searchQuery.trim() === "" ||
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.role.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesRole && matchesSearch;
+  const filteredEmployees = employees.filter((emp) => {
+    return (
+      selectedPosition === "Todos" ||
+      emp.positionTitle?.toLowerCase() === selectedPosition.toLowerCase()
+    );
   });
 
+  async function handleDelete(employeeId: string, name: string) {
+    if (!onDeleteEmployee) return;
+    if (!window.confirm(`Deseja remover ${name} da escala de funcionários?`)) {
+      return;
+    }
+    setIsDeletingId(employeeId);
+    try {
+      await onDeleteEmployee(employeeId);
+    } finally {
+      setIsDeletingId(null);
+    }
+  }
+
   return (
-    <div className="flex flex-col gap-5">
-      {/* Métricas e KPIs da Semana */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="flex flex-col rounded-[18px] border border-border bg-card p-4 shadow-sm text-center">
-          <span className="text-xs text-muted-foreground font-medium">Equipe na Escala</span>
-          <strong className="text-xl sm:text-2xl font-bold text-foreground mt-1 tabular-nums">
-            {team.length} pessoas
-          </strong>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-            100% ativos
+    <div className="space-y-6">
+      {/* Navegação de Semana */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleNavWeek(-1)}
+            aria-label="Semana anterior"
+            className="flex size-9 items-center justify-center rounded-xl border border-border hover:bg-muted transition-colors cursor-pointer"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+
+          <span className="text-sm font-bold text-foreground">
+            {data?.weekStartDate && data?.weekEndDate
+              ? `${formatDate(data.weekStartDate)} até ${formatDate(data.weekEndDate)}`
+              : "Semana selecionada"}
           </span>
+
+          <button
+            type="button"
+            onClick={() => handleNavWeek(1)}
+            aria-label="Próxima semana"
+            className="flex size-9 items-center justify-center rounded-xl border border-border hover:bg-muted transition-colors cursor-pointer"
+          >
+            <ChevronRight className="size-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleGoToday}
+            className="ml-2 rounded-xl border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted transition-colors cursor-pointer"
+          >
+            Hoje
+          </button>
         </div>
 
-        <div className="flex flex-col rounded-[18px] border border-border bg-card p-4 shadow-sm text-center">
-          <span className="text-xs text-muted-foreground font-medium">Carga Semanal</span>
-          <strong className="text-xl sm:text-2xl font-bold text-foreground mt-1 tabular-nums">
-            {totalWeeklyHours}h
-          </strong>
-          <span className="text-[11px] text-muted-foreground mt-0.5">
-            Soma dos turnos
-          </span>
-        </div>
-
-        <div className="flex flex-col rounded-[18px] border border-border bg-card p-4 shadow-sm text-center">
-          <span className="text-xs text-muted-foreground font-medium">Média por Dia</span>
-          <strong className="text-xl sm:text-2xl font-bold text-foreground mt-1 tabular-nums">
-            {avgDailyStaff} colab.
-          </strong>
-          <span className="text-[11px] text-muted-foreground mt-0.5">
-            Cobertura diária
-          </span>
-        </div>
-
-        <div className="flex flex-col rounded-[18px] border border-border bg-card p-4 shadow-sm text-center">
-          <span className="text-xs text-muted-foreground font-medium">Hoje na Loja</span>
-          <strong className="text-xl sm:text-2xl font-bold text-primary mt-1 tabular-nums">
-            {todayWorking} de {team.length}
-          </strong>
-          <span className="text-[11px] text-muted-foreground mt-0.5">
-            {todayOff} em folga
-          </span>
+        {/* Filtro de cargos */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">Cargo:</span>
+          <select
+            value={selectedPosition}
+            onChange={(e) => setSelectedPosition(e.target.value)}
+            className="rounded-xl border border-input bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+          >
+            {availablePositions.map((pos) => (
+              <option key={pos} value={pos}>
+                {pos}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Card Principal da Tabela Semanal */}
-      <section className="rounded-[22px] border border-border bg-card p-5 sm:px-7 sm:py-6 shadow-sm">
-        {/* Navegação da Semana */}
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => handleWeekNav(-1)}
-            aria-label="Semana anterior"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-foreground transition-colors hover:bg-primary/10 cursor-pointer"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-
-          <div className="flex flex-col items-center gap-1.5">
-            <h2 className="text-base font-bold text-foreground text-center" aria-live="polite">
-              {formatWeekRangeTitle(weekStart, weekEnd)}
-            </h2>
-            {!isCurrentWeek && (
-              <button
-                type="button"
-                onClick={onGoToToday}
-                className="rounded-full border border-border bg-card px-3.5 py-1 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/10 cursor-pointer shadow-xs"
-              >
-                Voltar para hoje
-              </button>
-            )}
+      {/* Cards de Métricas Principais da Semana */}
+      {metrics && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Users className="size-3.5 text-primary" />
+              Equipe na Escala
+            </span>
+            <span className="text-xl font-bold text-foreground">
+              {metrics.totalMembersInSchedule} colaboradores
+            </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleWeekNav(1)}
-            aria-label="Próxima semana"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] text-foreground transition-colors hover:bg-primary/10 cursor-pointer"
-          >
-            <ChevronRight className="size-5" />
-          </button>
+          <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Clock className="size-3.5 text-primary" />
+              Total de Horas
+            </span>
+            <span className="text-xl font-bold text-foreground">
+              {metrics.weeklyTotalHours}h semanais
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 text-primary" />
+              Presentes Hoje
+            </span>
+            <span className="text-xl font-bold text-primary">
+              {metrics.todayInStoreCount} em loja
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <CalendarDays className="size-3.5 text-primary" />
+              Folgas Hoje
+            </span>
+            <span className="text-xl font-bold text-muted-foreground">
+              {metrics.todayOffCount} colaboradores
+            </span>
+          </div>
         </div>
+      )}
 
-        {/* Barra de Filtros, Busca e Ação de Editar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
-          {/* Pills de Cargo */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {availableRoles.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setSelectedRole(r)}
-                className={`rounded-xl px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer border ${
-                  selectedRole === r
-                    ? "bg-primary border-primary text-primary-foreground shadow-2xs"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {r}
-              </button>
-            ))}
+      {/* Tabela / Grid de Escala Semanal */}
+      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <Loader2 className="size-8 animate-spin text-primary mb-3" />
+            <p className="text-sm font-semibold text-foreground">Carregando escala semanal...</p>
           </div>
-
-          {/* Busca e Botão Editar Escala */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 sm:w-44">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar membro..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-border bg-card pl-8 pr-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
-              />
+        ) : filteredEmployees.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-3">
+              <Users className="size-6" />
             </div>
-
+            <h3 className="text-base font-bold text-foreground">Nenhuma escala cadastrada</h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+              Não há funcionários com escala cadastrada para o período selecionado.
+            </p>
             {canEdit && (
               <button
                 type="button"
-                onClick={() => onOpenEditModal?.()}
-                className="flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors cursor-pointer shadow-2xs shrink-0"
+                onClick={() => onOpenEditModal()}
+                className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors cursor-pointer"
               >
-                <Pencil className="size-3.5" />
-                <span>Editar Escala</span>
+                + Criar Escala de Funcionário
               </button>
             )}
           </div>
-        </div>
-
-        {/* Tabela da escala com rolagem horizontal */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] border-separate border-spacing-0">
-            <thead>
-              <tr>
-                <th
-                  scope="col"
-                  className="sticky left-0 z-30 bg-card py-2.5 px-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-r border-border w-[185px] min-w-[185px] max-w-[185px]"
-                >
-                  EQUIPE
-                </th>
-                {weekDays.map((d) => {
-                  const isDayToday = isSameDay(d, today);
-                  return (
-                    <th
-                      key={d.toISOString()}
-                      scope="col"
-                      className={[
-                        "py-2 px-1 text-center border-b border-border font-normal min-w-[65px]",
-                        isDayToday ? "bg-primary/5" : "",
-                      ].join(" ")}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => onJumpToDay(d)}
-                        aria-label={`Ver escala de ${DOW_SHORT[d.getDay()]}, ${d.getDate()}`}
-                        className="group flex flex-col items-center gap-0.5 w-full cursor-pointer p-0"
-                      >
-                        <small
-                          className={[
-                            "text-[11px] font-semibold tracking-wider uppercase transition-colors",
-                            isDayToday ? "text-primary" : "text-muted-foreground",
-                          ].join(" ")}
-                        >
-                          {DOW_SHORT[d.getDay()]}
-                        </small>
-                        <b
-                          className={[
-                            "flex h-[30px] w-[30px] items-center justify-center rounded-full text-[15px] font-bold leading-none transition-colors select-none",
-                            isDayToday
-                              ? "bg-primary text-white"
-                              : "text-foreground group-hover:bg-primary/10",
-                          ].join(" ")}
-                        >
-                          {d.getDate()}
-                        </b>
-                      </button>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-border bg-muted/40 font-semibold text-muted-foreground">
+                  <th className="py-3 px-4 min-w-[180px]">Funcionário</th>
+                  {dayHeaders.map((dh) => (
+                    <th key={dh.date} className="py-3 px-3 text-center min-w-[100px]">
+                      <div className="font-bold text-foreground">{dh.dayLabel}</div>
+                      <div className="text-[11px] font-normal text-muted-foreground">
+                        {dh.dayOfMonth} ({dh.activeCount} ativos)
+                      </div>
                     </th>
-                  );
-                })}
-                <th
-                  scope="col"
-                  className="py-2.5 px-2 text-center border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground min-w-[75px]"
-                >
-                  HORAS
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filteredTeam.map((member) => {
-                const isMe = !!member.isCurrentUser;
-
-                // Horas do membro na semana
-                let memberTotalHours = 0;
-                let offDaysCount = 0;
-                weekDays.forEach((d) => {
-                  const s = member.shifts[d.getDay()];
-                  if (s) {
-                    memberTotalHours += s[1] - s[0];
-                  } else {
-                    offDaysCount += 1;
-                  }
-                });
-
-                return (
-                  <tr
-                    key={member.id}
-                    className={isMe ? "bg-primary/[0.04]" : ""}
-                  >
-                    {/* Coluna da pessoa fixa à esquerda */}
-                    <th
-                      scope="row"
-                      style={{
-                        backgroundColor: isMe
-                          ? "color-mix(in srgb, var(--primary) 10%, var(--card))"
-                          : "var(--card)",
-                      }}
-                      className="sticky left-0 z-20 py-3 px-3 text-left font-normal border-b border-r border-border w-[185px] min-w-[185px] max-w-[185px]"
-                    >
-                      <div className="flex items-center justify-between gap-1.5 min-w-0">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {/* Avatar circular */}
-                          <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-[#006b49] text-xs font-semibold text-white shadow-2xs select-none">
-                            {member.initials}
-                          </div>
-
-                          {/* Nome e cargo */}
-                          <div className="flex flex-col min-w-0 overflow-hidden">
-                            <b className="flex items-center gap-1.5 text-[13.5px] font-semibold text-foreground whitespace-nowrap leading-tight truncate">
-                              <span className="truncate">{member.name}</span>
-                              {isMe && (
-                                <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-1.5 py-0.5 text-[10.5px] font-semibold text-emerald-800 dark:text-emerald-300 leading-none">
-                                  Você
-                                </span>
-                              )}
-                            </b>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap truncate">
-                              {member.role}
-                            </span>
-                          </div>
+                  ))}
+                  <th className="py-3 px-3 text-center min-w-[70px]">Total</th>
+                  {canEdit && <th className="py-3 px-3 text-center min-w-[70px]">Ações</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredEmployees.map((emp) => (
+                  <tr key={emp.employeeId} className="hover:bg-muted/30 transition-colors">
+                    {/* Dados do Funcionário */}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs">
+                          {emp.name.charAt(0).toUpperCase()}
                         </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-foreground truncate">{emp.name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
+                            <Briefcase className="size-3" />
+                            {emp.positionTitle || "Funcionário"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
 
-                        {canEdit && (
+                    {/* 7 Dias da Semana */}
+                    {emp.days.map((d) => (
+                      <td key={d.date} className="py-3 px-2 text-center">
+                        {d.isDayOff ? (
+                          <span className="inline-block rounded-md bg-muted px-2 py-1 text-[11px] font-medium text-muted-foreground">
+                            Folga
+                          </span>
+                        ) : (
+                          <span className="inline-block rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-[11px] font-semibold text-primary">
+                            {d.formattedHours || `${d.startTime?.hour ?? 8}h - ${d.endTime?.hour ?? 18}h`}
+                          </span>
+                        )}
+                      </td>
+                    ))}
+
+                    {/* Total Horas */}
+                    <td className="py-3 px-3 text-center font-bold text-foreground">
+                      {emp.weeklyHours}h
+                    </td>
+
+                    {/* Ações */}
+                    {canEdit && (
+                      <td className="py-3 px-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
                           <button
                             type="button"
-                            onClick={() => onOpenEditModal?.(member.id)}
-                            title={`Editar escala de ${member.name}`}
-                            className="p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                            onClick={() => onOpenEditModal(emp.employeeId)}
+                            title="Editar escala"
+                            className="flex size-7 items-center justify-center rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                           >
-                            <Pencil className="size-3" />
+                            <Pencil className="size-3.5" />
                           </button>
-                        )}
-                      </div>
-                    </th>
-
-                    {/* Células de cada dia da semana */}
-                    {weekDays.map((d) => {
-                      const isDayToday = isSameDay(d, today);
-                      const shift = member.shifts[d.getDay()];
-                      const chipText = formatChip(shift);
-
-                      return (
-                        <td
-                          key={d.toISOString()}
-                          className={[
-                            "py-3 px-1 text-center border-b border-border tabular-nums min-w-[65px]",
-                            isDayToday ? (isMe ? "bg-primary/[0.08]" : "bg-primary/5") : "",
-                          ].join(" ")}
-                        >
-                          {chipText ? (
-                            <span
-                              className={[
-                                "inline-block px-2 py-1 rounded-[9px] text-xs font-semibold whitespace-nowrap",
-                                isMe
-                                  ? "bg-primary text-primary-foreground shadow-2xs"
-                                  : "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20",
-                              ].join(" ")}
+                          {onDeleteEmployee && (
+                            <button
+                              type="button"
+                              disabled={isDeletingId === emp.employeeId}
+                              onClick={() => handleDelete(emp.employeeId, emp.name)}
+                              title="Remover da escala"
+                              className="flex size-7 items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer disabled:opacity-50"
                             >
-                              {chipText}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              Folga
-                            </span>
+                              <Trash2 className="size-3.5" />
+                            </button>
                           )}
-                        </td>
-                      );
-                    })}
-
-                    {/* Coluna de Carga Horária Semanal */}
-                    <td className="py-3 px-2 text-center border-b border-border tabular-nums min-w-[75px]">
-                      <div className="flex flex-col items-center">
-                        <span className="font-bold text-xs text-foreground bg-muted/70 px-2 py-0.5 rounded-md">
-                          {memberTotalHours}h
-                        </span>
-                        <span className="text-[10.5px] text-muted-foreground mt-0.5">
-                          {offDaysCount} {offDaysCount === 1 ? "folga" : "folgas"}
-                        </span>
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
-                );
-              })}
-
-              {/* Linha de rodapé: Na escala */}
-              <tr className="text-muted-foreground text-[12.5px] font-medium">
-                <th
-                  scope="row"
-                  className="sticky left-0 z-20 bg-card py-3 px-3 text-left font-medium border-r border-border w-[185px] min-w-[185px] max-w-[185px]"
-                >
-                  Na escala
-                </th>
-                {weekDays.map((d) => {
-                  const isDayToday = isSameDay(d, today);
-                  return (
-                    <td
-                      key={d.toISOString()}
-                      className={[
-                        "py-3 px-1 text-center tabular-nums min-w-[65px]",
-                        isDayToday ? "bg-primary/5" : "",
-                      ].join(" ")}
-                    >
-                      <b className="font-bold text-foreground">{countOn(d)}</b> de {team.length}
-                    </td>
-                  );
-                })}
-                <td className="py-3 px-2 text-center tabular-nums min-w-[75px]">
-                  <b className="font-bold text-primary">{totalWeeklyHours}h</b> total
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Legenda */}
-        <ScheduleLegend />
-      </section>
-
-      {/* Card de Informações e Diretrizes Operacionais da Loja */}
-      <section className="rounded-[22px] border border-border bg-card p-5 sm:p-6 shadow-sm flex flex-col gap-3.5">
-        <div className="flex items-center gap-2">
-          <Info className="size-4.5 text-primary" />
-          <h3 className="text-sm sm:text-base font-bold text-foreground">
-            Diretrizes e Cobertura da Loja
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-muted-foreground">
-          <div className="flex flex-col gap-1 rounded-2xl bg-muted/40 p-3.5 border border-border/60">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <Clock className="size-3.5 text-primary" /> Atendimento Oficial
-            </span>
-            <span>Seg a Sex das 07h00 às 18h00 • Sábados das 08h às 14h</span>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          <div className="flex flex-col gap-1 rounded-2xl bg-muted/40 p-3.5 border border-border/60">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <Users className="size-3.5 text-primary" /> Horário de Pico
-            </span>
-            <span>10h00 às 16h00 com cobertura simultânea de técnicos</span>
-          </div>
-
-          <div className="flex flex-col gap-1 rounded-2xl bg-muted/40 p-3.5 border border-border/60">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <CalendarDays className="size-3.5 text-primary" /> Troca de Escala
-            </span>
-            <span>Notifique com 24h de antecedência à gerência da loja</span>
-          </div>
-        </div>
-      </section>
+        )}
+      </div>
     </div>
   );
+}
+
+function formatDate(iso: string): string {
+  const [, m, d] = iso.split("-");
+  return `${d}/${m}`;
 }
