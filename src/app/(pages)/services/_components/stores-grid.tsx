@@ -25,7 +25,11 @@ export function StoresGrid({ stores, showEmptyState = true }: StoresGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {stores.map((store, index) => (
-        <StoreCard key={store.id} store={store} index={index} />
+        <StoreCard
+          key={store.id ? `${store.id}-${index}` : `store-${index}`}
+          store={store}
+          index={index}
+        />
       ))}
     </div>
   );

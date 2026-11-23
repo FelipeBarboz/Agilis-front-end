@@ -1,13 +1,45 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { mockStores } from "@/lib/mocks/stores";
+import { mockStores, type Store } from "@/lib/mocks/stores";
 import type { Filters, EntityType } from "../_components/filters/filter-panel";
 import { DEFAULT_FILTERS } from "../_components/filters/default-filters";
 import {
   fetchServicesSearch,
   normalizeSearchItemToService,
 } from "@/lib/services/services-service";
+import {
+  fetchStoresSearch,
+  normalizeStoreSearchToStore,
+  getStoreById,
+  type StoreSearchItem,
+  type StoreProfileDTO,
+} from "@/lib/services/stores-service";
 import { type Service } from "@/lib/mocks/services";
+
+// Cache em memória para perfis detalhados de loja
+const storeProfileCache = new Map<string, StoreProfileDTO>();
+
+async function getEnrichedStore(item: StoreSearchItem): Promise<Store> {
+  if (item.storeName || item.name) {
+    return normalizeStoreSearchToStore(item, null);
+  }
+
+  if (storeProfileCache.has(item.id)) {
+    return normalizeStoreSearchToStore(item, storeProfileCache.get(item.id)!);
+  }
+
+  try {
+    const profile = await getStoreById(item.id);
+    if (profile?.id) {
+      storeProfileCache.set(item.id, profile);
+      return normalizeStoreSearchToStore(item, profile);
+    }
+  } catch {
+    // Se a consulta detalhada falhar, normaliza com os dados básicos da busca
+  }
+
+  return normalizeStoreSearchToStore(item, null);
+}
 
 export function parseFiltersFromSearchParams(
   params: { get: (key: string) => string | null }
@@ -148,8 +180,12 @@ export function useServicesFilter() {
   const [totalElements, setTotalElements] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [page, setPage] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isServicesLoading, setIsServicesLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Estados das lojas reais carregadas da API
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isStoresLoading, setIsStoresLoading] = useState<boolean>(false);
 
   const isInitialMount = useRef<boolean>(true);
   // Armazena a última query string enviada via router.replace para prevenir loops
@@ -223,12 +259,12 @@ export function useServicesFilter() {
       setServices([]);
       setTotalElements(0);
       setTotalPages(1);
-      setIsLoading(false);
+      setIsServicesLoading(false);
       return;
     }
 
     let isCancelled = false;
-    setIsLoading(true);
+    setIsServicesLoading(true);
     setError(null);
 
     const timer = setTimeout(() => {
@@ -257,13 +293,13 @@ export function useServicesFilter() {
                 ? response.totalPages
                 : Math.max(1, Math.ceil(total / 15));
             setTotalPages(totalP);
-            setIsLoading(false);
+            setIsServicesLoading(false);
           }
         } catch (err) {
           if (!isCancelled) {
             console.error("[Services] Erro ao carregar serviços da API:", err);
             setError("Não foi possível carregar os serviços da API.");
-            setIsLoading(false);
+            setIsServicesLoading(false);
           }
         }
       })();
@@ -275,53 +311,114 @@ export function useServicesFilter() {
     };
   }, [search, category, appliedFilters, page]);
 
-  // Filtro de lojas (mantém lojas mockadas disponíveis no painel de busca)
-  const filteredStores = useMemo(() => {
-    if (appliedFilters.type === "servicos") return [];
+  // Busca lojas reais na API (/api/v1/stores/search)
+  useEffect(() => {
+    if (appliedFilters.type === "servicos") {
+      setStores([]);
+      setIsStoresLoading(false);
+      return;
+    }
 
-    return mockStores.filter((st) => {
-      const matchesSearch =
-        search === "" ||
-        st.name.toLowerCase().includes(search.toLowerCase()) ||
-        st.category.toLowerCase().includes(search.toLowerCase()) ||
-        st.about?.description?.toLowerCase().includes(search.toLowerCase());
+    let isCancelled = false;
+    setIsStoresLoading(true);
 
-      const matchesCategory =
-        category === "todos" ||
-        st.category.toLowerCase().includes(category.toLowerCase());
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const apiStores = await fetchStoresSearch({
+            search,
+            q: search,
+            category: category !== "todos" ? category : undefined,
+            state: appliedFilters.state || undefined,
+            city: appliedFilters.city || undefined,
+          });
 
-      const matchesRating =
-        appliedFilters.rating === 0 || st.rating >= appliedFilters.rating;
+          if (isCancelled) return;
 
-      const matchesState =
-        appliedFilters.state === "" ||
-        st.about?.address?.state?.toLowerCase() ===
-        appliedFilters.state.toLowerCase();
+          if (Array.isArray(apiStores) && apiStores.length > 0) {
+            const enriched = await Promise.all(
+              apiStores.map((item) => getEnrichedStore(item))
+            );
+            if (!isCancelled) {
+              // Desduplica lojas por ID caso a API retorne múltiplos registros para a mesma loja
+              const uniqueStores = Array.from(
+                new Map(enriched.map((s) => [s.id, s])).values()
+              );
+              setStores(uniqueStores);
+              setIsStoresLoading(false);
+            }
+          } else {
+            // Se a busca na API não retornar lojas, usa fallback filtrado de mockStores
+            const fallback = mockStores.filter((st) => {
+              const matchesSearch =
+                search === "" ||
+                st.name.toLowerCase().includes(search.toLowerCase()) ||
+                st.category.toLowerCase().includes(search.toLowerCase()) ||
+                st.about?.description?.toLowerCase().includes(search.toLowerCase());
 
-      const matchesCity =
-        appliedFilters.city === "" ||
-        Boolean(
-          st.about?.address?.city
-            ?.toLowerCase()
-            .includes(appliedFilters.city.toLowerCase())
-        );
+              const matchesCategory =
+                category === "todos" ||
+                st.category.toLowerCase().includes(category.toLowerCase());
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesRating &&
-        matchesState &&
-        matchesCity
-      );
-    });
+              const matchesRating =
+                appliedFilters.rating === 0 || st.rating >= appliedFilters.rating;
+
+              const matchesState =
+                appliedFilters.state === "" ||
+                st.about?.address?.state?.toLowerCase() ===
+                  appliedFilters.state.toLowerCase();
+
+              const matchesCity =
+                appliedFilters.city === "" ||
+                Boolean(
+                  st.about?.address?.city
+                    ?.toLowerCase()
+                    .includes(appliedFilters.city.toLowerCase())
+                );
+
+              return (
+                matchesSearch &&
+                matchesCategory &&
+                matchesRating &&
+                matchesState &&
+                matchesCity
+              );
+            });
+
+            if (!isCancelled) {
+              setStores(fallback);
+              setIsStoresLoading(false);
+            }
+          }
+        } catch (err) {
+          if (!isCancelled) {
+            console.warn("[Stores] Erro ao carregar lojas, usando fallback:", err);
+            setStores([]);
+            setIsStoresLoading(false);
+          }
+        }
+      })();
+    }, 300);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [search, category, appliedFilters]);
+
+  const isLoading =
+    appliedFilters.type === "lojas"
+      ? isStoresLoading
+      : appliedFilters.type === "servicos"
+        ? isServicesLoading
+        : isServicesLoading || isStoresLoading;
 
   const totalResults =
     appliedFilters.type === "lojas"
-      ? filteredStores.length
+      ? stores.length
       : appliedFilters.type === "servicos"
         ? totalElements
-        : totalElements + filteredStores.length;
+        : totalElements + stores.length;
 
   return {
     search,
@@ -332,7 +429,7 @@ export function useServicesFilter() {
     setAppliedFilters,
     clearFilters,
     filteredServices: services,
-    filteredStores,
+    filteredStores: stores,
     totalResults,
     isLoading,
     error,

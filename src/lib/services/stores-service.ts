@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
 import { getStoredUser } from "@/lib/auth/token-storage";
+import { type Store } from "@/lib/mocks/stores";
 
 export interface CreateStorePayload {
   userId: string;
@@ -339,6 +340,16 @@ export async function getStoreById(storeId: string): Promise<StoreProfileDTO> {
   );
 }
 
+/**
+ * GET /api/v1/stores/slug/{slug}
+ * Consulta o perfil público da loja pelo slug
+ */
+export async function getStoreBySlug(slug: string): Promise<StoreProfileDTO> {
+  return await api<StoreProfileDTO>(
+    `/api/v1/stores/slug/${encodeURIComponent(slug)}`
+  );
+}
+
 export interface UpdateStoreProfilePayload {
   requesterId: string;
   storeId: string;
@@ -372,4 +383,148 @@ export async function updateStoreProfile(
       body: JSON.stringify(formattedPayload),
     }
   );
+}
+
+export interface StoreSearchCity {
+  city: string;
+  state: string;
+}
+
+export interface StoreSearchItem {
+  id: string;
+  attendanceType: string;
+  radiusKm: number;
+  cities: StoreSearchCity[];
+  storeName?: string;
+  name?: string;
+  slug?: string;
+  description?: string;
+  profileImgUrl?: string;
+  category?: string;
+  rating?: number;
+  reviewCount?: number;
+  [key: string]: unknown;
+}
+
+export interface SearchStoresParams {
+  city?: string;
+  state?: string;
+  category?: string;
+  search?: string;
+  q?: string;
+}
+
+/**
+ * GET /api/v1/stores/search
+ * Pesquisa lojas por cidade, estado ou categoria
+ */
+export async function fetchStoresSearch(
+  params: SearchStoresParams = {}
+): Promise<StoreSearchItem[]> {
+  const query = new URLSearchParams();
+
+  if (params.city && params.city.trim().length > 0) {
+    query.set("city", params.city.trim());
+  }
+
+  if (params.state && params.state.trim().length > 0) {
+    query.set("state", params.state.trim().toUpperCase());
+  }
+
+  if (params.category && params.category !== "todos") {
+    query.set("category", params.category.trim().toUpperCase());
+  }
+
+  const searchTerm = (params.search ?? params.q ?? "").trim();
+  if (searchTerm) {
+    query.set("q", searchTerm);
+    query.set("search", searchTerm);
+  }
+
+  const queryString = query.toString();
+  const endpoint = `/api/v1/stores/search${queryString ? `?${queryString}` : ""}`;
+
+  try {
+    const res = await api<StoreSearchItem[]>(endpoint);
+    if (Array.isArray(res)) {
+      return res;
+    }
+    return [];
+  } catch (err) {
+    console.warn("[Stores] Erro ao buscar lojas na API:", err);
+    return [];
+  }
+}
+
+/**
+ * Converte um item de busca retornado por /api/v1/stores/search
+ * para o modelo de dados padrão Store utilizado pelos componentes visuais.
+ */
+export function normalizeStoreSearchToStore(
+  item: StoreSearchItem,
+  profile?: StoreProfileDTO | null
+): Store {
+  const name =
+    profile?.storeName ||
+    item.storeName ||
+    item.name ||
+    `Loja ${item.id.slice(0, 8)}`;
+  const description =
+    profile?.description ||
+    item.description ||
+    "Loja e prestadora de serviços cadastrada na plataforma.";
+  const slug = profile?.slug || item.slug || item.id;
+  const logoUrl = profile?.profileImgUrl || item.profileImgUrl || "";
+
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const firstWord = words[0] || "";
+  const secondWord = words[1] || "";
+  const initials =
+    firstWord && secondWord
+      ? `${firstWord[0] || ""}${secondWord[0] || ""}`.toUpperCase()
+      : name.slice(0, 2).toUpperCase() || "SP";
+
+  const firstCity = item.cities?.[0];
+  const cityName = firstCity?.city || "";
+  const stateName = firstCity?.state || "";
+
+  return {
+    id: item.id,
+    slug,
+    name,
+    initials,
+    category: item.category || "Serviços Gerais",
+    distance: item.radiusKm ? `${item.radiusKm}km` : "Disponível",
+    rating: typeof item.rating === "number" ? item.rating : 5.0,
+    reviewCount: typeof item.reviewCount === "number" ? item.reviewCount : 0,
+    isAvailable: true,
+    availabilityText: "Disponível",
+    bannerUrl: undefined,
+    logoUrl: logoUrl || undefined,
+    about: {
+      description,
+      foundedYear: 2024,
+      completedServices: 0,
+      specialties: [],
+      openingHours: [
+        {
+          days: "Segunda a Sexta",
+          hours: "08:00 - 18:00",
+        },
+      ],
+      address: {
+        street: "",
+        number: "",
+        neighborhood: "",
+        city: cityName,
+        state: stateName,
+        cep: "",
+      },
+      contact: {
+        phone: "",
+        whatsapp: "",
+        email: "",
+      },
+    },
+  };
 }

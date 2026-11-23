@@ -46,7 +46,7 @@ export function ServiceStoreCard({ storeId, companyName, storeServicesCount }: S
       </div>
 
       <Link
-        href={`/store-page?id=${targetStoreId}${displayName ? `&name=${encodeURIComponent(displayName)}` : ""}`}
+        href={`/store-page?id=${encodeURIComponent(targetStoreId)}${store?.slug ? `&slug=${encodeURIComponent(store.slug)}` : ""}${displayName ? `&name=${encodeURIComponent(displayName)}` : ""}`}
         className="flex items-center gap-4 rounded-xl border border-border/80 bg-muted/20 p-4 transition-all hover:bg-muted/50 hover:border-primary/40 group"
       >
         {/* Avatar da Loja com Padrão Agilis */}

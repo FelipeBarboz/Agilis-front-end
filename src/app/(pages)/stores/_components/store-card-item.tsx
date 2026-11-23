@@ -99,7 +99,7 @@ export function StoreCardItem({
       <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border">
         {store.storeId ? (
           <Link
-            href={`/store-page?id=${encodeURIComponent(store.storeId)}`}
+            href={`/store-page?slug=${encodeURIComponent(store.slug || store.storeId)}&id=${encodeURIComponent(store.storeId)}`}
             className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline flex items-center gap-1"
           >
             <span>Ver perfil público</span>

@@ -105,7 +105,11 @@ export function ServicesGrid({
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {displayedServices.map((service, index) => (
-          <ServiceCard key={service.id} service={service} index={index} />
+          <ServiceCard
+            key={service.id ? `${service.id}-${index}` : `service-${index}`}
+            service={service}
+            index={index}
+          />
         ))}
       </div>
 

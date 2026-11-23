@@ -112,7 +112,13 @@ export function ServiceCard({ service, index }: ServiceCardProps) {
               </Link>
               <div className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground font-medium">
                 <Star size={12} className="fill-amber-400 text-amber-400" />
-                {typeof service.rating === "number" ? service.rating.toFixed(1) : "5.0"} ({service.reviewCount})
+                {typeof service.rating === "number" && service.rating > 0 ? (
+                  <span>
+                    {service.rating.toFixed(1)} ({service.reviewCount})
+                  </span>
+                ) : (
+                  <span>Novo</span>
+                )}
               </div>
             </div>
 

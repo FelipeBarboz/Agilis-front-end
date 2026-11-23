@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
+import { fetchReviewsByReviewedId } from "@/lib/services/reviews-service";
 
 export interface ServiceSearchItem {
   serviceId: string;
@@ -153,11 +154,9 @@ export function normalizeSearchItemToService(item: ServiceSearchItem): Service {
     priceType: pType,
     durationMinutes: item.durationMinutes || 60,
     createdAt: new Date().toISOString(),
-    rating: typeof item.avgRating === "number" && item.avgRating > 0 ? item.avgRating : 4.8,
+    rating: typeof item.avgRating === "number" ? item.avgRating : 0,
     reviewCount: typeof item.reviewCount === "number" ? item.reviewCount : 0,
-    totalServices: typeof item.reviewCount === "number" && item.reviewCount > 0
-      ? Math.max(item.reviewCount, Math.round(item.reviewCount * 1.2))
-      : 10,
+    totalServices: typeof item.reviewCount === "number" ? item.reviewCount : 0,
     company: item.storeName || "Prestador Agilis",
     city: item.city || "",
     state: item.state || "",
@@ -182,7 +181,8 @@ export function normalizeSearchItemToService(item: ServiceSearchItem): Service {
  */
 export function normalizeDetailToService(
   detail: ServiceDetailDTO,
-  fallbackCompany?: string
+  fallbackCompany?: string,
+  fallbackLocation?: { city?: string; state?: string }
 ): Service {
   const priceInicial = Number(detail.price) || 0;
   const pType: "FIXED" | "FROM" =
@@ -235,8 +235,8 @@ export function normalizeDetailToService(
       ? detail.totalServices
       : 0;
   const company = detail.company ?? detail.storeName ?? fallbackCompany ?? "Prestador Agilis";
-  const city = detail.city ?? "São Paulo";
-  const state = detail.state ?? "SP";
+  const city = detail.city || fallbackLocation?.city || "";
+  const state = detail.state || fallbackLocation?.state || "";
   const availability = detail.availability ?? detail.nextAvailableSlot ?? "Disponível para agendamento";
 
   return {
@@ -579,12 +579,64 @@ export async function addServiceImage(
 
 /**
  * Função utilitária que busca todos os serviços de uma loja (GET /api/v1/services/store/{storeId})
- * e os converte para o modelo Service do frontend.
+ * e os converte para o modelo Service do frontend, sincronizando imagens reais e avaliações.
  */
 export async function getServicesByStoreId(
   storeId: string,
-  fallbackCompany?: string
+  fallbackCompany?: string,
+  fallbackLocation?: { city?: string; state?: string }
 ): Promise<Service[]> {
   const items = await fetchServicesByStore(storeId);
-  return items.map((item) => normalizeDetailToService(item, fallbackCompany));
+  if (!Array.isArray(items) || items.length === 0) {
+    return [];
+  }
+
+  const enriched = await Promise.all(
+    items.map(async (item) => {
+      const service = normalizeDetailToService(item, fallbackCompany, fallbackLocation);
+      const effectiveStoreId = item.storeId || storeId;
+
+      try {
+        const [imagesRes, reviewsRes] = await Promise.allSettled([
+          fetchServiceImages(effectiveStoreId, item.id),
+          fetchReviewsByReviewedId(item.id),
+        ]);
+
+        if (imagesRes.status === "fulfilled" && Array.isArray(imagesRes.value) && imagesRes.value.length > 0) {
+          const realImages = imagesRes.value;
+          const hasThumbnail = Boolean(item.thumbnailUrl && item.thumbnailUrl.trim().length > 0);
+          const alreadyHasThumb = hasThumbnail && realImages.some((img) => img.url === item.thumbnailUrl);
+          const combinedImages = hasThumbnail && !alreadyHasThumb
+            ? [
+                { id: `thumb-${service.id}`, serviceId: service.id, url: item.thumbnailUrl!.trim() },
+                ...realImages,
+              ]
+            : realImages;
+          service.images = combinedImages;
+        }
+
+        if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) {
+          const reviews = reviewsRes.value;
+          const count = reviews.length;
+          if (count > 0) {
+            const avgRating = Number(
+              (
+                reviews.reduce((acc, curr) => acc + (Number(curr.rating) || 0), 0) /
+                count
+              ).toFixed(1)
+            );
+            service.rating = avgRating;
+            service.reviewCount = count;
+            service.totalServices = count;
+          }
+        }
+      } catch (err) {
+        console.warn(`[Services] Falha ao enriquecer serviço ${item.id}:`, err);
+      }
+
+      return service;
+    })
+  );
+
+  return enriched;
 }
