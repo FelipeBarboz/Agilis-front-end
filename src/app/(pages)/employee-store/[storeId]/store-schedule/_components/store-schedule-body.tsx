@@ -8,6 +8,7 @@ import {
   RefreshCw,
   AlertCircle,
   Building2,
+  Clock,
 } from "lucide-react";
 import {
   getStoreWeeklySchedule,
@@ -20,6 +21,7 @@ import { getMyStores } from "@/lib/services/stores-service";
 import { ScheduleWeekView } from "./schedule-week-view";
 import { ScheduleDayView } from "./schedule-day-view";
 import { ManageScheduleModal } from "./manage-schedule-modal";
+import { BusinessHoursModal } from "./business-hours-modal";
 
 export type ScheduleViewMode = "dia" | "semana";
 
@@ -56,6 +58,7 @@ export function StoreScheduleBody({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [isBusinessHoursModalOpen, setIsBusinessHoursModalOpen] = useState(false);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
 
   // 1. Resolve Store ID se não fornecido via URL ou se genérico
@@ -186,14 +189,25 @@ export function StoreScheduleBody({
             </button>
 
             {canEdit && (
-              <button
-                type="button"
-                onClick={handleOpenCreateModal}
-                className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all active:scale-95 cursor-pointer"
-              >
-                <CalendarPlus size={15} />
-                <span>Configurar Escala</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsBusinessHoursModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground shadow-2xs hover:bg-muted transition-all active:scale-95 cursor-pointer"
+                >
+                  <Clock size={15} className="text-primary" />
+                  <span>Horário da Loja</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenCreateModal}
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all active:scale-95 cursor-pointer"
+                >
+                  <CalendarPlus size={15} />
+                  <span>Configurar Escala</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -282,6 +296,14 @@ export function StoreScheduleBody({
         storeId={resolvedStoreId}
         employees={weeklyData?.employees ?? []}
         initialEmployeeId={editingEmployeeId}
+        onSuccess={loadScheduleData}
+      />
+
+      {/* Modal de Horário de Funcionamento da Loja */}
+      <BusinessHoursModal
+        isOpen={isBusinessHoursModalOpen}
+        onClose={() => setIsBusinessHoursModalOpen(false)}
+        storeId={resolvedStoreId}
         onSuccess={loadScheduleData}
       />
     </div>

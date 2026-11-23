@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { StoreWeeklyScheduleResponse } from "@/lib/services/employee-schedules-service";
+import { getMondayWeekStart } from "@/lib/utils/date-schedule-helpers";
 
 interface ScheduleWeekViewProps {
   data: StoreWeeklyScheduleResponse | null;
@@ -37,21 +38,22 @@ export function ScheduleWeekView({
   const [selectedPosition, setSelectedPosition] = useState<string>("Todos");
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
-  // Helper para navegar semanas (-7 ou +7 dias)
+  // Helper para navegar semanas (-7 ou +7 dias), garantindo sempre a segunda-feira
   function handleNavWeek(direction: number) {
     const cur = new Date(`${selectedDate}T00:00:00`);
     cur.setDate(cur.getDate() + direction * 7);
-    const y = cur.getFullYear();
-    const m = String(cur.getMonth() + 1).padStart(2, "0");
-    const d = String(cur.getDate()).padStart(2, "0");
+    const monday = getMondayWeekStart(cur);
+    const y = monday.getFullYear();
+    const m = String(monday.getMonth() + 1).padStart(2, "0");
+    const d = String(monday.getDate()).padStart(2, "0");
     onSelectDate(`${y}-${m}-${d}`);
   }
 
   function handleGoToday() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
+    const monday = getMondayWeekStart(new Date());
+    const y = monday.getFullYear();
+    const m = String(monday.getMonth() + 1).padStart(2, "0");
+    const d = String(monday.getDate()).padStart(2, "0");
     onSelectDate(`${y}-${m}-${d}`);
   }
 
@@ -252,7 +254,7 @@ export function ScheduleWeekView({
                           </span>
                         ) : (
                           <span className="inline-block rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-[11px] font-semibold text-primary">
-                            {d.formattedHours || `${d.startTime?.hour ?? 8}h - ${d.endTime?.hour ?? 18}h`}
+                            {d.formattedHours || (d.startTime ? `${d.startTime.slice(0, 5)}–${d.endTime?.slice(0, 5) ?? ""}` : "Turno")}
                           </span>
                         )}
                       </td>

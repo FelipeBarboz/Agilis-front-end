@@ -196,7 +196,7 @@ export function ScheduleDayView({
                         </div>
                       </div>
                       <span className="rounded-lg bg-primary/10 border border-primary/20 px-2 py-0.5 text-xs font-semibold text-primary shrink-0">
-                        {emp.formattedHours || `${emp.startTime?.hour ?? 8}h - ${emp.endTime?.hour ?? 18}h`}
+                        {emp.formattedHours || (emp.startTime ? `${emp.startTime.slice(0, 5)} - ${emp.endTime ? emp.endTime.slice(0, 5) : ""}` : "09:00 - 18:00")}
                       </span>
                     </div>
                   ))}
