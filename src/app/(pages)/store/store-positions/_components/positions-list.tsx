@@ -1,41 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mockPositions, type Position } from "@/lib/mocks/positions";
 import { AddPositionModal } from "./add-position-modal";
 import { EditPositionModal } from "./edit-position-modal";
 import { DeletePositionModal } from "./delete-position-modal";
+import { GenerateInviteModal } from "./generate-invite-modal";
 import { PositionCard } from "./position-card";
 import { PositionsEmptyState } from "./positions-empty-state";
+import {
+  createStorePosition,
+  updateStorePosition,
+  deleteStorePosition,
+  fetchStorePositions,
+} from "@/lib/services/store-positions-service";
 
 export function PositionsList() {
   const [positions, setPositions] = useState<Position[]>(mockPositions);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
 
-  const handleAddPosition = (newPos: Omit<Position, "id" | "employeeCount">) => {
+  const getStoreId = () => {
+    return (
+      (typeof window !== "undefined" &&
+        (localStorage.getItem("current_store_id") ||
+          localStorage.getItem("active_store_id"))) ||
+      "store-super-pinturas"
+    );
+  };
+
+  const handleAddPosition = async (newPos: Omit<Position, "id" | "employeeCount">) => {
+    const tempId = String(Date.now());
     const created: Position = {
-      id: String(Date.now()),
+      id: tempId,
       title: newPos.title,
       description: newPos.description,
       employeeCount: 0,
       permissions: newPos.permissions ?? ["manage_appointments"],
     };
     setPositions((prev) => [...prev, created]);
+
+    // Integração POST /api/v1/stores/{storeId}/positions
+    try {
+      const storeId = getStoreId();
+      const res = await createStorePosition({
+        storeId,
+        attendanceType: "CLIENT_LOCATION",
+        radiusKm: 10,
+        referenceAddress: newPos.description || newPos.title,
+        cities: [],
+      });
+      const remotePos = Array.isArray(res) ? res[0] : res;
+      if (remotePos?.id) {
+        setPositions((prev) =>
+          prev.map((p) => (p.id === tempId ? { ...p, id: remotePos.id } : p))
+        );
+      }
+    } catch (err) {
+      console.warn("[PositionsList] Aviso ao criar posição na API:", err);
+    }
   };
 
-  const handleEditPosition = (updated: Position) => {
+  const handleEditPosition = async (updated: Position) => {
     setPositions((prev) =>
       prev.map((pos) => (pos.id === updated.id ? updated : pos))
     );
+
+    // Integração PUT /api/v1/stores/{storeId}/positions/{positionId}
+    try {
+      const storeId = getStoreId();
+      await updateStorePosition(storeId, updated.id, {
+        storeId,
+        attendanceType: "CLIENT_LOCATION",
+        radiusKm: 10,
+        referenceAddress: updated.description || updated.title,
+        cities: [],
+      });
+    } catch (err) {
+      console.warn("[PositionsList] Aviso ao atualizar posição na API:", err);
+    }
   };
 
-  const handleDeletePosition = (id: string) => {
+  const handleDeletePosition = async (id: string) => {
     setPositions((prev) => prev.filter((pos) => pos.id !== id));
+
+    // Integração DELETE /api/v1/stores/{storeId}/positions/{positionId}
+    try {
+      const storeId = getStoreId();
+      await deleteStorePosition(storeId, id);
+    } catch (err) {
+      console.warn("[PositionsList] Aviso ao excluir posição na API:", err);
+    }
   };
 
   const openEdit = (pos: Position) => {
@@ -46,6 +106,11 @@ export function PositionsList() {
   const openDelete = (pos: Position) => {
     setSelectedPosition(pos);
     setDeleteModalOpen(true);
+  };
+
+  const openInvite = (pos: Position) => {
+    setSelectedPosition(pos);
+    setInviteModalOpen(true);
   };
 
   return (
@@ -78,6 +143,7 @@ export function PositionsList() {
               position={pos}
               onEdit={openEdit}
               onDelete={openDelete}
+              onInvite={openInvite}
             />
           ))
         )}
@@ -102,6 +168,12 @@ export function PositionsList() {
         onOpenChange={setDeleteModalOpen}
         position={selectedPosition}
         onConfirmDelete={handleDeletePosition}
+      />
+
+      <GenerateInviteModal
+        isOpen={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        position={selectedPosition}
       />
     </div>
   );

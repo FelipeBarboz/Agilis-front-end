@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera } from "lucide-react";
-import { mockUser } from "@/lib/mocks/user";
+import { useAuth } from "@/lib/auth/auth-context";
 import { AvatarModal } from "../_components/avatar-modal";
 import { EditPersonalForm } from "./_components/edit-personal-form";
-import { CnpjProviderCard } from "../_components/cnpj-provider-card";
 
 export default function EditProfilePage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const displayName = user?.name || "Usuário";
 
   return (
     <div className="relative flex flex-1 flex-col bg-muted pb-20">
@@ -42,7 +43,7 @@ export default function EditProfilePage() {
         <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
           <div className="relative">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
-              {mockUser.name.charAt(0)}
+              {displayName.charAt(0).toUpperCase()}
             </div>
             <button
               type="button"
@@ -64,12 +65,6 @@ export default function EditProfilePage() {
 
         {/* Formulário de edição */}
         <EditPersonalForm />
-
-        {/* Card: CNPJ / Conta Provedor */}
-        <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold text-muted-foreground px-1">Conta Provedor</h2>
-          <CnpjProviderCard />
-        </div>
       </main>
     </div>
   );

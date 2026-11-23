@@ -1,18 +1,34 @@
-import { Briefcase } from "lucide-react";
+import { Briefcase, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+
+export const SERVICE_CATEGORIES = [
+  { value: "LIMPEZA", label: "Limpeza" },
+  { value: "ELETRICA", label: "Elétrica" },
+  { value: "HIDRAULICA", label: "Hidráulica" },
+  { value: "PINTURA", label: "Pintura" },
+  { value: "TECNOLOGIA", label: "Tecnologia e TV" },
+  { value: "REPAROS", label: "Reparos e Reformas" },
+  { value: "CONSTRUCAO", label: "Construção Civil" },
+  { value: "MARCENARIA", label: "Marcenaria" },
+  { value: "CLIMATIZACAO", label: "Climatização e Ar Condicionado" },
+] as const;
 
 interface ServiceInfoCardProps {
   name: string;
   description: string;
+  category?: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  onCategoryChange?: (value: string) => void;
 }
 
 export function ServiceInfoCard({
   name,
   description,
+  category = "LIMPEZA",
   onNameChange,
   onDescriptionChange,
+  onCategoryChange,
 }: ServiceInfoCardProps) {
   return (
     <div className="flex flex-col gap-6 rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-8">
@@ -25,7 +41,7 @@ export function ServiceInfoCard({
             Informações do serviço
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Dê um título e uma descrição clara para seus clientes
+            Dê um título, categoria e uma descrição clara para seus clientes
           </p>
         </div>
       </div>
@@ -44,6 +60,30 @@ export function ServiceInfoCard({
             className="h-11 rounded-xl"
           />
         </div>
+
+        {/* Categoria do Serviço */}
+        {onCategoryChange && (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="category" className="text-xs font-bold text-foreground">
+              Categoria <span className="text-primary">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => onCategoryChange(e.target.value)}
+                className="h-11 w-full appearance-none rounded-xl border border-input bg-background px-3.5 pr-10 text-sm text-foreground shadow-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                {SERVICE_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            </div>
+          </div>
+        )}
 
         {/* Descrição */}
         <div className="flex flex-col gap-1.5">

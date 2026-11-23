@@ -6,7 +6,6 @@ import { getStoredToken } from "@/lib/auth/auth-service";
 
 export type BannerCondition =
   | "unauthenticated"
-  | "no_provider"
   | "no_store"
   | "has_store";
 
@@ -29,17 +28,7 @@ export function useCorporateBanner(): BannerContent {
         return;
       }
 
-      // 2. Verifica se possui conta de provedor
-      const storedCnpj = localStorage.getItem("provider_cnpj");
-      const providerFlag = localStorage.getItem("is_provider");
-      const isProvider = Boolean(storedCnpj || providerFlag === "true");
-
-      if (!isProvider) {
-        setCondition("no_provider");
-        return;
-      }
-
-      // 3. Verifica se possui loja ativa
+      // 2. Verifica se possui loja ativa
       const storeFlag = localStorage.getItem("has_active_store");
       const hasStore = storeFlag === "true";
 
@@ -48,7 +37,7 @@ export function useCorporateBanner(): BannerContent {
         return;
       }
 
-      // 4. Usuário logado com loja ativa
+      // 3. Usuário logado com loja ativa
       setCondition("has_store");
     };
 
@@ -79,34 +68,19 @@ export function useCorporateBanner(): BannerContent {
         href: "/register/user",
       };
 
-    case "no_provider":
+    case "no_store":
       return {
         title: (
           <>
             <span className="text-primary-foreground">Torne-se </span>
             um prestador
             <br />
-            <span className="text-primary-foreground">e aumente </span>
-            suas vendas
-          </>
-        ),
-        buttonText: "Cadastrar CNPJ",
-        href: "/profile",
-      };
-
-    case "no_store":
-      return {
-        title: (
-          <>
-            <span className="text-primary-foreground">Crie sua loja </span>
-            e comece a
-            <br />
-            <span className="text-primary-foreground">receber </span>
-            agendamentos
+            <span className="text-primary-foreground">e crie </span>
+            sua loja
           </>
         ),
         buttonText: "Criar Loja",
-        href: "/profile",
+        href: "/provider/create-store",
       };
 
     case "has_store":

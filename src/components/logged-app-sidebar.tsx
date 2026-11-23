@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { mockUser } from "@/lib/mocks/user";
 import { mockAppNotifications, type AppNotification } from "@/lib/mocks/notifications";
 import { NotificationsModal } from "@/components/notifications/notifications-modal";
 import {
@@ -19,8 +18,8 @@ import {
   IconTech,
   IconAll,
   IconStore,
-  IconFavorites,
   IconBell,
+  IconFavorites,
 } from "@/components/ui/icons";
 
 import { useAuth } from "@/lib/auth/auth-context";
@@ -36,31 +35,13 @@ const categoryNavItems = [
 
 export function LoggedAppSidebar() {
   const { user } = useAuth();
-  const currentUser = user ?? mockUser;
+  const currentUser = user ?? { id: "me", name: "Minha Conta", email: "", avatarUrl: null };
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category");
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>(mockAppNotifications);
-  const [hasActiveStore, setHasActiveStore] = useState(false);
-
-  useEffect(() => {
-    const checkStore = () => {
-      const storeFlag = localStorage.getItem("has_active_store");
-      setHasActiveStore(storeFlag === "true");
-    };
-
-    checkStore();
-
-    window.addEventListener("storage", checkStore);
-    window.addEventListener("auth-change", checkStore);
-
-    return () => {
-      window.removeEventListener("storage", checkStore);
-      window.removeEventListener("auth-change", checkStore);
-    };
-  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -78,9 +59,7 @@ export function LoggedAppSidebar() {
     },
     { href: "/history",   icon: <IconHistory />,   label: "Histórico" },
     { href: "/favorites", icon: <IconFavorites />, label: "Favoritos" },
-    ...(hasActiveStore
-      ? [{ href: "/store", icon: <IconStore />, label: "Sua Loja" }]
-      : []),
+    { href: "/stores",    icon: <IconStore />,     label: "Lojas"     },
   ];
 
   function isCategoryActive(href: string): boolean {
@@ -105,8 +84,10 @@ export function LoggedAppSidebar() {
               badge={item.badge}
               isActive={item.isActive ?? (
                 item.href === "/home"
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href ?? "__never__")
+                  ? pathname === "/" || pathname === "/home"
+                  : item.href === "/stores"
+                    ? pathname.startsWith("/stores") || pathname.startsWith("/store") || pathname.startsWith("/employee-store")
+                    : pathname.startsWith(item.href ?? "__never__")
               )}
             />
           ))}

@@ -1,6 +1,18 @@
 import { Input } from "@/components/ui/input";
 
-export function BasicInformationsFields() {
+interface BasicInformationsFieldsProps {
+  storeName: string;
+  slug: string;
+  onStoreNameChange: (value: string) => void;
+  onSlugChange: (value: string) => void;
+}
+
+export function BasicInformationsFields({
+  storeName,
+  slug,
+  onStoreNameChange,
+  onSlugChange,
+}: BasicInformationsFieldsProps) {
   return (
     <>
       {/* Nome da loja */}
@@ -10,6 +22,9 @@ export function BasicInformationsFields() {
         </label>
         <Input
           id="storeName"
+          required
+          value={storeName}
+          onChange={(e) => onStoreNameChange(e.target.value)}
           placeholder="Ex: Carlão Piscinas"
           className="h-11 rounded-xl"
         />
@@ -27,6 +42,9 @@ export function BasicInformationsFields() {
           <input
             id="url"
             type="text"
+            required
+            value={slug}
+            onChange={(e) => onSlugChange(e.target.value)}
             className="h-full min-w-0 flex-1 border-0 bg-transparent px-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             placeholder="carlao-piscinas"
           />

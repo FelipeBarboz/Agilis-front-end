@@ -45,7 +45,7 @@ export function ServiceCarouselSection({
     try {
       const res = await fetch(`/api/services?filter=${filter}&page=${targetPage}&limit=${LIMIT}`);
       if (!res.ok) throw new Error("Falha ao buscar serviços");
-      return await res.json();
+      return (await res.json()) as PaginatedServicesResponse;
     } catch {
       return getPaginatedServices({ filter, page: targetPage, limit: LIMIT });
     }

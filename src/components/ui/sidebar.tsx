@@ -32,7 +32,7 @@ const SidebarRoot = forwardRef<HTMLElement, SidebarProps>(
         border-r border-border bg-background
         py-4
         w-18 hover:w-56
-        overflow-hidden
+        overflow-x-hidden overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
         transition-[width] duration-300 ease-in-out
         ${className}
       `}

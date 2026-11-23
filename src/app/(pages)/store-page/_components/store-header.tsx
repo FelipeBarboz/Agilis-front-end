@@ -31,8 +31,17 @@ export function StoreHeader({ store }: StoreHeaderProps) {
       {/* Topo Centralizado: Avatar e Nome da Loja */}
       <div className="flex flex-col items-center text-center pt-2 sm:pt-0">
         {/* Ícone / Avatar da Loja */}
-        <div className="flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-full bg-[#094229] text-white shadow-md font-extrabold text-2xl sm:text-3xl tracking-wider select-none mb-3.5">
-          {store.initials || "SP"}
+        <div className="flex h-20 w-20 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-full bg-[#094229] text-white shadow-md font-extrabold text-2xl sm:text-3xl tracking-wider select-none mb-3.5 overflow-hidden">
+          {store.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={store.logoUrl}
+              alt={store.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            store.initials || "SP"
+          )}
         </div>
 
         {/* Nome da Loja */}
@@ -57,10 +66,21 @@ export function StoreHeader({ store }: StoreHeaderProps) {
           {/* Avaliação Média */}
           <div className="flex items-center gap-2 font-medium text-foreground">
             <Star size={17} className="fill-amber-400 text-amber-400 shrink-0" />
-            <span className="font-semibold">{store.rating.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground font-normal">
-              ({store.reviewCount})
-            </span>
+            {store.rating > 0 ? (
+              <>
+                <span className="font-semibold">{store.rating.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  ({store.reviewCount})
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="font-semibold">Novo</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  (Sem avaliações)
+                </span>
+              </>
+            )}
           </div>
 
           {/* Disponibilidade */}
@@ -82,7 +102,7 @@ export function StoreHeader({ store }: StoreHeaderProps) {
         {/* Botão Sobre */}
         <div className="flex items-center justify-center sm:justify-end">
           <Link
-            href={`/store-page/about?id=${store.id}`}
+            href={`/store-page/about?id=${encodeURIComponent(store.id)}${store.slug ? `&slug=${encodeURIComponent(store.slug)}` : ""}`}
             className="inline-flex items-center gap-1.5 rounded-xl bg-muted hover:bg-primary/10 text-foreground hover:text-primary border border-border px-3.5 py-1.5 text-sm font-medium transition-all hover:scale-105 active:scale-95 shadow-2xs"
           >
             <Info size={15} className="text-primary" />

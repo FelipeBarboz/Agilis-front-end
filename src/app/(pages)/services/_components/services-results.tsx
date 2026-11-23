@@ -10,19 +10,35 @@ interface ServicesResultsProps {
   filterType: Filters["type"];
   services: Service[];
   stores: Store[];
+  isLoading?: boolean;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function ServicesResults({
   filterType,
   services,
   stores,
+  isLoading,
+  page,
+  totalPages,
+  onPageChange,
 }: ServicesResultsProps) {
   if (filterType === "lojas") {
     return <StoresGrid stores={stores} />;
   }
 
   if (filterType === "servicos") {
-    return <ServicesGrid services={services} />;
+    return (
+      <ServicesGrid
+        services={services}
+        isLoading={isLoading}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
+    );
   }
 
   // filterType === "todos"
@@ -53,7 +69,13 @@ export function ServicesResults({
             </span>
           </div>
         )}
-        <ServicesGrid services={services} />
+        <ServicesGrid
+          services={services}
+          isLoading={isLoading}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
       </section>
     </div>
   );

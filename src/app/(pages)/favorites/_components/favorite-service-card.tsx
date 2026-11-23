@@ -3,20 +3,24 @@
 import Link from "next/link";
 import { Star, CalendarClock } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import type { FavoriteService } from "../../../../types/favorite-service";
+import type { FavoriteService } from "@/types/favorite-service";
 import { CardImage } from "./card-image";
 import { CardProvider } from "./card-provider";
 import { CardFooter } from "./card-footer";
 
 interface FavoriteServiceCardProps {
   service: FavoriteService;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string) => void | Promise<void>;
 }
 
 export function FavoriteServiceCard({
   service,
   onToggleFavorite,
 }: FavoriteServiceCardProps) {
+  const serviceHref = service.storeId
+    ? `/services/${service.id}?storeId=${encodeURIComponent(service.storeId)}`
+    : `/services/${service.id}`;
+
   return (
     <div className="group h-full">
       <Card className="flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200 group-hover:border-primary/40 group-hover:shadow-md">
@@ -24,14 +28,14 @@ export function FavoriteServiceCard({
           <CardImage
             imageUrl={service.imageUrl}
             name={service.name}
-            onToggleFavorite={() => onToggleFavorite(service.id)}
+            onToggleFavorite={() => onToggleFavorite(service.serviceId ?? service.id)}
           />
 
           {/* Conteúdo do Card */}
           <div className="flex flex-col gap-3 p-4">
             {/* Título e Avaliação */}
             <div className="flex items-start justify-between gap-2">
-              <Link href={`/services/${service.id}`} className="hover:underline">
+              <Link href={serviceHref} className="hover:underline">
                 <h3 className="line-clamp-1 text-base font-semibold leading-snug text-foreground transition-colors group-hover:text-primary">
                   {service.name}
                 </h3>
@@ -59,7 +63,11 @@ export function FavoriteServiceCard({
           </div>
         </div>
 
-        <CardFooter serviceId={service.id} startingPrice={service.startingPrice} />
+        <CardFooter
+          serviceId={service.id}
+          storeId={service.storeId}
+          startingPrice={service.startingPrice}
+        />
       </Card>
     </div>
   );

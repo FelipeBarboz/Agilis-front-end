@@ -1,10 +1,11 @@
-import { ArrowLeft, CheckCircle2, Clock, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import type { PaymentMethod } from "../../../../types/payment";
 import { PaymentReceipt } from "./payment-receipt";
 
 interface PaymentSuccessProps {
+  bookingId?: string;
   serviceName: string;
   providerName: string;
   date: string;
@@ -17,6 +18,7 @@ interface PaymentSuccessProps {
 }
 
 export function PaymentSuccess({
+  bookingId,
   serviceName,
   providerName,
   date,
@@ -64,12 +66,13 @@ export function PaymentSuccess({
 
         {/* Comprovante Padronizado com os Ícones do Agilis */}
         <PaymentReceipt
+          bookingId={bookingId}
           serviceName={serviceName}
           providerName={providerName}
           date={date}
           time={time}
           address={address}
-          paymentMethodLabel={selectedPayment?.label ?? "Pix"}
+          paymentMethodLabel={selectedPayment?.label ?? "Mercado Pago"}
           total={total}
         />
 

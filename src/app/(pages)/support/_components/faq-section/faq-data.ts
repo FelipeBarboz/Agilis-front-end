@@ -1,6 +1,10 @@
-import { FaqItem } from "./faq-item";
+export interface FaqItemData {
+  id: string;
+  question: string;
+  answer: string;
+}
 
-const faqs = [
+export const faqs: FaqItemData[] = [
   {
     id: "1",
     question: "Como faço para contratar um serviço?",
@@ -32,20 +36,3 @@ const faqs = [
       "Entre em contato conosco pelo formulário abaixo ou acesse o histórico de serviços e abra uma reclamação diretamente no pedido.",
   },
 ];
-
-export function FaqSection() {
-  return (
-    <section>
-      <h2 className="mb-4 text-lg font-bold text-foreground">
-        Perguntas Frequentes
-      </h2>
-      <div className="rounded-xl border border-border bg-card">
-        <div className="px-4">
-          {faqs.map((faq) => (
-            <FaqItem key={faq.id} question={faq.question} answer={faq.answer} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}

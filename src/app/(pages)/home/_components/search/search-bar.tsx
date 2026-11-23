@@ -7,7 +7,12 @@ import { mockServices } from "@/lib/mocks/services";
 import { SearchInput } from "./search-input";
 import { SearchDropdown } from "./search-dropdown";
 
-export function SearchBar() {
+interface SearchBarProps {
+  className?: string;
+  placeholder?: string;
+}
+
+export function SearchBar({ className = "", placeholder }: SearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -68,10 +73,14 @@ export function SearchBar() {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative mt-6 w-full max-w-[500px]">
+    <div
+      ref={containerRef}
+      className={`relative w-full ${className || "mt-6 max-w-[500px]"}`}
+    >
       <SearchInput
         query={query}
         inputRef={inputRef}
+        placeholder={placeholder}
         onChange={(val) => {
           setQuery(val);
           setOpen(true);

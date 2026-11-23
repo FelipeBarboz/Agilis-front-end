@@ -20,11 +20,18 @@ export function AddressForm() {
     formState: { errors },
   } = useForm<AddressSchema>({
     resolver: zodResolver(addressSchema),
-    defaultValues: { cep: "", street: "", number: "", complement: "" },
+    defaultValues: { cep: "", street: "", number: "", complement: "", city: "", state: "" },
   });
 
   async function onSubmit(values: AddressSchema) {
-    await addAddress(values);
+    await addAddress({
+      cep: values.cep,
+      street: values.street,
+      number: values.number,
+      complement: values.complement ?? "",
+      city: values.city,
+      state: values.state,
+    });
     router.push("/addresses");
   }
 

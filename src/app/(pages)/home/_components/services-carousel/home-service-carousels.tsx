@@ -1,9 +1,13 @@
 "use client";
 
-import { Eye, Star, Award } from "lucide-react";
+import { Eye, Star } from "lucide-react";
 import { ServiceCarouselSection } from "./service-carousel-section";
 
-export function HomeServiceCarousels() {
+interface HomeServiceCarouselsProps {
+  showTopRated?: boolean;
+}
+
+export function HomeServiceCarousels({ showTopRated = false }: HomeServiceCarouselsProps) {
   return (
     <div className="flex flex-col gap-10">
       {/* 1. Serviços Mais Visitados */}
@@ -15,23 +19,16 @@ export function HomeServiceCarousels() {
         filter="most_visited"
       />
 
-      {/* 2. Serviços Mais Bem Avaliados */}
-      <ServiceCarouselSection
-        title="Mais Bem Avaliados"
-        subtitle="Profissionais e serviços com as melhores notas e comentários"
-        badgeText="Destaques"
-        icon={Star}
-        filter="top_rated"
-      />
-
-      {/* 3. Serviços Mais Contratados */}
-      <ServiceCarouselSection
-        title="Mais Contratados"
-        subtitle="Os serviços com maior número de agendamentos e realizações concluídas"
-        badgeText="Populares"
-        icon={Award}
-        filter="most_hired"
-      />
+      {/* 2. Serviços Mais Bem Avaliados — só aparece logado */}
+      {showTopRated && (
+        <ServiceCarouselSection
+          title="Mais Bem Avaliados"
+          subtitle="Profissionais e serviços com as melhores notas e comentários"
+          badgeText="Destaques"
+          icon={Star}
+          filter="top_rated"
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 interface StoreSchedulingHeaderProps {
   onOpenDelayModal: () => void;
@@ -10,17 +9,6 @@ interface StoreSchedulingHeaderProps {
 export function StoreSchedulingHeader({ onOpenDelayModal }: StoreSchedulingHeaderProps) {
   return (
     <div className="space-y-4">
-      {/* Botão de retorno padrão Agilis */}
-      <div>
-        <Link
-          href="/store/store-profile"
-          aria-label="Voltar ao perfil da loja"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted cursor-pointer"
-        >
-          <ArrowLeft className="size-5" />
-        </Link>
-      </div>
-
       {/* Header da Página com Botão de Notificar Atraso Sempre Visível */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

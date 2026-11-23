@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, Users, Pencil, Trash2, Shield } from "lucide-react";
+import { Briefcase, Users, Pencil, Trash2, Shield, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Position } from "@/lib/mocks/positions";
 
@@ -15,9 +15,10 @@ interface PositionCardProps {
   position: Position;
   onEdit: (position: Position) => void;
   onDelete: (position: Position) => void;
+  onInvite?: (position: Position) => void;
 }
 
-export function PositionCard({ position, onEdit, onDelete }: PositionCardProps) {
+export function PositionCard({ position, onEdit, onDelete, onInvite }: PositionCardProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border bg-card shadow-xs hover:border-primary/30 transition-all group">
       <div className="flex items-start gap-4">
@@ -58,7 +59,19 @@ export function PositionCard({ position, onEdit, onDelete }: PositionCardProps) 
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border w-full sm:w-auto justify-end">
+      <div className="flex flex-wrap items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border w-full sm:w-auto justify-end">
+        {onInvite && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onInvite(position)}
+            className="gap-1.5 rounded-xl border-primary/30 bg-primary/5 hover:bg-primary/15 text-primary h-9 cursor-pointer"
+            title="Gerar link de convite para este cargo"
+          >
+            <Link2 className="size-3.5" />
+            <span className="text-xs font-semibold">Convidar</span>
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

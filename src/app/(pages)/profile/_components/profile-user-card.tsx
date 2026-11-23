@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Mail, MapPin, MessageSquare } from "lucide-react";
-import type { MockUser } from "@/lib/mocks/user";
+import Image from "next/image";
 
 interface ProfileUserCardProps {
-  user: MockUser;
+  user: {
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+    role?: string;
+  };
 }
 
 export function ProfileUserCard({ user }: ProfileUserCardProps) {
@@ -11,9 +16,19 @@ export function ProfileUserCard({ user }: ProfileUserCardProps) {
     <div className="flex flex-col gap-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-8">
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
         {/* Avatar */}
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
-          {user.name.charAt(0)}
-        </div>
+        {user.avatarUrl ? (
+          <Image
+            src={user.avatarUrl}
+            alt={user.name}
+            width={96}
+            height={96}
+            className="h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover shrink-0"
+          />
+        ) : (
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#006b49] text-4xl font-light text-white sm:h-28 sm:w-28 sm:text-5xl">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
 
         {/* Informações do usuário */}
         <div className="flex flex-col items-center gap-2 pt-2 sm:items-start">

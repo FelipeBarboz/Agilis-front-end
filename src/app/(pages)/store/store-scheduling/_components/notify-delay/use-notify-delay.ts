@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { StoreAppointment } from "../store-appointment-card";
 import { DELAY_REASONS, addMinutesToTime } from "./notify-delay-constants";
+import { declareDelay } from "@/lib/services/bookings-service";
 
 export interface UseNotifyDelayProps {
   open: boolean;
@@ -10,6 +11,7 @@ export interface UseNotifyDelayProps {
   dayAppointments: StoreAppointment[];
   allAppointments: StoreAppointment[];
   selectedDate: string;
+  storeId?: string;
   initialAppointmentId?: string | null;
   onSuccessNotification?: (count: number) => void;
 }
@@ -20,6 +22,7 @@ export function useNotifyDelay({
   dayAppointments,
   allAppointments,
   selectedDate,
+  storeId,
   initialAppointmentId,
   onSuccessNotification,
 }: UseNotifyDelayProps) {
@@ -134,11 +137,27 @@ export function useNotifyDelay({
 
   const targetedCount = selectedIds.length;
 
-  function handleSend() {
+  async function handleSend() {
     if (targetedCount === 0) return;
     setIsSending(true);
 
-    setTimeout(() => {
+    try {
+      if (storeId) {
+        const minutes = isCustomDelay
+          ? Math.max(1, Number(customMinutes) || 30)
+          : selectedDelayMinutes;
+        const finalReason = customMessage ? `${reason}: ${customMessage}` : reason;
+
+        await declareDelay({
+          storeId,
+          date: suggestedDate || selectedDate,
+          delayMinutes: minutes,
+          reason: finalReason,
+        });
+      }
+    } catch (err) {
+      console.warn("[NotifyDelay] Erro ao declarar atraso no servidor:", err);
+    } finally {
       setIsSending(false);
       setIsSuccess(true);
       onSuccessNotification?.(targetedCount);
@@ -146,7 +165,7 @@ export function useNotifyDelay({
       setTimeout(() => {
         onClose();
       }, 1400);
-    }, 700);
+    }
   }
 
   return {

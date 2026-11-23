@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { AttendanceTypeForm } from "./_components/attendance-type-form";
@@ -33,7 +34,15 @@ export default function AttendanceAreaPage() {
             </span>
           </div>
           <div className="px-6 pb-8 pt-6 md:px-10 md:pb-10">
-            <AttendanceTypeForm />
+            <Suspense
+              fallback={
+                <div className="flex justify-center p-8 text-sm text-muted-foreground">
+                  Carregando formulário de atendimento...
+                </div>
+              }
+            >
+              <AttendanceTypeForm />
+            </Suspense>
           </div>
         </div>
       </main>

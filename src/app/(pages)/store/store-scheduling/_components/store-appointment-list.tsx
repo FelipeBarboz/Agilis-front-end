@@ -8,6 +8,7 @@ interface StoreAppointmentListProps {
   selectedDate: string;
   dayAppointments: StoreAppointment[];
   onConfirm: (id: string) => void;
+  onComplete?: (id: string) => void;
   onCancel: (id: string) => void;
   onOpenDelayModal: (id?: string) => void;
 }
@@ -16,6 +17,7 @@ export function StoreAppointmentList({
   selectedDate,
   dayAppointments,
   onConfirm,
+  onComplete,
   onCancel,
   onOpenDelayModal,
 }: StoreAppointmentListProps) {
@@ -41,6 +43,7 @@ export function StoreAppointmentList({
               key={appointment.id}
               appointment={appointment}
               onConfirm={onConfirm}
+              onComplete={onComplete}
               onCancel={onCancel}
               onNotifyDelay={(id) => onOpenDelayModal(id)}
             />

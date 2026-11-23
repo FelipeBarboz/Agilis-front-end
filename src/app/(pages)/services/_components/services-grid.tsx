@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ServiceCard } from "./service-card";
 import { type Service } from "@/lib/mocks/services";
 import {
@@ -12,6 +12,8 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import { Card } from "@/components/ui/card";
+import { initFavoritesCache } from "@/lib/services/favorites-service";
 
 const PAGE_SIZE = 15;
 
@@ -24,10 +26,50 @@ function getPageNumbers(current: number, total: number): (number | "ellipsis")[]
 
 interface ServicesGridProps {
   services: Service[];
+  isLoading?: boolean;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
-export function ServicesGrid({ services }: ServicesGridProps) {
-  const [page, setPage] = useState(1);
+export function ServicesGrid({
+  services,
+  isLoading,
+  page: externalPage,
+  totalPages: externalTotalPages,
+  onPageChange,
+}: ServicesGridProps) {
+  const [internalPage, setInternalPage] = useState(1);
+
+  // Pré-carrega o cache de favoritos para que os cards exibam o estado correto
+  useEffect(() => {
+    void initFavoritesCache();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Card key={i} className="overflow-hidden h-full flex flex-col justify-between border border-border/80">
+            <div>
+              <div className="h-44 w-full bg-muted animate-pulse" />
+              <div className="flex flex-col gap-2 p-3.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-10 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+                <div className="pt-2 flex flex-col gap-1">
+                  <div className="h-2.5 w-16 rounded bg-muted animate-pulse" />
+                  <div className="h-6 w-24 rounded bg-muted animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   if (services.length === 0) {
     return (
@@ -40,15 +82,34 @@ export function ServicesGrid({ services }: ServicesGridProps) {
     );
   }
 
-  const totalPages = Math.ceil(services.length / PAGE_SIZE);
-  const safePage = Math.min(page, totalPages);
-  const paged = services.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const isServerPaged = typeof onPageChange === "function";
+  const currentPage = isServerPaged ? (externalPage ?? 1) : internalPage;
+  const totalPages = isServerPaged
+    ? Math.max(1, externalTotalPages ?? 1)
+    : Math.ceil(services.length / PAGE_SIZE);
+
+  const safePage = Math.min(currentPage, totalPages);
+  const displayedServices = isServerPaged
+    ? services
+    : services.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function handlePageSelect(newPage: number) {
+    if (isServerPaged) {
+      onPageChange?.(newPage);
+    } else {
+      setInternalPage(newPage);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {paged.map((service, index) => (
-          <ServiceCard key={service.id} service={service} index={index} />
+        {displayedServices.map((service, index) => (
+          <ServiceCard
+            key={service.id ? `${service.id}-${index}` : `service-${index}`}
+            service={service}
+            index={index}
+          />
         ))}
       </div>
 
@@ -62,7 +123,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                   text="Anterior"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (safePage > 1) setPage(safePage - 1);
+                    if (safePage > 1) handlePageSelect(safePage - 1);
                   }}
                   aria-disabled={safePage === 1}
                   className={safePage === 1 ? "pointer-events-none opacity-50" : ""}
@@ -81,7 +142,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                       isActive={p === safePage}
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(p);
+                        handlePageSelect(p);
                       }}
                     >
                       {p}
@@ -96,7 +157,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                   text="Próxima"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (safePage < totalPages) setPage(safePage + 1);
+                    if (safePage < totalPages) handlePageSelect(safePage + 1);
                   }}
                   aria-disabled={safePage === totalPages}
                   className={safePage === totalPages ? "pointer-events-none opacity-50" : ""}
@@ -106,7 +167,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
           </Pagination>
 
           <p className="text-xs text-muted-foreground">
-            Página {safePage} de {totalPages} · {services.length} serviços
+            Página {safePage} de {totalPages}
           </p>
         </div>
       )}

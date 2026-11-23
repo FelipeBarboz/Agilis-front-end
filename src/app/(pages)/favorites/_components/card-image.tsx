@@ -1,25 +1,33 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 
 interface CardImageProps {
   imageUrl?: string;
   name: string;
-  onToggleFavorite: () => void;
+  onToggleFavorite: () => void | Promise<void>;
 }
 
 export function CardImage({ imageUrl, name, onToggleFavorite }: CardImageProps) {
+  const [imgError, setImgError] = useState(false);
+  const showImage = Boolean(imageUrl && imageUrl.trim() !== "" && !imgError);
+
   return (
     <div className="relative h-48 w-full overflow-hidden bg-muted">
-      {imageUrl && imageUrl.trim() !== "" ? (
+      {showImage ? (
         <Image
-          src={imageUrl}
+          src={imageUrl!}
           alt={name}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          onError={() => setImgError(true)}
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-primary/10 text-xl font-bold text-primary">
-          {name.charAt(0)}
+          {name.charAt(0).toUpperCase()}
         </div>
       )}
 

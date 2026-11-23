@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { storeSchema, type StoreFormData } from "../store";
+import { formatCnpj } from "@/lib/services/stores-service";
 import { CnpjField } from "./cnpj-field";
 import { ConfirmProviderModal } from "./confirm-provider-modal";
 
@@ -44,7 +45,7 @@ export function StoreForm() {
     // Simula registro (aqui entraria a chamada real à API)
     await new Promise((res) => setTimeout(res, 1000));
 
-    localStorage.setItem("provider_cnpj", pendingData.cnpj);
+    localStorage.setItem("provider_cnpj", formatCnpj(pendingData.cnpj));
     localStorage.setItem("is_provider", "true");
 
     setIsRegistering(false);

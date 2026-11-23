@@ -38,7 +38,12 @@ function isProtectedRoute(pathname: string): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const directToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const allCookies = request.cookies.getAll();
+  const hasSupabaseCookie = allCookies.some(
+    (c) => c.name.startsWith("sb-") && c.name.includes("auth-token")
+  );
+  const token = directToken || (hasSupabaseCookie ? "supabase-session" : undefined);
 
   if (isProtectedRoute(pathname)) {
     if (!token) {

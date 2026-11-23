@@ -19,7 +19,7 @@ export function StoreCard({ store, index }: StoreCardProps) {
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Link
-        href={`/store-page?id=${store.id}`}
+        href={`/store-page?slug=${encodeURIComponent(store.slug || store.id)}&id=${encodeURIComponent(store.id)}`}
         className="group block focus-visible:outline-none h-full"
       >
         <Card className="flex flex-col justify-between h-full p-5 overflow-hidden transition-all group-hover:shadow-md group-hover:border-primary/40 group-focus-visible:ring-2 group-focus-visible:ring-primary">
@@ -27,8 +27,17 @@ export function StoreCard({ store, index }: StoreCardProps) {
             {/* Topo do Card da Loja */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#094229] text-white font-extrabold text-lg shadow-xs">
-                  {store.initials || "SP"}
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#094229] text-white font-extrabold text-lg shadow-xs overflow-hidden">
+                  {store.logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={store.logoUrl}
+                      alt={store.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    store.initials || "SP"
+                  )}
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">

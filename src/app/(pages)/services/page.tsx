@@ -17,6 +17,10 @@ function ServicesContent() {
     filteredServices,
     filteredStores,
     totalResults,
+    isLoading,
+    page,
+    totalPages,
+    setPage,
   } = useServicesFilter();
 
   return (
@@ -37,6 +41,10 @@ function ServicesContent() {
           filterType={appliedFilters.type}
           services={filteredServices}
           stores={filteredStores}
+          isLoading={isLoading}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </div>
     </main>

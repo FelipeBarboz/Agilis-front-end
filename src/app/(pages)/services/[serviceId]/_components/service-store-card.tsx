@@ -7,9 +7,10 @@ import { getStoreById, mockStores } from "@/lib/mocks/stores";
 interface ServiceStoreCardProps {
   storeId?: string;
   companyName?: string;
+  storeServicesCount?: number;
 }
 
-export function ServiceStoreCard({ storeId, companyName }: ServiceStoreCardProps) {
+export function ServiceStoreCard({ storeId, companyName, storeServicesCount }: ServiceStoreCardProps) {
   // Procura a loja pelo storeId ou pelo nome da empresa
   const store =
     (storeId ? (mockStores.find((s) => s.id === storeId || s.slug === storeId) ?? null) : null) ??
@@ -17,6 +18,7 @@ export function ServiceStoreCard({ storeId, companyName }: ServiceStoreCardProps
     getStoreById(storeId ?? "store-super-pinturas");
 
   const displayName = companyName ?? store.name;
+  const targetStoreId = storeId ?? store.id;
   const initials = store.initials || displayName
     .split(" ")
     .slice(0, 2)
@@ -44,7 +46,7 @@ export function ServiceStoreCard({ storeId, companyName }: ServiceStoreCardProps
       </div>
 
       <Link
-        href={`/store-page?id=${store.id}`}
+        href={`/store-page?id=${encodeURIComponent(targetStoreId)}${store?.slug ? `&slug=${encodeURIComponent(store.slug)}` : ""}${displayName ? `&name=${encodeURIComponent(displayName)}` : ""}`}
         className="flex items-center gap-4 rounded-xl border border-border/80 bg-muted/20 p-4 transition-all hover:bg-muted/50 hover:border-primary/40 group"
       >
         {/* Avatar da Loja com Padrão Agilis */}
@@ -66,6 +68,15 @@ export function ServiceStoreCard({ storeId, companyName }: ServiceStoreCardProps
               <span className="font-semibold text-foreground">{store.rating.toFixed(1)}</span>
               <span>({store.reviewCount})</span>
             </div>
+
+            {typeof storeServicesCount === "number" && storeServicesCount > 0 && (
+              <>
+                <span>•</span>
+                <span className="text-foreground font-medium">
+                  {storeServicesCount} {storeServicesCount === 1 ? "serviço" : "serviços"}
+                </span>
+              </>
+            )}
 
             <span>•</span>
 

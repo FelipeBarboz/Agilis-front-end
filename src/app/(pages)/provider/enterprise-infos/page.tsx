@@ -21,7 +21,7 @@ export default function EnterpriseInfosPage() {
             Informações da empresa
           </h1>
           <p className="mt-1 text-sm text-muted-foreground md:text-base">
-            Nome de exibição e dados do CNPJ
+            Nome da unidade e dados do CNPJ da empresa
           </p>
         </div>
 

@@ -4,18 +4,23 @@ export function HomeFooterMobile() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="flex flex-col items-center justify-center gap-2 border-t border-primary/20 bg-primary px-6 py-4 text-center text-xs text-primary-foreground font-medium">
-      <p>© Copyright {year} – Agilis Services – Todos os direitos reservados</p>
-      <nav className="flex gap-4">
+    <footer className="w-full border-t border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 py-3.5 px-4 text-center">
+      {/* Copyright text */}
+      <p className="text-[10px] sm:text-xs font-normal text-gray-400 dark:text-zinc-500 leading-tight">
+        © Copyright {year} - Agilis Services - Todos os direitos reservados
+      </p>
+
+      {/* Legal navigation links */}
+      <nav className="mt-2 flex items-center justify-center gap-8 sm:gap-12">
         <Link
           href="/terms"
-          className="text-primary-foreground/90 transition-colors hover:text-primary-foreground hover:underline"
+          className="text-[11px] sm:text-xs font-medium text-gray-400 dark:text-zinc-500 transition-colors hover:text-gray-600 dark:hover:text-zinc-300 hover:underline"
         >
           Termos de Uso
         </Link>
         <Link
           href="/privacy"
-          className="text-primary-foreground/90 transition-colors hover:text-primary-foreground hover:underline"
+          className="text-[11px] sm:text-xs font-medium text-gray-400 dark:text-zinc-500 transition-colors hover:text-gray-600 dark:hover:text-zinc-300 hover:underline"
         >
           Política de Privacidade
         </Link>

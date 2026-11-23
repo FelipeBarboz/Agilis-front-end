@@ -14,13 +14,15 @@ import {
   IconPainting,
   IconTech,
   IconAll,
+  IconFavorites,
 } from "@/components/ui/icons";
 
 const mainNavItems = [
-  { href: "/home",    icon: <IconHome />,    label: "Início"    },
-  { href: "/services", icon: <IconServices />, label: "Serviços"  },
-  { href: "/support", icon: <IconSupport />,  label: "Suporte"   },
-  { href: "/history", icon: <IconHistory />,  label: "Histórico" },
+  { href: "/home",      icon: <IconHome />,      label: "Início"    },
+  { href: "/services",  icon: <IconServices />,  label: "Serviços"  },
+  { href: "/support",   icon: <IconSupport />,   label: "Suporte"   },
+  { href: "/history",   icon: <IconHistory />,   label: "Histórico" },
+  { href: "/favorites", icon: <IconFavorites />, label: "Favoritos" },
 ];
 
 const categoryNavItems = [
@@ -47,7 +49,11 @@ export function AppSidebar() {
             href={item.href}
             icon={item.icon}
             label={item.label}
-            isActive={pathname === item.href}
+            isActive={
+              item.href === "/home"
+                ? pathname === "/" || pathname === "/home"
+                : pathname.startsWith(item.href)
+            }
           />
         ))}
       </div>
@@ -68,7 +74,7 @@ export function AppSidebar() {
       {/* User profile */}
       <Sidebar.Footer className="px-2 pb-2">
         <Sidebar.NavItem
-          href="/register/user"
+          href="/profile"
           icon={<IconUser />}
           label="Perfil"
           isActive={pathname === "/profile"}

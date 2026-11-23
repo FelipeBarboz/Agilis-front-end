@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { IdCard, Mail, Pencil, Phone, User } from "lucide-react";
-import type { MockUser } from "@/lib/mocks/user";
-
 interface ProfileInfoProps {
-  user: MockUser;
+  user: {
+    name: string;
+    email: string;
+    phone?: string | null;
+    cpf?: string | null;
+  };
 }
 
 export function ProfileInfo({ user }: ProfileInfoProps) {

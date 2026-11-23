@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Plus, MapPinOff } from "lucide-react";
+import { ArrowLeft, Plus, MapPinOff, AlertCircle, RefreshCw } from "lucide-react";
 import { PageTransition } from "@/components/ui/motion";
 import { AddressCard } from "./_components/address-card/address-card";
 import { useAddresses } from "@/hooks/use-addresses";
 
 export default function AddressesPage() {
-  const { addresses, deleteAddress } = useAddresses();
+  const { addresses, isLoading, error, refetch, deleteAddress } = useAddresses();
 
   return (
     <div className="relative flex flex-1 flex-col bg-muted pb-20">
@@ -40,7 +40,38 @@ export default function AddressesPage() {
             </Link>
           </div>
 
-          {addresses.length === 0 ? (
+          {/* Erro */}
+          {error && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <span>{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={refetch}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 bg-background px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 cursor-pointer"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Tentar novamente
+              </button>
+            </div>
+          )}
+
+          {/* Loading */}
+          {isLoading && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-32 rounded-3xl border border-border bg-card animate-pulse"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Lista vazia */}
+          {!isLoading && !error && addresses.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
               <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <MapPinOff className="size-7" />
@@ -57,7 +88,10 @@ export default function AddressesPage() {
                 Cadastrar agora
               </Link>
             </div>
-          ) : (
+          )}
+
+          {/* Grid de endereços */}
+          {!isLoading && addresses.length > 0 && (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {addresses.map((address) => (
                 <AddressCard key={address.id} address={address} onDelete={deleteAddress} />
