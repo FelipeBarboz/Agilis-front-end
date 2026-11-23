@@ -454,8 +454,13 @@ export async function signInWithEmail(email: string, password: string) {
  * Login com Google OAuth via Supabase:
  */
 export async function signInWithGoogle(redirectPath?: string) {
-  const redirectOrigin =
-    typeof window !== "undefined" ? window.location.origin : "";
+  let redirectOrigin =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL || "https://agilisservices.vercel.app");
+
+  redirectOrigin = redirectOrigin.replace(/\/$/, "");
+
   const redirectTo = `${redirectOrigin}/auth/callback${
     redirectPath ? `?redirect=${encodeURIComponent(redirectPath)}` : ""
   }`;
