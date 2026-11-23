@@ -20,22 +20,26 @@ import { type Service } from "@/lib/mocks/services";
 const storeProfileCache = new Map<string, StoreProfileDTO>();
 
 async function getEnrichedStore(item: StoreSearchItem): Promise<Store> {
+  const storeId = item.storeId || item.id || "";
+
   if (item.storeName || item.name) {
     return normalizeStoreSearchToStore(item, null);
   }
 
-  if (storeProfileCache.has(item.id)) {
-    return normalizeStoreSearchToStore(item, storeProfileCache.get(item.id)!);
+  if (storeId && storeProfileCache.has(storeId)) {
+    return normalizeStoreSearchToStore(item, storeProfileCache.get(storeId)!);
   }
 
-  try {
-    const profile = await getStoreById(item.id);
-    if (profile?.id) {
-      storeProfileCache.set(item.id, profile);
-      return normalizeStoreSearchToStore(item, profile);
+  if (storeId) {
+    try {
+      const profile = await getStoreById(storeId);
+      if (profile?.id) {
+        storeProfileCache.set(storeId, profile);
+        return normalizeStoreSearchToStore(item, profile);
+      }
+    } catch {
+      // Se a consulta detalhada falhar, normaliza com os dados básicos da busca
     }
-  } catch {
-    // Se a consulta detalhada falhar, normaliza com os dados básicos da busca
   }
 
   return normalizeStoreSearchToStore(item, null);
@@ -342,7 +346,12 @@ export function useServicesFilter() {
             if (!isCancelled) {
               // Desduplica lojas por ID caso a API retorne múltiplos registros para a mesma loja
               const uniqueStores = Array.from(
-                new Map(enriched.map((s) => [s.id, s])).values()
+                new Map(
+                  enriched.map((s, idx) => [
+                    s.id || s.slug || `store-${idx}`,
+                    s,
+                  ])
+                ).values()
               );
               setStores(uniqueStores);
               setIsStoresLoading(false);

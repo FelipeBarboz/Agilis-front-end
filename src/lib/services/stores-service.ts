@@ -391,18 +391,24 @@ export interface StoreSearchCity {
 }
 
 export interface StoreSearchItem {
-  id: string;
-  attendanceType: string;
-  radiusKm: number;
-  cities: StoreSearchCity[];
+  id?: string;
+  storeId?: string;
+  attendanceType?: string;
+  radiusKm?: number;
+  cities?: StoreSearchCity[];
   storeName?: string;
   name?: string;
   slug?: string;
   description?: string;
   profileImgUrl?: string;
   category?: string;
+  primaryCategory?: string;
   rating?: number;
+  avgRating?: number;
   reviewCount?: number;
+  city?: string;
+  state?: string;
+  isOpenNow?: boolean;
   [key: string]: unknown;
 }
 
@@ -464,16 +470,17 @@ export function normalizeStoreSearchToStore(
   item: StoreSearchItem,
   profile?: StoreProfileDTO | null
 ): Store {
+  const storeId = item.storeId || item.id || profile?.id || "";
   const name =
     profile?.storeName ||
     item.storeName ||
     item.name ||
-    `Loja ${item.id.slice(0, 8)}`;
+    `Loja ${storeId ? storeId.slice(0, 8) : "Agilis"}`;
   const description =
     profile?.description ||
     item.description ||
     "Loja e prestadora de serviços cadastrada na plataforma.";
-  const slug = profile?.slug || item.slug || item.id;
+  const slug = profile?.slug || item.slug || storeId;
   const logoUrl = profile?.profileImgUrl || item.profileImgUrl || "";
 
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -484,27 +491,45 @@ export function normalizeStoreSearchToStore(
       ? `${firstWord[0] || ""}${secondWord[0] || ""}`.toUpperCase()
       : name.slice(0, 2).toUpperCase() || "SP";
 
-  const firstCity = item.cities?.[0];
-  const cityName = firstCity?.city || "";
-  const stateName = firstCity?.state || "";
+  const cityName = item.city || item.cities?.[0]?.city || "";
+  const stateName = item.state || item.cities?.[0]?.state || "";
+
+  const categoryName =
+    item.category || item.primaryCategory || "Serviços Gerais";
+
+  const ratingVal =
+    typeof item.avgRating === "number"
+      ? item.avgRating
+      : typeof item.rating === "number"
+        ? item.rating
+        : 5.0;
+
+  const reviewCountVal =
+    typeof item.reviewCount === "number" ? item.reviewCount : 0;
+
+  const distanceText = item.radiusKm
+    ? `${item.radiusKm}km de raio`
+    : cityName
+      ? `${cityName}${stateName ? `, ${stateName}` : ""}`
+      : "Disponível";
 
   return {
-    id: item.id,
+    id: storeId,
     slug,
     name,
     initials,
-    category: item.category || "Serviços Gerais",
-    distance: item.radiusKm ? `${item.radiusKm}km` : "Disponível",
-    rating: typeof item.rating === "number" ? item.rating : 5.0,
-    reviewCount: typeof item.reviewCount === "number" ? item.reviewCount : 0,
-    isAvailable: true,
+    category: categoryName,
+    distance: distanceText,
+    rating: ratingVal,
+    reviewCount: reviewCountVal,
+    isAvailable: item.isOpenNow !== undefined ? Boolean(item.isOpenNow) : true,
     availabilityText: "Disponível",
     bannerUrl: undefined,
     logoUrl: logoUrl || undefined,
     about: {
       description,
       foundedYear: 2024,
-      completedServices: 0,
+      completedServices: reviewCountVal,
       specialties: [],
       openingHours: [
         {

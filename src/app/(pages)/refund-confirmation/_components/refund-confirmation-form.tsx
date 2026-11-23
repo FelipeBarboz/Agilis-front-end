@@ -17,6 +17,7 @@ import { CommentsTextarea } from "./comments-textarea";
 import { RefundSummary } from "./refund-summary";
 import { ActionButtons } from "./action-buttons";
 import { SuccessCard } from "./success-card";
+import { cancelBooking } from "@/lib/services/bookings-service";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -49,15 +50,21 @@ export function RefundConfirmationForm() {
     () => `AGL-${Math.floor(100000 + Math.random() * 900000)}`
   );
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (entry?.status === "em_andamento") return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      if (id) {
+        await cancelBooking(id);
+      }
+    } catch (err) {
+      console.warn("[CancelBooking] Falha ao cancelar no servidor:", err);
+    } finally {
       setIsSubmitting(false);
       setIsSuccess(true);
-    }, 600);
+    }
   }
 
   // Estado de sucesso

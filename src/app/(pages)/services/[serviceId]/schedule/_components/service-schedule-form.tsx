@@ -9,14 +9,18 @@ import {
   MessageSquare,
   ArrowRight,
   Sparkles,
+  CreditCard,
+  Tag,
+  AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
 import { getServiceById } from "@/lib/services/services-service";
-import { createBooking } from "@/lib/services/bookings-service";
+import { createBooking, type BookingPaymentMethod } from "@/lib/services/bookings-service";
 import { useAddresses } from "@/hooks/use-addresses";
+import { useAuth } from "@/lib/auth/auth-context";
 import { Calendar } from "@/components/ui/calendar";
 
 const AVAILABLE_TIMES = [
@@ -42,6 +46,8 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addresses } = useAddresses();
+  const { user, supabaseUser } = useAuth();
+  const clientId = user?.id || supabaseUser?.id || "";
 
   const companyFromParams = searchParams.get("company") ?? searchParams.get("providerName") ?? "";
 
@@ -89,6 +95,9 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const [selectedTime, setSelectedTime] = useState<string>("14:00");
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<BookingPaymentMethod>("CREDIT_CARD");
+  const [couponCode, setCouponCode] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sincroniza o endereço selecionado quando os endereços carregam do localStorage
@@ -102,6 +111,7 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setErrorMessage(null);
 
     const formattedDate = selectedDate.toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -115,24 +125,37 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       return `${a.street}, ${a.number}${a.complement ? ` - ${a.complement}` : ""} - CEP ${a.cep}`;
     })();
 
+    // Converte a data e hora selecionadas para o padrão ISO 8601 exigido pela API
+    const [hours, minutes] = selectedTime.split(":").map(Number);
+    const scheduledDate = new Date(selectedDate);
+    scheduledDate.setHours(hours || 0, minutes || 0, 0, 0);
+    const scheduledAt = scheduledDate.toISOString();
+
     let bookingId = "";
     try {
       const bookingRes = await createBooking({
+        clientId,
         serviceId: service?.id ?? serviceId,
-        storeId,
-        date: formattedDate,
-        time: selectedTime,
-        address: addressText,
+        employeeId: "",
+        scheduledAt,
         notes,
+        paymentMethod,
+        couponCode: couponCode.trim() || undefined,
+        // Compatibilidade adicional
+        storeId,
+        address: addressText,
         price: initialPrice,
         package: initialPackage,
       });
       bookingId = bookingRes.bookingId ?? bookingRes.id ?? "";
-    } catch (err) {
+    } catch (err: unknown) {
       console.warn(
-        "[Schedule] Falha na criação remota de agendamento, gerando identificador local:",
+        "[Schedule] Falha na criação remota de agendamento:",
         err
       );
+      const msg = err instanceof Error ? err.message : "Não foi possível criar o agendamento no servidor.";
+      setErrorMessage(msg);
+      // Fallback temporário para não interromper navegação do usuário se offline
       bookingId = crypto.randomUUID();
     }
 
@@ -140,7 +163,7 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       bookingId,
       serviceId: service?.id ?? serviceId,
       serviceName: service?.title ?? "Serviço",
-      providerName: service?.company ?? "Prestador Agilis",
+      providerName: service?.company ?? companyFromParams ?? "Prestador Agilis",
       price: String(initialPrice),
       date: formattedDate,
       time: selectedTime,
@@ -148,6 +171,8 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       package: initialPackage,
       storeId,
       notes,
+      paymentMethod,
+      couponCode: couponCode.trim(),
     });
 
     router.push(`/payment?${query.toString()}`);
@@ -259,6 +284,65 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
               className="w-full resize-none rounded-xl border border-input bg-background p-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
+        </div>
+
+        {/* Payment Preferences & Coupon */}
+        <div className="rounded-2xl border border-border bg-background p-6 shadow-sm space-y-4">
+          <div>
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Preferência de Pagamento
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Escolha a forma como deseja realizar o pagamento
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { id: "CREDIT_CARD", label: "Cartão de Crédito" },
+              { id: "PIX", label: "Pix" },
+              { id: "DEBIT_CARD", label: "Cartão de Débito" },
+            ].map((method) => {
+              const isSelected = paymentMethod === method.id;
+              return (
+                <button
+                  key={method.id}
+                  type="button"
+                  onClick={() => setPaymentMethod(method.id as BookingPaymentMethod)}
+                  className={`flex items-center justify-center p-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary shadow-xs"
+                      : "border-border bg-muted/40 text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {method.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="pt-2 border-t border-border/60 space-y-2">
+            <label htmlFor="schedule-coupon" className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Tag className="h-4 w-4 text-primary" />
+              Cupom de Desconto (opcional)
+            </label>
+            <input
+              id="schedule-coupon"
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="Digite seu cupom (ex: AGILIS10)"
+              className="w-full rounded-xl border border-input bg-background p-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary uppercase tracking-wider"
+            />
+          </div>
+
+          {errorMessage && (
+            <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-xs text-rose-600">
+              <AlertCircle size={16} className="shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -128,16 +128,25 @@ export function AppointmentConfirmationCard({
         // Se ainda não temos um bookingId, cria o agendamento no backend
         if (!effectiveBookingId) {
           try {
+            const scheduledAt = (() => {
+              // Reconstruct ISO 8601 from date + time URL params (fallback only)
+              const rawDate = searchParams.get("date") ?? "";
+              const rawTime = searchParams.get("time") ?? "00:00";
+              if (rawDate) {
+                return new Date(`${rawDate}T${rawTime}:00`).toISOString();
+              }
+              return new Date().toISOString();
+            })();
             const bookingRes = await createBooking({
-              serviceId: searchParams.get("serviceId") ?? "service-default",
-              storeId: searchParams.get("storeId") ?? undefined,
-              date,
-              time,
-              address,
-              price,
-              notes: searchParams.get("notes") ?? undefined,
+              clientId: searchParams.get("clientId") ?? "",
+              serviceId: searchParams.get("serviceId") ?? "",
+              employeeId: searchParams.get("employeeId") ?? "",
+              scheduledAt,
+              notes: searchParams.get("notes") ?? "",
+              paymentMethod: (searchParams.get("paymentMethod") as import("@/lib/services/bookings-service").BookingPaymentMethod) ?? "CREDIT_CARD",
+              couponCode: searchParams.get("couponCode") ?? "",
             });
-            effectiveBookingId = bookingRes.bookingId ?? bookingRes.id ?? "";
+            effectiveBookingId = bookingRes.bookingId ?? "";
           } catch (err) {
             console.warn(
               "[Payment] Não foi possível criar booking prévio no backend, gerando identificador:",
