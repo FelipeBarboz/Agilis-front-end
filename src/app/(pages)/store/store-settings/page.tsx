@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { SettingsForm } from "./_components/settings-form";
@@ -30,7 +31,9 @@ export default function StoreSettingsPage() {
         </div>
 
         {/* Formulário com Cards Modulares Padronizados */}
-        <SettingsForm />
+        <Suspense fallback={null}>
+          <SettingsForm />
+        </Suspense>
       </main>
     </div>
   );

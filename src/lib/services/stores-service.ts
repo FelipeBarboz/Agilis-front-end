@@ -316,3 +316,60 @@ export async function configureStoreServiceArea(
     }
   );
 }
+
+export interface StoreProfileDTO {
+  id: string;
+  cnpj: string;
+  storeName: string;
+  slug: string;
+  description: string;
+  profileImgUrl: string;
+  allowEmployeeSelection?: boolean;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * GET /api/v1/stores/{storeId}
+ * Consulta o perfil da loja pelo ID
+ */
+export async function getStoreById(storeId: string): Promise<StoreProfileDTO> {
+  return await api<StoreProfileDTO>(
+    `/api/v1/stores/${encodeURIComponent(storeId)}`
+  );
+}
+
+export interface UpdateStoreProfilePayload {
+  requesterId: string;
+  storeId: string;
+  storeName: string;
+  description: string;
+  slug: string;
+  profileImgUrl: string;
+}
+
+/**
+ * PUT /api/v1/stores/{storeId}
+ * Atualiza as informações do perfil da loja
+ */
+export async function updateStoreProfile(
+  storeId: string,
+  payload: UpdateStoreProfilePayload
+): Promise<StoreProfileDTO> {
+  const formattedPayload = {
+    requesterId: payload.requesterId,
+    storeId: payload.storeId,
+    storeName: payload.storeName.trim(),
+    description: payload.description.trim(),
+    slug: payload.slug.trim(),
+    profileImgUrl: payload.profileImgUrl.trim(),
+  };
+
+  return await api<StoreProfileDTO>(
+    `/api/v1/stores/${encodeURIComponent(storeId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(formattedPayload),
+    }
+  );
+}

@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { type Service, mockServices } from "@/lib/mocks/services";
 import { superPinturasServices } from "@/lib/mocks/stores";
 import { getServiceById, getServicesByStoreId } from "@/lib/services/services-service";
+import { fetchReviewsByReviewedId } from "@/lib/services/reviews-service";
 import { ServiceInfo } from "./_components/service-info";
 import { ServicePackages } from "./_components/service-packages";
 import { ServiceStoreCard } from "./_components/service-store-card";
@@ -33,9 +34,23 @@ function ServiceDetailContent() {
     let isCancelled = false;
     setIsLoading(true);
 
-    getServiceById(serviceId, companyParam)
-      .then((data) => {
+    getServiceById(serviceId, companyParam, storeIdParam)
+      .then(async (data) => {
         if (!isCancelled) {
+          // Busca avaliações reais na API para ter a nota e contagem precisas
+          try {
+            const realReviews = await fetchReviewsByReviewedId(serviceId);
+            if (Array.isArray(realReviews)) {
+              data.reviewCount = realReviews.length;
+              data.rating =
+                realReviews.length > 0
+                  ? realReviews.reduce((acc, r) => acc + r.rating, 0) / realReviews.length
+                  : 0;
+            }
+          } catch (reviewErr) {
+            console.warn("[Services] Erro ao carregar avaliações reais:", reviewErr);
+          }
+
           setService(data);
           setSelectedPrice(data.price.inicial);
           setSelectedPackage(data.packages[0]?.label ?? "Padrão");
@@ -62,7 +77,7 @@ function ServiceDetailContent() {
     return () => {
       isCancelled = true;
     };
-  }, [serviceId, companyParam]);
+  }, [serviceId, companyParam, storeIdParam]);
 
   // Carrega os serviços associados a esta loja (GET /api/v1/services/store/{storeId})
   useEffect(() => {

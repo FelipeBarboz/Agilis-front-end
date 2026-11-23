@@ -116,7 +116,7 @@ export function ServiceReviews({
   const effectiveAverageRating =
     totalReviewsCount > 0
       ? reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviewsCount
-      : initialRating;
+      : (reviewCount > 0 ? initialRating : 0);
 
   const starCounts: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   reviews.forEach((r) => {
@@ -127,7 +127,7 @@ export function ServiceReviews({
   const getPercent = (count: number) =>
     totalReviewsCount > 0 ? Math.round((count / totalReviewsCount) * 100) : 0;
 
-  const totalReviewsDisplay = Math.max(reviewCount, totalReviewsCount);
+  const totalReviewsDisplay = totalReviewsCount > 0 ? totalReviewsCount : reviewCount;
 
   return (
     <div className="flex flex-col gap-6 rounded-2xl border bg-card p-6 sm:p-8 shadow-xs ring-1 ring-foreground/10">
@@ -167,7 +167,9 @@ export function ServiceReviews({
             ))}
           </div>
           <span className="text-xs text-muted-foreground mt-1.5 font-medium">
-            Baseado em {totalReviewsDisplay} avaliações
+            {totalReviewsDisplay > 0
+              ? `Baseado em ${totalReviewsDisplay} ${totalReviewsDisplay === 1 ? "avaliação" : "avaliações"}`
+              : "Nenhuma avaliação registrada"}
           </span>
         </div>
 

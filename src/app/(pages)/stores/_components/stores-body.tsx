@@ -68,7 +68,7 @@ export function StoresBody() {
       store.role?.toLowerCase() === "owner";
 
     if (isOwner) {
-      router.push("/store/store-profile");
+      router.push(`/store/store-profile?storeId=${encodeURIComponent(store.storeId)}`);
     } else {
       router.push(`/employee-store/${encodeURIComponent(store.storeId)}`);
     }

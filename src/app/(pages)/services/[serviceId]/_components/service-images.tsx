@@ -49,6 +49,7 @@ export function ServiceImages({ images, title }: ServiceImagesProps) {
               fill
               className="object-cover"
               priority
+              unoptimized
             />
           </motion.div>
         </AnimatePresence>
@@ -118,6 +119,7 @@ export function ServiceImages({ images, title }: ServiceImagesProps) {
                 alt={`Miniatura ${i + 1}`}
                 fill
                 className="object-cover"
+                unoptimized
               />
             </button>
           ))}

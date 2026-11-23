@@ -220,9 +220,20 @@ export function normalizeDetailToService(
     }
   }
 
-  const rating = detail.rating ?? detail.avgRating ?? 4.8;
-  const reviewCount = detail.reviewCount ?? 12;
-  const totalServices = detail.totalServices ?? Math.max(reviewCount, 15);
+  const rating =
+    typeof detail.rating === "number" && !isNaN(detail.rating)
+      ? detail.rating
+      : typeof detail.avgRating === "number" && !isNaN(detail.avgRating)
+        ? detail.avgRating
+        : 0;
+  const reviewCount =
+    typeof detail.reviewCount === "number" && !isNaN(detail.reviewCount)
+      ? detail.reviewCount
+      : 0;
+  const totalServices =
+    typeof detail.totalServices === "number" && !isNaN(detail.totalServices)
+      ? detail.totalServices
+      : 0;
   const company = detail.company ?? detail.storeName ?? fallbackCompany ?? "Prestador Agilis";
   const city = detail.city ?? "São Paulo";
   const state = detail.state ?? "SP";
@@ -240,7 +251,10 @@ export function normalizeDetailToService(
       alto: pType === "FIXED" ? priceInicial : Math.round(priceInicial * 2.2),
     },
     priceType: pType,
-    durationMinutes: detail.durationMinutes || 60,
+    durationMinutes:
+      typeof detail.durationMinutes === "number" && !isNaN(detail.durationMinutes)
+        ? detail.durationMinutes
+        : 0,
     createdAt: detail.createdAt ?? new Date().toISOString(),
     rating,
     reviewCount,
@@ -398,15 +412,169 @@ export async function fetchServicesByStore(
   }
 }
 
+export interface ServiceImageDTO {
+  id: string;
+  serviceId: string;
+  url: string;
+}
+
+/**
+ * Busca as fotos adicionais da galeria de um serviço:
+ * GET /api/v1/stores/{storeId}/services/{serviceId}/images
+ */
+export async function fetchServiceImages(
+  storeId: string,
+  serviceId: string
+): Promise<ServiceImageDTO[]> {
+  try {
+    const res = await api<ServiceImageDTO[]>(
+      `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}/images`
+    );
+    if (Array.isArray(res)) {
+      return res;
+    }
+    return [];
+  } catch (err) {
+    console.warn(`[Services] Falha ao consultar imagens do serviço ${serviceId}:`, err);
+    return [];
+  }
+}
+
 /**
  * Função utilitária que busca um serviço por ID e converte para o modelo Service do frontend.
+ * Também sincroniza as imagens reais cadastradas em GET /api/v1/stores/{storeId}/services/{serviceId}/images
  */
 export async function getServiceById(
   id: string,
-  fallbackCompany?: string
+  fallbackCompany?: string,
+  storeIdOverride?: string
 ): Promise<Service> {
   const detail = await fetchServiceById(id);
-  return normalizeDetailToService(detail, fallbackCompany);
+  const service = normalizeDetailToService(detail, fallbackCompany);
+
+  const effectiveStoreId = storeIdOverride || detail.storeId || service.storeId;
+  if (effectiveStoreId) {
+    try {
+      const realImages = await fetchServiceImages(effectiveStoreId, id);
+      if (Array.isArray(realImages) && realImages.length > 0) {
+        // Se houver thumbnail na API e não estiver na lista de imagens, adiciona como primeira foto
+        const hasThumbnail = Boolean(detail.thumbnailUrl && detail.thumbnailUrl.trim().length > 0);
+        const alreadyHasThumb = hasThumbnail && realImages.some((img) => img.url === detail.thumbnailUrl);
+        const combinedImages = hasThumbnail && !alreadyHasThumb
+          ? [
+              { id: `thumb-${service.id}`, serviceId: service.id, url: detail.thumbnailUrl!.trim() },
+              ...realImages,
+            ]
+          : realImages;
+        service.images = combinedImages;
+      }
+    } catch (err) {
+      console.warn(`[Services] Erro ao sincronizar imagens do serviço ${id}:`, err);
+    }
+  }
+
+  return service;
+}
+
+export interface CreateServicePayload {
+  requesterId: string;
+  storeId: string;
+  unitId: string;
+  title: string;
+  description: string;
+  price: number;
+  priceType: "FIXED" | "HOURLY" | "VARIABLE" | string;
+  durationMinutes: number;
+  category: string;
+}
+
+/**
+ * Cadastra um novo serviço para uma loja:
+ * POST /api/v1/stores/{storeId}/services
+ */
+export async function createService(
+  storeId: string,
+  payload: CreateServicePayload
+): Promise<ServiceDetailDTO> {
+  const formattedPayload = {
+    requesterId: payload.requesterId,
+    storeId: payload.storeId,
+    unitId: payload.unitId,
+    title: payload.title.trim(),
+    description: payload.description.trim(),
+    price: Number(payload.price) || 0,
+    priceType: payload.priceType || "FIXED",
+    durationMinutes: Number(payload.durationMinutes) || 0,
+    category: (payload.category || "LIMPEZA").trim().toUpperCase(),
+  };
+
+  return await api<ServiceDetailDTO>(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services`,
+    {
+      method: "POST",
+      body: JSON.stringify(formattedPayload),
+    }
+  );
+}
+
+export interface UpdateServiceThumbnailPayload {
+  requesterId: string;
+  serviceId: string;
+  url: string;
+}
+
+/**
+ * Atualiza ou define a thumbnail (foto principal) do serviço:
+ * PUT /api/v1/stores/{storeId}/services/{serviceId}/thumbnail
+ */
+export async function updateServiceThumbnail(
+  storeId: string,
+  serviceId: string,
+  payload: UpdateServiceThumbnailPayload
+): Promise<unknown> {
+  const formattedPayload = {
+    requesterId: payload.requesterId,
+    serviceId: payload.serviceId,
+    url: payload.url.trim(),
+  };
+
+  return await api(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}/thumbnail`,
+    {
+      method: "PUT",
+      body: JSON.stringify(formattedPayload),
+    }
+  );
+}
+
+export interface AddServiceImagePayload {
+  requesterId: string;
+  serviceId: string;
+  url: string;
+}
+
+/**
+ * Adiciona uma imagem adicional à galeria do serviço:
+ * POST /api/v1/stores/{storeId}/services/{serviceId}/images
+ */
+export async function addServiceImage(
+  storeId: string,
+  serviceId: string,
+  payload: AddServiceImagePayload
+): Promise<unknown> {
+  const formattedPayload = {
+    requesterId: payload.requesterId,
+    serviceId: payload.serviceId,
+    url: payload.url.trim(),
+  };
+
+  return await api(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}/images`,
+    {
+      method: "POST",
+      body: JSON.stringify(formattedPayload),
+    }
+  );
 }
 
 /**

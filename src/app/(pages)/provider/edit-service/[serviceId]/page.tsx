@@ -65,6 +65,7 @@ export default function EditServicePage() {
 
   // Estados do formulário inicializados com os dados do serviço
   const [name, setName] = useState(service.name);
+  const [category, setCategory] = useState("LIMPEZA");
   const [description, setDescription] = useState(
     "Serviço especializado com garantia de satisfação e atendimento de qualidade."
   );
@@ -90,6 +91,9 @@ export default function EditServicePage() {
         if (data) {
           setName(data.title);
           setDescription(data.description);
+          if (data.category) {
+            setCategory(data.category.toUpperCase());
+          }
           setPriceType(data.priceType === "FIXED" ? "FIXED" : "VARIABLE");
           setPrice(`R$ ${data.price.inicial.toFixed(2).replace(".", ",")}`);
           setDuration(String(data.durationMinutes));
@@ -183,8 +187,10 @@ export default function EditServicePage() {
           <ServiceInfoCard
             name={name}
             description={description}
+            category={category}
             onNameChange={setName}
             onDescriptionChange={setDescription}
+            onCategoryChange={setCategory}
           />
 
           <ServicePricingCard

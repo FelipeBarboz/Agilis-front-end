@@ -1,30 +1,40 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { SettingsIdentityCard } from "./settings-identity-card";
 import { SettingsPresenceCard } from "./settings-presence-card";
 import { SettingsChannelsCard } from "./settings-channels-card";
 import { SettingsActions } from "./settings-actions";
+import {
+  getStoreById,
+  updateStoreProfile,
+  getAuthenticatedUserId,
+  formatCnpj,
+} from "@/lib/services/stores-service";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export function SettingsForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const storeIdParam = searchParams.get("storeId");
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [currentStoreId, setCurrentStoreId] = useState("");
+
   // Estados de identificação da loja
-  const [storeName, setStoreName] = useState("Carlão Piscinas");
-  const [companyName, setCompanyName] = useState(
-    "Carlos Eduardo da Silva Manutenções ME"
-  );
-  const [cnpj, setCnpj] = useState("12.345.678/0001-90");
+  const [storeName, setStoreName] = useState("Minha Loja");
+  const [companyName, setCompanyName] = useState("");
+  const [cnpj, setCnpj] = useState("");
   const [category, setCategory] = useState(
     "Manutenção e Limpeza de Piscinas"
   );
   const [region, setRegion] = useState(
     "Guarulhos e Região Metropolitana de SP"
   );
-  const [storeSlug, setStoreSlug] = useState("carlao-piscinas");
+  const [storeSlug, setStoreSlug] = useState("");
 
   // Logo da loja
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -45,12 +55,39 @@ export function SettingsForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  useEffect(() => {
+    let idToLoad = storeIdParam;
+    if (!idToLoad && typeof window !== "undefined") {
+      idToLoad = localStorage.getItem("current_store_id") || "";
+    }
+    if (idToLoad) {
+      setCurrentStoreId(idToLoad);
+      getStoreById(idToLoad)
+        .then((data) => {
+          if (data) {
+            if (data.storeName) setStoreName(data.storeName);
+            if (data.cnpj) setCnpj(formatCnpj(data.cnpj));
+            if (data.slug) setStoreSlug(data.slug);
+            if (data.profileImgUrl) setLogoPreview(data.profileImgUrl);
+          }
+        })
+        .catch((err) => {
+          console.warn("[SettingsForm] Erro ao carregar dados da loja:", err);
+        });
+    }
+  }, [storeIdParam]);
+
   // Upload de imagem do logo
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setLogoPreview(url);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          setLogoPreview(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -70,21 +107,39 @@ export function SettingsForm() {
     setTimeout(() => setCopiedSlug(false), 2500);
   };
 
-  // Salvar formulário
-  const handleSubmit = (e: React.FormEvent) => {
+  // Salvar formulário via PUT /api/v1/stores/{storeId}
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setSaveSuccess(false);
 
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      if (currentStoreId) {
+        const requesterId = user?.id || (await getAuthenticatedUserId()) || currentStoreId;
+        await updateStoreProfile(currentStoreId, {
+          requesterId,
+          storeId: currentStoreId,
+          storeName: storeName.trim(),
+          description: "",
+          slug: storeSlug.trim(),
+          profileImgUrl: logoPreview || "",
+        });
+      }
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 4000);
-    }, 600);
+    } catch (err) {
+      console.warn("[SettingsForm] Erro ao atualizar perfil da loja:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    router.push("/store/store-profile");
+    router.push(
+      currentStoreId
+        ? `/store/store-profile?storeId=${encodeURIComponent(currentStoreId)}`
+        : "/store/store-profile"
+    );
   };
 
   return (
