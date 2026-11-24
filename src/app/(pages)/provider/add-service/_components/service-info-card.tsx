@@ -6,11 +6,18 @@ export const SERVICE_CATEGORIES = [
   { value: "ELETRICA", label: "Elétrica" },
   { value: "HIDRAULICA", label: "Hidráulica" },
   { value: "PINTURA", label: "Pintura" },
-  { value: "TECNOLOGIA", label: "Tecnologia e TV" },
+  { value: "TECNOLOGIA_TV", label: "Tecnologia e TV" },
   { value: "REPAROS", label: "Reparos e Reformas" },
   { value: "CONSTRUCAO", label: "Construção Civil" },
   { value: "MARCENARIA", label: "Marcenaria" },
   { value: "CLIMATIZACAO", label: "Climatização e Ar Condicionado" },
+  { value: "SEGURANCA", label: "Segurança" },
+  { value: "MUDANCA", label: "Mudança" },
+  { value: "JARDINAGEM", label: "Jardinagem" },
+  { value: "PET", label: "Pet" },
+  { value: "VIDRACARIA", label: "Vidraçaria" },
+  { value: "GAS", label: "Gás" },
+  { value: "LAVANDERIA", label: "Lavanderia" },
 ] as const;
 
 interface ServiceInfoCardProps {
