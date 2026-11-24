@@ -242,7 +242,7 @@ function AddServiceForm() {
     }
 
     const numericPrice = parsePriceToNumber(price);
-    if (priceType !== "VARIABLE" && numericPrice <= 0) {
+    if (priceType !== "QUOTE" && numericPrice <= 0) {
       setErrorMessage("Por favor, informe um valor válido para o serviço.");
       return;
     }
@@ -261,12 +261,13 @@ function AddServiceForm() {
         requesterId = await getAuthenticatedUserId();
       }
 
-      // Se unitId não estiver definido mas tiver unidades, usa a primeira; senão usa storeId
+      // unitId: usa a unidade selecionada ou a primeira disponível.
+      // Nunca usa o storeId como fallback (causaria erro 500 no backend por FK inválida).
       const effectiveUnitId =
         selectedUnitId ||
         units[0]?.unitId ||
         units[0]?.id ||
-        selectedStoreId;
+        null;
 
       const payload: CreateServicePayload = {
         requesterId: requesterId || selectedStoreId,
@@ -281,9 +282,10 @@ function AddServiceForm() {
       };
 
       const created = await createService(selectedStoreId, payload);
+      // O backend retorna serviceId (CreateServiceOutput), não id
       const newServiceId = (
-        created?.id ||
         (created as unknown as { serviceId?: string })?.serviceId ||
+        created?.id ||
         ""
       ).trim();
 

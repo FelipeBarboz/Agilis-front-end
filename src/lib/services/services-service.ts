@@ -476,14 +476,29 @@ export async function getServiceById(
   return service;
 }
 
+/** Normaliza a categoria para o enum aceito pelo backend */
+function normalizeCategory(cat: string): string {
+  const upper = (cat || "LIMPEZA").trim().toUpperCase();
+  // Frontend legacy value → backend enum
+  if (upper === "TECNOLOGIA") return "TECNOLOGIA_TV";
+  return upper;
+}
+
+/** Normaliza o priceType para o enum aceito pelo backend (FIXED | HOURLY | QUOTE) */
+function normalizePriceType(pt: string): string {
+  if (pt === "VARIABLE") return "QUOTE";
+  if (pt === "FIXED" || pt === "HOURLY" || pt === "QUOTE") return pt;
+  return "FIXED";
+}
+
 export interface CreateServicePayload {
   requesterId: string;
   storeId: string;
-  unitId: string;
+  unitId?: string | null;
   title: string;
   description: string;
   price: number;
-  priceType: "FIXED" | "HOURLY" | "VARIABLE" | string;
+  priceType: "FIXED" | "HOURLY" | "QUOTE" | "VARIABLE" | string;
   durationMinutes: number;
   category: string;
 }
@@ -496,17 +511,20 @@ export async function createService(
   storeId: string,
   payload: CreateServicePayload
 ): Promise<ServiceDetailDTO> {
-  const formattedPayload = {
+  const formattedPayload: Record<string, unknown> = {
     requesterId: payload.requesterId,
     storeId: payload.storeId,
-    unitId: payload.unitId,
     title: payload.title.trim(),
     description: payload.description.trim(),
     price: Number(payload.price) || 0,
-    priceType: payload.priceType || "FIXED",
+    priceType: normalizePriceType(payload.priceType || "FIXED"),
     durationMinutes: Number(payload.durationMinutes) || 0,
-    category: (payload.category || "LIMPEZA").trim().toUpperCase(),
+    category: normalizeCategory(payload.category),
   };
+  // Só inclui unitId se for um UUID válido (não nulo/vazio/storeId)
+  if (payload.unitId && payload.unitId.trim() && payload.unitId !== storeId) {
+    formattedPayload.unitId = payload.unitId.trim();
+  }
 
   return await api<ServiceDetailDTO>(
     `/api/v1/stores/${encodeURIComponent(storeId)}/services`,

@@ -1,12 +1,12 @@
 import { ChevronDown, DollarSign } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-export type PriceType = "FIXED" | "HOURLY" | "VARIABLE";
+export type PriceType = "FIXED" | "HOURLY" | "QUOTE";
 
 export const PRICE_TYPE_LABELS: Record<PriceType, string> = {
   FIXED: "Preço fixo",
   HOURLY: "Por hora",
-  VARIABLE: "A combinar",
+  QUOTE: "A combinar",
 };
 
 interface ServicePricingCardProps {
@@ -85,7 +85,7 @@ export function ServicePricingCard({
         {/* Valor */}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="price" className="text-xs font-bold text-foreground">
-            {priceType === "VARIABLE" ? "Valor de referência" : "Valor"}{" "}
+            {priceType === "QUOTE" ? "Valor de referência" : "Valor"}{" "}
             <span className="text-primary">*</span>
           </label>
           <Input
