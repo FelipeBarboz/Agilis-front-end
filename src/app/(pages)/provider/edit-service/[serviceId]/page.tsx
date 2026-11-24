@@ -94,7 +94,8 @@ export default function EditServicePage() {
           if (data.category) {
             setCategory(data.category.toUpperCase());
           }
-          setPriceType(data.priceType === "FIXED" ? "FIXED" : data.priceType === "HOURLY" ? "HOURLY" : "QUOTE");
+          const rawPriceType = String(data.priceType).toUpperCase();
+          setPriceType(rawPriceType === "FIXED" ? "FIXED" : rawPriceType === "HOURLY" ? "HOURLY" : "QUOTE");
           setPrice(`R$ ${data.price.inicial.toFixed(2).replace(".", ",")}`);
           setDuration(String(data.durationMinutes));
           if (data.images[0]?.url) {
