@@ -2,6 +2,7 @@ export type HistoryStatus = "concluido" | "cancelado" | "em_andamento" | "agenda
 
 export interface HistoryEntry {
   id: string;
+  serviceId?: string;
   serviceName: string;
   imageUrl: string;
   counterpartName: string;

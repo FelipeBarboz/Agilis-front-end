@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { HistoryFilters, type HistoryFilterValue } from "./history-filters";
 import { HistoryList } from "./history-list";
 import { HistoryDetailModal } from "./history-detail-modal";
+import { ReviewModal } from "./review-modal";
 import { type HistoryEntry, type HistoryStatus } from "../../../../types/history";
 import {
   getBookingHistory,
@@ -11,6 +12,7 @@ import {
   type BookingHistoryResponse,
 } from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
+import { fetchReviewByBookingId, type ReviewDTO } from "@/lib/services/reviews-service";
 import { Loader2 } from "lucide-react";
 
 function mapBookingStatus(status: string): HistoryStatus {
@@ -25,6 +27,8 @@ export function HistorySection() {
   const [filter, setFilter] = useState<HistoryFilterValue>("todos");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
+  const [reviewEntry, setReviewEntry] = useState<HistoryEntry | null>(null);
+  const [reviewedMap, setReviewedMap] = useState<Record<string, ReviewDTO>>({});
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [backendCounts, setBackendCounts] = useState<{
     total: number;
@@ -120,6 +124,7 @@ export function HistorySection() {
 
               return {
                 id: b.bookingId,
+                serviceId: b.serviceId,
                 serviceName: serviceTitle,
                 imageUrl,
                 counterpartName: companyName,
@@ -198,6 +203,46 @@ export function HistorySection() {
     });
   }, []);
 
+  const reviewedIds = useMemo(() => new Set(Object.keys(reviewedMap)), [reviewedMap]);
+
+  useEffect(() => {
+    const completedEntries = entries.filter((e) => e.status === "concluido");
+    if (completedEntries.length === 0) return;
+
+    let isCancelled = false;
+
+    async function checkCompletedReviews() {
+      const results = await Promise.all(
+        completedEntries.map(async (entry) => {
+          const review = await fetchReviewByBookingId(entry.id);
+          return review ? ([entry.id, review] as const) : null;
+        })
+      );
+
+      if (isCancelled) return;
+
+      setReviewedMap((prev) => {
+        const next = { ...prev };
+        for (const item of results) {
+          if (item) {
+            next[item[0]] = item[1];
+          }
+        }
+        return next;
+      });
+    }
+
+    void checkCompletedReviews();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [entries]);
+
+  const handleReviewSubmitted = useCallback((bookingId: string, review: ReviewDTO) => {
+    setReviewedMap((prev) => ({ ...prev, [bookingId]: review }));
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <HistoryFilters
@@ -216,8 +261,10 @@ export function HistorySection() {
         <HistoryList
           entries={filteredEntries}
           favorites={favorites}
+          reviewedIds={reviewedIds}
           onToggleFavorite={toggleFavorite}
           onSelectEntry={setSelectedEntry}
+          onOpenReview={setReviewEntry}
           onClearFilter={() => setFilter("todos")}
         />
       )}
@@ -225,7 +272,16 @@ export function HistorySection() {
       <HistoryDetailModal
         open={Boolean(selectedEntry)}
         entry={selectedEntry}
+        existingReview={selectedEntry ? reviewedMap[selectedEntry.id] ?? null : null}
         onClose={() => setSelectedEntry(null)}
+        onOpenReview={setReviewEntry}
+      />
+
+      <ReviewModal
+        open={Boolean(reviewEntry)}
+        entry={reviewEntry}
+        onClose={() => setReviewEntry(null)}
+        onReviewSubmitted={handleReviewSubmitted}
       />
     </div>
   );

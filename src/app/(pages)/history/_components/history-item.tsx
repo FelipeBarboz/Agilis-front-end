@@ -11,6 +11,7 @@ import {
   CalendarDays,
   CheckCircle2,
   XCircle,
+  Star,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { type HistoryEntry, type HistoryStatus, STATUS_BADGE_CLASS, STATUS_LABEL } from "../../../../types/history";
@@ -36,11 +37,20 @@ const STATUS_ICONS: Record<HistoryStatus, React.ComponentType<{ className?: stri
 interface HistoryItemProps {
   entry: HistoryEntry;
   isFavorite: boolean;
+  isReviewed?: boolean;
   onToggleFavorite: (id: string) => void;
   onSelect?: (entry: HistoryEntry) => void;
+  onOpenReview?: (entry: HistoryEntry) => void;
 }
 
-export function HistoryItem({ entry, isFavorite, onToggleFavorite, onSelect }: HistoryItemProps) {
+export function HistoryItem({
+  entry,
+  isFavorite,
+  isReviewed = false,
+  onToggleFavorite,
+  onSelect,
+  onOpenReview,
+}: HistoryItemProps) {
   const [imgError, setImgError] = useState(false);
   const StatusIcon = STATUS_ICONS[entry.status];
 
@@ -128,6 +138,27 @@ export function HistoryItem({ entry, isFavorite, onToggleFavorite, onSelect }: H
         </div>
 
         <div className="flex items-center gap-2">
+          {entry.status === "concluido" && (
+            isReviewed ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                <Star className="h-3 w-3 fill-emerald-500 text-emerald-500" />
+                Avaliado
+              </span>
+            ) : onOpenReview ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenReview(entry);
+                }}
+                className="inline-flex items-center gap-1 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-400 cursor-pointer"
+              >
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                Avaliar
+              </button>
+            ) : null
+          )}
+
           <span className="hidden sm:flex items-center gap-0.5 text-xs font-medium text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             Detalhes
             <ChevronRight className="h-3.5 w-3.5" />

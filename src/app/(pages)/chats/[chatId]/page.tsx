@@ -22,6 +22,14 @@ import {
   type BookingMessageDTO,
 } from "@/lib/services/messages-service";
 import {
+  getNegotiationsByBooking,
+  createNegotiation,
+  respondToNegotiation,
+  type NegotiationDTO,
+  type NegotiationAction,
+} from "@/lib/services/negotiations-service";
+import { NegotiationPanel } from "./_components/negotiation-panel/negotiation-panel";
+import {
   getBookingDetail,
   getBookingById,
 } from "@/lib/services/bookings-service";
@@ -77,6 +85,7 @@ export default function ChatDetailPage() {
   const [info, setInfo] = useState<ConversationInfo | null>(null);
   const [serviceInfo, setServiceInfo] = useState<ServiceCardInfo | null>(null);
   const [rawMessages, setRawMessages] = useState<BookingMessageDTO[]>([]);
+  const [negotiations, setNegotiations] = useState<NegotiationDTO[]>([]);
 
   const loadChat = useCallback(async () => {
     if (!chatId) return;
@@ -85,12 +94,14 @@ export default function ChatDetailPage() {
     setNotFound(false);
 
     try {
-      const [detailRes, simpleRes, msgsRes, meRes] = await Promise.allSettled([
-        getBookingDetail(chatId),
-        getBookingById(chatId),
-        getMessagesByBooking(chatId),
-        api<{ id: string }>("/api/v1/users/me"),
-      ]);
+      const [detailRes, simpleRes, msgsRes, meRes, negsRes] =
+        await Promise.allSettled([
+          getBookingDetail(chatId),
+          getBookingById(chatId),
+          getMessagesByBooking(chatId),
+          api<{ id: string }>("/api/v1/users/me"),
+          getNegotiationsByBooking(chatId),
+        ]);
 
       const stored = getStoredUser();
       const userId =
@@ -100,6 +111,7 @@ export default function ChatDetailPage() {
       const detail = detailRes.status === "fulfilled" ? detailRes.value : null;
       const simple = simpleRes.status === "fulfilled" ? simpleRes.value : null;
       const msgs = msgsRes.status === "fulfilled" ? msgsRes.value : [];
+      const negs = negsRes.status === "fulfilled" ? negsRes.value : [];
 
       if (!detail && !simple) {
         setNotFound(true);
@@ -107,6 +119,7 @@ export default function ChatDetailPage() {
       }
 
       setRawMessages(msgs);
+      setNegotiations(negs);
 
       const rawStatus = detail?.status ?? simple?.status ?? "PENDING";
       const upperStatus = String(rawStatus).toUpperCase();
@@ -178,11 +191,22 @@ export default function ChatDetailPage() {
     void loadChat();
   }, [loadChat]);
 
-  // Atualização periódica leve das mensagens
+  // Atualização periódica leve das mensagens e negociações
   useEffect(() => {
     if (!chatId || notFound) return;
     const interval = setInterval(() => {
-      void getMessagesByBooking(chatId).then((msgs) => setRawMessages(msgs));
+      void (async () => {
+        try {
+          const [msgs, negs] = await Promise.all([
+            getMessagesByBooking(chatId),
+            getNegotiationsByBooking(chatId),
+          ]);
+          setRawMessages(msgs);
+          setNegotiations(negs);
+        } catch {
+          // Ignora falha temporária no polling
+        }
+      })();
     }, 10000);
     return () => clearInterval(interval);
   }, [chatId, notFound]);
@@ -226,6 +250,36 @@ export default function ChatDetailPage() {
       const msg =
         err instanceof Error ? err.message : "Erro ao enviar mensagem.";
       setSendError(msg);
+    }
+  }
+
+  async function handleCreateProposal(amount: number) {
+    if (!currentUserId || !receiverId) {
+      throw new Error("Não foi possível identificar o destinatário da proposta.");
+    }
+    const created = await createNegotiation({
+      bookingId: chatId,
+      senderId: currentUserId,
+      receiverId,
+      amount,
+    });
+    setNegotiations((prev) => [...prev, created]);
+  }
+
+  async function handleRespondProposal(
+    negotiationId: string,
+    action: NegotiationAction,
+    counterAmount?: number
+  ) {
+    const updated = await respondToNegotiation(negotiationId, {
+      action,
+      counterAmount,
+    });
+    const fresh = await getNegotiationsByBooking(chatId).catch(() => null);
+    if (fresh) {
+      setNegotiations(fresh);
+    } else {
+      setNegotiations((prev) => [...prev, updated]);
     }
   }
 
@@ -300,6 +354,15 @@ export default function ChatDetailPage() {
 
         {/* Card: Resumo do serviço */}
         <ServiceSummaryBanner service={serviceInfo} />
+
+        {/* Card: Negociação de valor */}
+        <NegotiationPanel
+          negotiations={negotiations}
+          currentUserId={currentUserId}
+          isFinished={info.isFinished}
+          onCreateProposal={handleCreateProposal}
+          onRespondProposal={handleRespondProposal}
+        />
 
         {sendError && (
           <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">

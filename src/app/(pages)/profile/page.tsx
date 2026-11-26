@@ -55,7 +55,12 @@ export default function ProfilePage() {
         <ProviderButton />
 
         {/* Configurações e Sair */}
-        <ProfileMenu onLogout={handleLogout} />
+        <ProfileMenu
+          onLogout={handleLogout}
+          isPlatformAdmin={
+            user?.role === "platform_admin" || user?.role === "ADMIN"
+          }
+        />
       </main>
     </div>
   );

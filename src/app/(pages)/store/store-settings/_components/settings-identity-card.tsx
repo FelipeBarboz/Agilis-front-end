@@ -60,7 +60,13 @@ export function SettingsIdentityCard({
             />
           ) : (
             <div className="flex h-24 w-24 sm:h-28 sm:w-28 shrink-0 items-center justify-center rounded-2xl bg-[#006b49] text-3xl sm:text-4xl font-light text-white shadow-sm">
-              CP
+              {storeName
+                .trim()
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((word) => word[0]?.toUpperCase() ?? "")
+                .join("") || "AG"}
             </div>
           )}
 
@@ -128,7 +134,7 @@ export function SettingsIdentityCard({
             type="text"
             value={storeName}
             onChange={(e) => onStoreNameChange(e.target.value)}
-            placeholder="Ex: Carlão Piscinas"
+            placeholder="Ex: Nome da sua loja"
             className="h-11 rounded-xl"
           />
         </div>

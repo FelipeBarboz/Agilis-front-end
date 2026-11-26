@@ -1,8 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { today } from "@/app/(pages)/store/store-scheduling/_components/date-helper";
 import type { StoreAppointment } from "@/app/(pages)/store/store-scheduling/_components/store-appointment-card";
+import {
+  getStoreWeeklySchedule,
+  type WeeklyScheduleEmployeeDay,
+} from "@/lib/services/employee-schedules-service";
+import { getStoredUser } from "@/lib/auth/token-storage";
 
 // ─── Tipos de status ───────────────────────────────────────────────
 type AppointmentStatus = StoreAppointment["status"];
@@ -46,9 +52,7 @@ const STATUS_CONFIG: Record<
 };
 
 // ─── Escala semanal (Seg–Sex) ───────────────────────────────────────
-// TODO: substituir por fonte de dados real de escala do funcionário quando disponível.
 const DAYS_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-const MONTHS_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
 interface WeekDay {
   dayName: string;
@@ -57,10 +61,20 @@ interface WeekDay {
   shift: string | null; // null = folga
 }
 
-function buildWeekDays(): WeekDay[] {
+function formatDayShift(day: WeeklyScheduleEmployeeDay): string | null {
+  if (day.isDayOff) return null;
+  if (day.formattedHours && day.formattedHours.trim().length > 0) {
+    return day.formattedHours;
+  }
+  if (day.startTime && day.endTime) {
+    return `${day.startTime.slice(0, 5)} – ${day.endTime.slice(0, 5)}`;
+  }
+  return null;
+}
+
+function buildFallbackWeekDays(): WeekDay[] {
   const now = new Date();
   const currentDow = now.getDay(); // 0=Dom
-  // Segunda-feira da semana atual
   const mondayOffset = currentDow === 0 ? -6 : 1 - currentDow;
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
@@ -76,8 +90,7 @@ function buildWeekDays(): WeekDay[] {
       dayName: DAYS_PT[d.getDay()] ?? "",
       dayNumber: d.getDate(),
       dateStr: `${yyyy}-${mm}-${dd}`,
-      // TODO: substituir por dados reais da escala
-      shift: "08:00 – 18:00",
+      shift: null,
     });
   }
   return days;
@@ -91,7 +104,73 @@ interface EmployeeScheduleCardProps {
 
 // ─── Componente principal ────────────────────────────────────────────
 export function EmployeeScheduleCard({ appointments, storeId }: EmployeeScheduleCardProps) {
-  const weekDays = buildWeekDays();
+  const [weekDays, setWeekDays] = useState<WeekDay[]>(() => buildFallbackWeekDays());
+  const [todayLabel, setTodayLabel] = useState<string>("Sem escala");
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!storeId) {
+      setIsLoadingSchedule(false);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoadingSchedule(true);
+
+    async function loadSchedule() {
+      try {
+        const res = await getStoreWeeklySchedule(storeId, today);
+        if (isCancelled) return;
+
+        const currentUserId = getStoredUser()?.id;
+        const mySchedule =
+          res.employees?.find(
+            (emp) =>
+              emp.isCurrentUser ??
+              (Boolean(currentUserId) && emp.employeeId === currentUserId)
+          ) ?? null;
+
+        if (mySchedule?.days && mySchedule.days.length > 0) {
+          const weekdaysOnly = mySchedule.days.filter(
+            (d) => d.dayOfWeek >= 1 && d.dayOfWeek <= 5
+          );
+          const displayDays = (weekdaysOnly.length > 0 ? weekdaysOnly : mySchedule.days.slice(0, 5)).map(
+            (d): WeekDay => ({
+              dayName: d.dayLabel || (DAYS_PT[d.dayOfWeek] ?? ""),
+              dayNumber: d.dayOfMonth,
+              dateStr: d.date,
+              shift: formatDayShift(d),
+            })
+          );
+          setWeekDays(displayDays);
+
+          const todayEntry = mySchedule.days.find((d) => d.date === today);
+          if (todayEntry) {
+            const shift = formatDayShift(todayEntry);
+            setTodayLabel(shift ?? "Folga");
+          } else {
+            setTodayLabel("Sem escala");
+          }
+        } else {
+          setTodayLabel("Sem escala");
+        }
+      } catch {
+        if (!isCancelled) {
+          setTodayLabel("Indisponível");
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingSchedule(false);
+        }
+      }
+    }
+
+    void loadSchedule();
+    return () => {
+      isCancelled = true;
+    };
+  }, [storeId]);
+
   const todayAppts = appointments
     .filter((a) => a.date === today)
     .sort((a, b) => a.time.localeCompare(b.time));
@@ -105,7 +184,7 @@ export function EmployeeScheduleCard({ appointments, storeId }: EmployeeSchedule
           <p className="text-[14px] text-muted-foreground mt-0.5">Sua semana de trabalho</p>
         </div>
         <span className="self-start rounded-[8px] bg-muted px-3 py-1.5 text-[12.5px] font-medium text-foreground whitespace-nowrap">
-          Hoje: 08:00 – 18:00
+          {isLoadingSchedule ? "Carregando escala..." : `Hoje: ${todayLabel}`}
         </span>
       </div>
 

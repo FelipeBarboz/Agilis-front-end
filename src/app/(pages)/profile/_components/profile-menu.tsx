@@ -1,13 +1,33 @@
 import Link from "next/link";
-import { ChevronRight, LogOut, Settings } from "lucide-react";
+import { ChevronRight, LogOut, Settings, Ticket } from "lucide-react";
 
 interface ProfileMenuProps {
   onLogout: () => void;
+  isPlatformAdmin?: boolean;
 }
 
-export function ProfileMenu({ onLogout }: ProfileMenuProps) {
+export function ProfileMenu({ onLogout, isPlatformAdmin = false }: ProfileMenuProps) {
   return (
     <div className="flex flex-col gap-3">
+      {isPlatformAdmin && (
+        <Link
+          href="/admin/coupons"
+          className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"
+        >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+            <Ticket className="size-5" />
+          </div>
+          <div className="flex flex-1 flex-col">
+            <span className="text-sm font-bold text-foreground">
+              Gerenciar Cupons
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Painel administrativo de cupons promocionais
+            </span>
+          </div>
+          <ChevronRight className="size-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      )}
       <Link
         href="/profile/settings"
         className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:bg-muted/40 hover:border-primary/40 group sm:p-5"

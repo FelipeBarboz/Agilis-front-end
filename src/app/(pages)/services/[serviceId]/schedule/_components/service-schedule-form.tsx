@@ -117,10 +117,15 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
       .then((res: ServiceAvailabilityResponse) => {
         if (!isCancelled && res) {
           if (Array.isArray(res.availableSlots) && res.availableSlots.length > 0) {
-            setDynamicSlots(res.availableSlots);
-            // Se o horário selecionado não estiver nos novos horários, seleciona o primeiro
-            if (!res.availableSlots.includes(selectedTime)) {
-              setSelectedTime(res.availableSlots[0]!);
+            const normalizedSlots = res.availableSlots
+              .map((slot) => slot.trim().slice(0, 5))
+              .filter(Boolean);
+            if (normalizedSlots.length > 0) {
+              setDynamicSlots(normalizedSlots);
+              // Se o horário selecionado não estiver nos novos horários, seleciona o primeiro
+              if (!normalizedSlots.includes(selectedTime)) {
+                setSelectedTime(normalizedSlots[0]!);
+              }
             }
           }
           if (res.canChooseEmployee !== undefined) {

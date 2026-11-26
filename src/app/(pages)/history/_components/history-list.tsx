@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 interface HistoryListProps {
   entries: HistoryEntry[];
   favorites: Set<string>;
+  reviewedIds?: Set<string>;
   onToggleFavorite: (id: string) => void;
   onSelectEntry?: (entry: HistoryEntry) => void;
+  onOpenReview?: (entry: HistoryEntry) => void;
   onClearFilter?: () => void;
 }
 
@@ -42,8 +44,10 @@ function groupByMonth(entries: HistoryEntry[]) {
 export function HistoryList({
   entries,
   favorites,
+  reviewedIds,
   onToggleFavorite,
   onSelectEntry,
+  onOpenReview,
   onClearFilter,
 }: HistoryListProps) {
   if (entries.length === 0) {
@@ -95,8 +99,10 @@ export function HistoryList({
                   key={entry.id}
                   entry={entry}
                   isFavorite={favorites.has(entry.id)}
+                  isReviewed={reviewedIds?.has(entry.id) ?? false}
                   onToggleFavorite={onToggleFavorite}
                   onSelect={onSelectEntry}
+                  onOpenReview={onOpenReview}
                 />
               ))}
             </AnimatePresence>

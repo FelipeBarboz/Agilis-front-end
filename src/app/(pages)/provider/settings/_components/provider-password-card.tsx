@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { updateUserPassword } from "@/lib/auth/auth-service";
 
 export function ProviderPasswordCard() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -26,7 +27,7 @@ export function ProviderPasswordCard() {
 
   const strength = getPasswordStrength();
 
-  const handleUpdatePassword = (e: FormEvent) => {
+  const handleUpdatePassword = async (e: FormEvent) => {
     e.preventDefault();
     setPasswordError(null);
     setPasswordFeedback(null);
@@ -44,15 +45,25 @@ export function ProviderPasswordCard() {
       return;
     }
 
-    setIsUpdatingPassword(true);
-    setTimeout(() => {
-      setIsUpdatingPassword(false);
+    try {
+      setIsUpdatingPassword(true);
+      const { error } = await updateUserPassword(newPassword, currentPassword);
+      if (error) throw error;
+
       setPasswordFeedback("Senha alterada com sucesso!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(() => setPasswordFeedback(null), 4000);
-    }, 600);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Erro ao atualizar a senha. Tente novamente.";
+      setPasswordError(msg);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   return (

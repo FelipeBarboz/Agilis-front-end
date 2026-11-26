@@ -33,6 +33,10 @@ export function ChangePasswordCard() {
     setPasswordError(null);
     setPasswordFeedback(null);
 
+    if (!currentPassword) {
+      setPasswordError("Informe sua senha atual.");
+      return;
+    }
     if (newPassword.length < 8) {
       setPasswordError("A nova senha deve ter pelo menos 8 caracteres.");
       return;
@@ -44,7 +48,7 @@ export function ChangePasswordCard() {
 
     try {
       setIsUpdatingPassword(true);
-      const { error } = await updateUserPassword(newPassword);
+      const { error } = await updateUserPassword(newPassword, currentPassword);
       if (error) throw error;
 
       setPasswordFeedback("Senha alterada com sucesso!");

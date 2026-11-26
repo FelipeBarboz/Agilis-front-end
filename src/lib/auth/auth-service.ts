@@ -516,7 +516,32 @@ export async function requestPasswordReset(email: string) {
 /**
  * Atualiza a senha do usuário:
  */
-export async function updateUserPassword(password: string) {
+export async function updateUserPassword(
+  password: string,
+  currentPassword?: string
+) {
+  if (currentPassword !== undefined) {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const email = userData.user?.email;
+    if (userError || !email) {
+      return {
+        data: { user: null },
+        error: new Error("Sessão expirada. Faça login novamente para alterar a senha."),
+      };
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+    if (signInError) {
+      return {
+        data: { user: null },
+        error: new Error("A senha atual informada está incorreta."),
+      };
+    }
+  }
+
   return await supabase.auth.updateUser({ password });
 }
 

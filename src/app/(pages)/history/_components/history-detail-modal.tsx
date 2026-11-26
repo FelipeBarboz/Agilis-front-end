@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { HistoryEntry } from "../../../../types/history";
 import { getBookingDetail, type BookingDetailResponse } from "@/lib/services/bookings-service";
+import { fetchReviewByBookingId, type ReviewDTO } from "@/lib/services/reviews-service";
 
 import { ModalHeader } from "./modal-header";
 import { ModalSkeleton } from "./modal-skeleton";
@@ -24,13 +25,22 @@ const fullDateFormatter = new Intl.DateTimeFormat("pt-BR", {
 interface HistoryDetailModalProps {
   entry: HistoryEntry | null;
   open: boolean;
+  existingReview?: ReviewDTO | null;
   onClose: () => void;
+  onOpenReview?: (entry: HistoryEntry) => void;
 }
 
-export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalProps) {
+export function HistoryDetailModal({
+  entry,
+  open,
+  existingReview: externalReview,
+  onClose,
+  onOpenReview,
+}: HistoryDetailModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
   const [detail, setDetail] = useState<BookingDetailResponse | null>(null);
+  const [fetchedReview, setFetchedReview] = useState<ReviewDTO | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -38,15 +48,22 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
       setIsLoading(true);
       setImgError(false);
       setDetail(null);
+      setFetchedReview(null);
 
-      getBookingDetail(entry.id)
-        .then((data) => {
-          if (!isCancelled && data) {
-            setDetail(data);
-          }
-        })
-        .catch((err) => {
+      void Promise.all([
+        getBookingDetail(entry.id).catch((err) => {
           console.warn("[HistoryDetailModal] Usando dados do histórico:", err);
+          return null;
+        }),
+        entry.status === "concluido" && !externalReview
+          ? fetchReviewByBookingId(entry.id)
+          : Promise.resolve(null),
+      ])
+        .then(([data, review]) => {
+          if (!isCancelled) {
+            if (data) setDetail(data);
+            if (review) setFetchedReview(review);
+          }
         })
         .finally(() => {
           if (!isCancelled) setIsLoading(false);
@@ -55,7 +72,7 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
     return () => {
       isCancelled = true;
     };
-  }, [open, entry?.id]);
+  }, [open, entry?.id, entry?.status, externalReview]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -139,7 +156,19 @@ export function HistoryDetailModal({ entry, open, onClose }: HistoryDetailModalP
                   {effectiveNotes && <NotesSection notes={effectiveNotes} />}
                 </div>
 
-                <ModalFooterActions status={entry.status} entryId={entry.id} />
+                <ModalFooterActions
+                  status={entry.status}
+                  entryId={entry.id}
+                  existingReview={externalReview ?? fetchedReview}
+                  onOpenReview={
+                    onOpenReview
+                      ? () => {
+                          onClose();
+                          onOpenReview(entry);
+                        }
+                      : undefined
+                  }
+                />
               </>
             )}
           </motion.div>

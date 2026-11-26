@@ -13,6 +13,69 @@ export class ApiError extends Error {
   }
 }
 
+function defaultStatusMessage(status: number, statusText?: string): string {
+  if (status === 401) return "Sessão expirada ou não autorizada. Faça login novamente.";
+  if (status === 403) return "Você não tem permissão para realizar esta ação.";
+  if (status === 404) return "Recurso não encontrado.";
+  if (status === 422) return "Não foi possível processar esta solicitação.";
+  if (status >= 500) return "Erro interno no servidor.";
+  const trimmedStatus = statusText?.trim();
+  return trimmedStatus && trimmedStatus.length > 0 ? trimmedStatus : `Erro HTTP ${status}`;
+}
+
+function extractErrorDetails(
+  text: string,
+  status: number,
+  statusText?: string
+): { errorMessage: string; errorData: unknown } {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return {
+      errorMessage: defaultStatusMessage(status, statusText),
+      errorData: undefined,
+    };
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    if (typeof parsed === "object" && parsed !== null) {
+      const record = parsed as Record<string, unknown>;
+      const candidate =
+        record.message ??
+        record.reason ??
+        record.error_description ??
+        record.detail ??
+        record.msg ??
+        record.error;
+
+      if (typeof candidate === "string" && candidate.trim().length > 0) {
+        return { errorMessage: candidate.trim(), errorData: parsed };
+      }
+
+      const serialized = JSON.stringify(parsed);
+      return {
+        errorMessage:
+          serialized && serialized !== "{}"
+            ? serialized
+            : defaultStatusMessage(status, statusText),
+        errorData: parsed,
+      };
+    }
+
+    if (typeof parsed === "string" && parsed.trim().length > 0) {
+      return { errorMessage: parsed.trim(), errorData: parsed };
+    }
+  } catch {
+    // Resposta em texto puro (ex: "Token inválido ou expirado" do JwtFilter)
+    return { errorMessage: trimmed, errorData: undefined };
+  }
+
+  return {
+    errorMessage: defaultStatusMessage(status, statusText),
+    errorData: undefined,
+  };
+}
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   let token: string | undefined | null = getStoredToken();
   if (!token) {
@@ -50,37 +113,21 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
 
   if (!res.ok) {
-    let errorMessage = `Erro HTTP ${res.status}`;
+    let errorMessage = defaultStatusMessage(res.status, res.statusText);
     let errorData: unknown = undefined;
 
     try {
       const text = await res.text();
-      if (text && text.trim().length > 0) {
-        try {
-          const parsed: unknown = JSON.parse(text);
-          errorData = parsed;
-          if (typeof parsed === "object" && parsed !== null) {
-            const errorRecord = parsed as Record<string, unknown>;
-            const msg = errorRecord.message ?? errorRecord.reason ?? errorRecord.error;
-            if (typeof msg === "string" && msg.trim().length > 0) {
-              errorMessage = msg;
-            } else {
-              const str = JSON.stringify(parsed);
-              errorMessage = str && str !== "{}" ? str : (res.statusText || `Erro no servidor (${res.status})`);
-            }
-          } else if (typeof parsed === "string") {
-            errorMessage = parsed;
-          }
-        } catch {
-          errorMessage = text;
-        }
-      }
-    } catch {}
+      const extracted = extractErrorDetails(text, res.status, res.statusText);
+      errorMessage = extracted.errorMessage;
+      errorData = extracted.errorData;
+    } catch {
+      // Mantém mensagem padrão do status
+    }
 
     console.error(`[API ERROR ${res.status}] ${init.method ?? "GET"} ${url}:`, {
       errorMessage,
       errorData,
-      payload: init.body,
     });
 
     throw new ApiError(res.status, errorMessage, errorData);
