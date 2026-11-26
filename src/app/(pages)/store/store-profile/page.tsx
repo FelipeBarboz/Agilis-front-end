@@ -23,15 +23,12 @@ import {
   Store as StoreIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mockProfileAppointments } from "@/lib/mocks/profile-appointments";
 import { ServicesList } from "./_components/services-list";
 import { EditStoreProfileModal } from "./_components/edit-store-profile-modal";
-import { getEmployeeStoresFromStorage } from "@/lib/mocks/invites";
-import type { PermissionId } from "@/lib/mocks/positions";
 import {
-  getStoreTeamFromStorage,
-  type StoreTeamMember,
-} from "@/lib/mocks/store-roster";
+  getRoleDefinition,
+  type PermissionId,
+} from "@/lib/constants/store-roles";
 import {
   getStoreById,
   getMyStores,
@@ -40,6 +37,11 @@ import {
   type StoreProfileDTO,
 } from "@/lib/services/stores-service";
 import { fetchReviewsByReviewedId } from "@/lib/services/reviews-service";
+import { getStoreBookingsOverview } from "@/lib/services/bookings-service";
+import {
+  getStoreDailySchedule,
+  type DailyScheduleEmployee,
+} from "@/lib/services/employee-schedules-service";
 
 function StoreProfileContent() {
   const router = useRouter();
@@ -52,8 +54,10 @@ function StoreProfileContent() {
   const [isEmployee, setIsEmployee] = useState(isEmployeeParam);
   const [positionTitle, setPositionTitle] = useState(positionTitleParam || "Funcionário");
   const [permissions, setPermissions] = useState<PermissionId[]>(["manage_appointments"]);
-  const [storeTeam, setStoreTeam] = useState<StoreTeamMember[]>([]);
-  const todayDow = new Date().getDay();
+  const [todaySchedule, setTodaySchedule] = useState<DailyScheduleEmployee[]>([]);
+  const [todayAppointments, setTodayAppointments] = useState<
+    Array<{ id: string; client: string; service: string; date: string; time: string }>
+  >([]);
 
   // Estados da loja vindos do backend (GET /api/v1/stores/{storeId})
   const [store, setStore] = useState<StoreProfileDTO | null>(null);
@@ -118,19 +122,57 @@ function StoreProfileContent() {
           }
         } catch {}
 
-        // 3. Avaliações reais da loja
-        try {
-          const reviews = await fetchReviewsByReviewedId(idToLoad);
-          if (Array.isArray(reviews)) {
-            setStoreReviewCount(reviews.length);
-            if (reviews.length > 0) {
-              const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-              setStoreRating(avg);
-            } else {
-              setStoreRating(0);
-            }
+        // 3. Avaliações reais, escala diária e agendamentos de hoje da loja em paralelo
+        const todayStr = new Date().toISOString().split("T")[0];
+        const [reviewsRes, dailyScheduleRes, bookingsRes] = await Promise.allSettled([
+          fetchReviewsByReviewedId(idToLoad),
+          getStoreDailySchedule(idToLoad, todayStr),
+          getStoreBookingsOverview(idToLoad, todayStr),
+        ]);
+
+        if (!isMounted) return;
+
+        if (reviewsRes.status === "fulfilled" && Array.isArray(reviewsRes.value)) {
+          const reviews = reviewsRes.value;
+          setStoreReviewCount(reviews.length);
+          if (reviews.length > 0) {
+            const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+            setStoreRating(avg);
+          } else {
+            setStoreRating(0);
           }
-        } catch {}
+        }
+
+        if (dailyScheduleRes.status === "fulfilled" && dailyScheduleRes.value) {
+          setTodaySchedule(dailyScheduleRes.value.employees ?? []);
+        }
+
+        if (bookingsRes.status === "fulfilled" && bookingsRes.value) {
+          const overview = bookingsRes.value;
+          const mappedBookings = (overview.bookings ?? []).map((b) => {
+            const dt = new Date(b.scheduledAt);
+            const dateFormatted = isNaN(dt.getTime())
+              ? overview.date
+              : dt.toLocaleDateString("pt-BR");
+            let timeFormatted = "00:00";
+            if (typeof b.startTime === "string" && b.startTime.includes(":")) {
+              timeFormatted = b.startTime.slice(0, 5);
+            } else if (b.startTime && typeof b.startTime === "object") {
+              timeFormatted = `${String(b.startTime.hour).padStart(2, "0")}:${String(b.startTime.minute).padStart(2, "0")}`;
+            } else if (!isNaN(dt.getTime())) {
+              timeFormatted = `${String(dt.getHours()).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")}`;
+            }
+
+            return {
+              id: b.bookingId,
+              client: b.clientName || "Cliente",
+              service: b.serviceTitle || "Serviço",
+              date: dateFormatted,
+              time: timeFormatted,
+            };
+          });
+          setTodayAppointments(mappedBookings);
+        }
       } catch (err) {
         console.warn("[StoreProfile] Erro ao carregar dados da loja:", err);
       } finally {
@@ -146,33 +188,28 @@ function StoreProfileContent() {
   }, [storeIdParam]);
 
   useEffect(() => {
-    setStoreTeam(getStoreTeamFromStorage(storeIdParam || "store-super-pinturas"));
+    if (!isEmployeeParam) return;
+    setIsEmployee(true);
+    if (positionTitleParam) setPositionTitle(positionTitleParam);
 
-    const handleSync = () => {
-      setStoreTeam(getStoreTeamFromStorage(storeIdParam || "store-super-pinturas"));
-    };
-    window.addEventListener("storage", handleSync);
-    window.addEventListener("roster-update", handleSync);
+    let isMounted = true;
+    getMyStores()
+      .then((stores) => {
+        if (!isMounted) return;
+        const found = stores.find((s) => s.storeId === storeIdParam);
+        if (found) {
+          const roleDef = getRoleDefinition(found.role);
+          setPermissions(roleDef.permissions);
+          setPositionTitle(roleDef.title);
+        }
+      })
+      .catch(() => {
+        // Mantém fallback padrão de permissões
+      });
 
     return () => {
-      window.removeEventListener("storage", handleSync);
-      window.removeEventListener("roster-update", handleSync);
+      isMounted = false;
     };
-  }, [storeIdParam]);
-
-  useEffect(() => {
-    if (isEmployeeParam) {
-      setIsEmployee(true);
-      if (positionTitleParam) setPositionTitle(positionTitleParam);
-
-      // Busca permissões no storage se disponível
-      const list = getEmployeeStoresFromStorage();
-      const assoc = list.find((a) => a.storeId === storeIdParam);
-      if (assoc) {
-        setPermissions(assoc.permissions);
-        setPositionTitle(assoc.positionTitle);
-      }
-    }
   }, [isEmployeeParam, storeIdParam, positionTitleParam]);
 
   const canManageSettings = !isEmployee || permissions.includes("store_settings");
@@ -439,40 +476,56 @@ function StoreProfileContent() {
 
           {/* Mini resumo da escala de hoje */}
           <div className="mt-2 divide-y divide-border border-t border-border">
-            {storeTeam.slice(0, 4).map((member) => {
-              const todayShift = member.shifts[todayDow];
-              const isWorking = todayShift !== null;
+            {todaySchedule.length === 0 ? (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                Nenhum colaborador com escala definida para hoje.
+              </div>
+            ) : (
+              todaySchedule.slice(0, 4).map((member) => {
+                const initials = member.name
+                  .trim()
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((w) => w.charAt(0).toUpperCase())
+                  .join("") || "AG";
 
-              return (
-                <div key={member.id} className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#006b49] text-[11px] font-semibold text-white">
-                      {member.initials}
+                const formattedShift =
+                  member.formattedHours ||
+                  (member.startTime && member.endTime
+                    ? `${String(member.startTime).slice(0, 5)} às ${String(member.endTime).slice(0, 5)}`
+                    : "Turno definido");
+
+                return (
+                  <div key={member.employeeId} className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#006b49] text-[11px] font-semibold text-white">
+                        {initials}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-foreground">
+                          {member.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {member.positionTitle || "Colaborador"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-foreground">
-                        {member.name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {member.role}
-                      </span>
+
+                    <div className="flex items-center gap-2">
+                      {!member.isDayOff ? (
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2.5 py-0.5">
+                          {formattedShift}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground border border-dashed border-border rounded-md px-2.5 py-0.5">
+                          Folga
+                        </span>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    {todayShift && isWorking ? (
-                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2.5 py-0.5">
-                        {todayShift[0].toString().padStart(2, "0")}h às {todayShift[1].toString().padStart(2, "0")}h
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground border border-dashed border-border rounded-md px-2.5 py-0.5">
-                        Folga
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -509,27 +562,33 @@ function StoreProfileContent() {
             </div>
 
             <div className="mt-2 divide-y divide-border border-t border-border">
-              {mockProfileAppointments.map((appt) => (
-                <div key={appt.id} className="flex items-center justify-between py-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <User className="size-3.5 text-primary" />
-                      {appt.client}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{appt.service}</span>
-                  </div>
+              {todayAppointments.length === 0 ? (
+                <div className="py-6 text-center text-xs text-muted-foreground">
+                  Nenhum agendamento marcado para hoje.
+                </div>
+              ) : (
+                todayAppointments.map((appt) => (
+                  <div key={appt.id} className="flex items-center justify-between py-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <User className="size-3.5 text-primary" />
+                        {appt.client}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{appt.service}</span>
+                    </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5">
-                      {appt.date}
-                    </span>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="size-3.5" />
-                      {appt.time}
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-2 py-0.5">
+                        {appt.date}
+                      </span>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="size-3.5" />
+                        {appt.time}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         ) : (

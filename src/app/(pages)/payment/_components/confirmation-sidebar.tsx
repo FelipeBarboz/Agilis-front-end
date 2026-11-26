@@ -6,7 +6,13 @@ interface ConfirmationSidebarProps {
   serviceName: string;
   providerName: string;
   price: number;
-  bookingFee: number;
+  discountAmount?: number;
+  appliedCouponCode?: string | null;
+  couponError?: string | null;
+  isValidatingCoupon?: boolean;
+  canApplyCoupon?: boolean;
+  onApplyCoupon?: (code: string) => void;
+  onRemoveCoupon?: () => void;
   total: number;
   isLoading?: boolean;
   isMercadoPago?: boolean;
@@ -17,7 +23,13 @@ export function ConfirmationSidebar({
   serviceName,
   providerName,
   price,
-  bookingFee,
+  discountAmount,
+  appliedCouponCode,
+  couponError,
+  isValidatingCoupon,
+  canApplyCoupon,
+  onApplyCoupon,
+  onRemoveCoupon,
   total,
   isLoading = false,
   isMercadoPago = true,
@@ -29,7 +41,13 @@ export function ConfirmationSidebar({
         serviceName={serviceName}
         providerName={providerName}
         price={price}
-        bookingFee={bookingFee}
+        discountAmount={discountAmount}
+        appliedCouponCode={appliedCouponCode}
+        couponError={couponError}
+        isValidatingCoupon={isValidatingCoupon}
+        canApplyCoupon={canApplyCoupon}
+        onApplyCoupon={onApplyCoupon}
+        onRemoveCoupon={onRemoveCoupon}
         total={total}
       />
 

@@ -80,12 +80,10 @@ export function useStorePositions(options: UseStorePositionsOptions = {}) {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await createPositionApi(payload);
-        const item = Array.isArray(res) ? res[0] : res;
-        if (!item) {
+        const created = await createPositionApi(payload);
+        if (!created?.id) {
           throw new Error("Resposta inválida da criação da posição");
         }
-        const created: StorePosition = item;
         setPositions((prev) => [created, ...prev]);
         setCurrentPosition(created);
         return created;
@@ -109,12 +107,10 @@ export function useStorePositions(options: UseStorePositionsOptions = {}) {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await updatePositionApi(sId, pId, payload);
-        const item = Array.isArray(res) ? res[0] : res;
-        if (!item) {
+        const updated = await updatePositionApi(sId, pId, payload);
+        if (!updated?.id) {
           throw new Error("Resposta inválida da atualização da posição");
         }
-        const updated: StorePosition = item;
         setPositions((prev) =>
           prev.map((p) => (p.id === pId ? updated : p))
         );

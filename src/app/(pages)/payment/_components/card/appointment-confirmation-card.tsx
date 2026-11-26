@@ -17,6 +17,13 @@ import {
 } from "@/lib/services/payments-service";
 import { createBooking, getBookingById, type BookingPaymentMethod } from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
+import { validateCoupon } from "@/lib/services/coupons-service";
+
+function mapPaymentMethodToApi(id: PaymentMethodId | null): BookingPaymentMethod {
+  if (id === "pix") return "PIX";
+  if (id === "debit-card") return "DEBIT_CARD";
+  return "CREDIT_CARD";
+}
 
 interface AppointmentConfirmationCardProps {
   appointmentId: string;
@@ -174,12 +181,59 @@ export function AppointmentConfirmationCard({
 
   const [isManualSuccess, setIsManualSuccess] = useState(false);
 
+  // Cupom de desconto
+  const serviceIdFromUrl = searchParams.get("serviceId") ?? "";
+  const initialCouponFromUrl = (searchParams.get("couponCode") ?? "").trim().toUpperCase();
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(
+    initialCouponFromUrl || null
+  );
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
   const selectedPayment = PAYMENT_METHODS.find(
     (method) => method.id === selectedPaymentId
   );
 
-  const bookingFee = 10;
-  const total = price + bookingFee;
+  const total = Math.max(0, price - discountAmount);
+
+  async function handleApplyCoupon(code: string) {
+    if (!serviceIdFromUrl) {
+      setCouponError("Serviço não identificado para validar o cupom.");
+      return;
+    }
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+    try {
+      const res = await validateCoupon({
+        serviceId: serviceIdFromUrl,
+        code,
+      });
+      if (!res.valid) {
+        setAppliedCouponCode(null);
+        setDiscountAmount(0);
+        setCouponError(res.reason ?? "Cupom inválido ou expirado para este serviço.");
+        return;
+      }
+      setAppliedCouponCode(code.trim().toUpperCase());
+      setDiscountAmount(Number(res.discountAmount) || 0);
+      setCouponError(null);
+    } catch (err) {
+      setAppliedCouponCode(null);
+      setDiscountAmount(0);
+      setCouponError(
+        err instanceof Error ? err.message : "Não foi possível validar o cupom."
+      );
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCouponCode(null);
+    setDiscountAmount(0);
+    setCouponError(null);
+  }
 
   async function handleConfirm() {
     setErrorMessage(null);
@@ -197,32 +251,38 @@ export function AppointmentConfirmationCard({
       try {
         let effectiveBookingId = bookingId;
 
-        // Se ainda não temos um bookingId, cria o agendamento no backend
+        // Se ainda não temos um bookingId, cria o agendamento no backend com método + cupom
         if (!effectiveBookingId) {
-          try {
-            const rawDate = searchParams.get("date") ?? "";
-            const rawTime = searchParams.get("time") ?? "14:00";
-            const timeFormatted = rawTime.length === 5 ? `${rawTime}:00` : rawTime;
-            const scheduledAt = rawDate
-              ? `${rawDate}T${timeFormatted}`
-              : new Date().toISOString().slice(0, 19);
+          const scheduledAtParam = searchParams.get("scheduledAt");
+          const rawDate = searchParams.get("date") ?? "";
+          const rawTime = searchParams.get("time") ?? "14:00";
+          const timeFormatted = rawTime.length === 5 ? `${rawTime}:00` : rawTime;
 
-            const bookingRes = await createBooking({
-              clientId: searchParams.get("clientId") ?? "",
-              serviceId: searchParams.get("serviceId") ?? "",
-              employeeId: searchParams.get("employeeId") ?? "",
-              scheduledAt,
-              notes: searchParams.get("notes") ?? "",
-              paymentMethod: (searchParams.get("paymentMethod") as BookingPaymentMethod | null) ?? "CREDIT_CARD",
-              couponCode: searchParams.get("couponCode") ?? "",
-            });
-            effectiveBookingId = bookingRes.bookingId ?? "";
-          } catch (err) {
-            console.warn(
-              "[Payment] Não foi possível criar booking prévio no backend, gerando identificador:",
-              err
-            );
-            effectiveBookingId = crypto.randomUUID();
+          let scheduledAt = scheduledAtParam ?? "";
+          if (!scheduledAt) {
+            // Converte "DD/MM/YYYY" para "YYYY-MM-DD" se necessário
+            const brMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(rawDate);
+            const isoDate = brMatch
+              ? `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`
+              : rawDate;
+            scheduledAt = isoDate
+              ? `${isoDate}T${timeFormatted}`
+              : new Date().toISOString().slice(0, 19);
+          }
+
+          const bookingRes = await createBooking({
+            clientId: searchParams.get("clientId") ?? "",
+            serviceId: serviceIdFromUrl,
+            employeeId: searchParams.get("employeeId") ?? "",
+            scheduledAt,
+            notes: searchParams.get("notes") ?? "",
+            paymentMethod: mapPaymentMethodToApi(selectedPaymentId),
+            couponCode: appliedCouponCode ?? "",
+          });
+
+          effectiveBookingId = bookingRes.bookingId ?? bookingRes.id ?? "";
+          if (!effectiveBookingId) {
+            throw new Error("O servidor não retornou o identificador do agendamento.");
           }
         }
 
@@ -383,7 +443,13 @@ export function AppointmentConfirmationCard({
           serviceName={serviceName}
           providerName={providerName}
           price={price}
-          bookingFee={bookingFee}
+          discountAmount={discountAmount}
+          appliedCouponCode={appliedCouponCode}
+          couponError={couponError}
+          isValidatingCoupon={isValidatingCoupon}
+          canApplyCoupon={!bookingId && Boolean(serviceIdFromUrl)}
+          onApplyCoupon={(code) => void handleApplyCoupon(code)}
+          onRemoveCoupon={handleRemoveCoupon}
           total={total}
           isLoading={isLoadingPayment}
           isMercadoPago={true}

@@ -3,7 +3,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { mockServices } from "@/lib/mocks/services";
+import type { Service } from "@/lib/mocks/services";
+import {
+  fetchServicesSearch,
+  normalizeSearchItemToService,
+} from "@/lib/services/services-service";
 import { SearchInput } from "./search-input";
 import { SearchDropdown } from "./search-dropdown";
 
@@ -16,21 +20,38 @@ export function SearchBar({ className = "", placeholder }: SearchBarProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<Service[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Computa as sugestões filtradas pela busca
-  const suggestions =
-    query.trim().length >= 1
-      ? mockServices
-          .filter(
-            (s) =>
-              s.title.toLowerCase().includes(query.toLowerCase()) ||
-              s.category.toLowerCase().includes(query.toLowerCase()) ||
-              s.company.toLowerCase().includes(query.toLowerCase())
-          )
-          .slice(0, 6)
-      : [];
+  // Busca sugestões na API real com debounce
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 1) {
+      setSuggestions([]);
+      return;
+    }
+
+    let isMounted = true;
+    const timer = setTimeout(() => {
+      fetchServicesSearch({ q: trimmed, size: 6 })
+        .then((res) => {
+          if (isMounted) {
+            setSuggestions(
+              (res.items ?? []).slice(0, 6).map(normalizeSearchItemToService)
+            );
+          }
+        })
+        .catch(() => {
+          if (isMounted) setSuggestions([]);
+        });
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [query]);
 
   const navigate = useCallback(
     (term: string) => {
@@ -54,6 +75,7 @@ export function SearchBar({ className = "", placeholder }: SearchBarProps) {
 
   function handleClear() {
     setQuery("");
+    setSuggestions([]);
     setOpen(false);
     inputRef.current?.focus();
   }

@@ -4,7 +4,7 @@ import { Clock, MapPin, User, CheckCircle2, Hourglass, XCircle } from "lucide-re
 import type {
   CalendarAppointmentStatus,
   EmployeeCalendarAppointment,
-} from "@/lib/mocks/employee-calendar-appointments";
+} from "@/lib/utils/employee-bookings-mapper";
 
 interface CalendarAppointmentCardProps {
   appointment: EmployeeCalendarAppointment;

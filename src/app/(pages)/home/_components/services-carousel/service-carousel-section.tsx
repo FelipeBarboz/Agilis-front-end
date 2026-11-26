@@ -8,14 +8,14 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { ServiceCard } from "@/app/(pages)/services/_components/service-card";
+import type { Service, ServiceFilterType } from "@/lib/mocks/services";
 import {
-  type Service,
-  type ServiceFilterType,
-  type PaginatedServicesResponse,
-  getPaginatedServices,
-} from "@/lib/mocks/services";
+  fetchMostHiredServices,
+  fetchTopRatedServices,
+  fetchTrendingServices,
+} from "@/lib/services/services-service";
 import { FadeIn } from "@/components/ui/motion";
-import { Loader2, type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 
 interface ServiceCarouselSectionProps {
   title: string;
@@ -33,100 +33,73 @@ export function ServiceCarouselSection({
   filter,
 }: ServiceCarouselSectionProps) {
   const [api, setApi] = useState<CarouselApi>();
-  const [services, setServices] = useState<Service[]>([]);
+  const [allServices, setAllServices] = useState<Service[]>([]);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
   const LIMIT = 5;
 
-  async function fetchPage(targetPage: number): Promise<PaginatedServicesResponse | null> {
-    try {
-      const res = await fetch(`/api/services?filter=${filter}&page=${targetPage}&limit=${LIMIT}`);
-      if (!res.ok) throw new Error("Falha ao buscar serviços");
-      return (await res.json()) as PaginatedServicesResponse;
-    } catch {
-      return getPaginatedServices({ filter, page: targetPage, limit: LIMIT });
-    }
-  }
-
-  // Carrega a primeira página
+  // Carrega os serviços da API real conforme o filtro
   useEffect(() => {
     let isMounted = true;
 
     async function load() {
       setInitialLoading(true);
-      const data = await fetchPage(1);
-      if (isMounted && data) {
-        setServices(data.items);
-        setPage(data.page);
-        setHasMore(data.hasMore);
+      let items: Service[] = [];
+
+      if (filter === "top_rated") {
+        items = await fetchTopRatedServices(15);
+      } else if (filter === "most_visited") {
+        // Combina trending com fallback para most-hired caso trending esteja vazio
+        items = await fetchTrendingServices(15);
+        if (items.length === 0) {
+          items = await fetchMostHiredServices(15);
+        }
+      } else {
+        items = await fetchMostHiredServices(15);
       }
-      if (isMounted) setInitialLoading(false);
+
+      if (isMounted) {
+        setAllServices(items);
+        setPage(1);
+        setInitialLoading(false);
+      }
     }
 
     void load();
-    return () => { isMounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      isMounted = false;
+    };
   }, [filter]);
+
+  const totalPages = Math.max(1, Math.ceil(allServices.length / LIMIT));
+  const hasMore = page < totalPages;
+  const services = allServices.slice((page - 1) * LIMIT, page * LIMIT);
 
   // Volta ao primeiro slide sempre que os serviços mudam
   useEffect(() => {
     if (api) {
       api.scrollTo(0, true);
     }
-  }, [api, services]);
+  }, [api, page, allServices]);
 
-  const handleNext = useCallback(async () => {
-    if (isLoading) return;
-
-    // Se ainda há slides para rolar no Embla, rola
+  const handleNext = useCallback(() => {
     if (api?.canScrollNext()) {
       api.scrollNext();
       return;
     }
-
-    // Sem mais slides e sem mais páginas
     if (!hasMore) return;
+    setPage((prev) => Math.min(totalPages, prev + 1));
+  }, [api, hasMore, totalPages]);
 
-    // Carrega próxima página e substitui
-    setIsLoading(true);
-    const nextPage = page + 1;
-    const data = await fetchPage(nextPage);
-    if (data) {
-      setServices(data.items);
-      setPage(data.page);
-      setHasMore(data.hasMore);
-    }
-    setIsLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api, hasMore, isLoading, page]);
-
-  const handlePrev = useCallback(async () => {
-    if (isLoading) return;
-
-    // Se há slides anteriores no Embla, rola
+  const handlePrev = useCallback(() => {
     if (api?.canScrollPrev()) {
       api.scrollPrev();
       return;
     }
-
-    // Se estamos na primeira página, não faz nada
     if (page <= 1) return;
-
-    // Carrega página anterior e substitui
-    setIsLoading(true);
-    const prevPage = page - 1;
-    const data = await fetchPage(prevPage);
-    if (data) {
-      setServices(data.items);
-      setPage(data.page);
-      setHasMore(true); // voltando sempre tem mais para frente
-    }
-    setIsLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api, isLoading, page]);
+    setPage((prev) => Math.max(1, prev - 1));
+  }, [api, page]);
 
   const canGoPrev = (api?.canScrollPrev() ?? false) || page > 1;
   const canGoNext = (api?.canScrollNext() ?? false) || hasMore;
@@ -168,7 +141,7 @@ export function ServiceCarouselSection({
               <button
                 type="button"
                 onClick={handlePrev}
-                disabled={!canGoPrev || isLoading}
+                disabled={!canGoPrev || initialLoading}
                 aria-label="Itens anteriores"
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-2xs transition-all hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
               >
@@ -180,17 +153,13 @@ export function ServiceCarouselSection({
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!canGoNext || isLoading}
+                disabled={!canGoNext || initialLoading}
                 aria-label="Próximos itens"
                 className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background shadow-2xs transition-all hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
               >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                ) : (
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                )}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             </div>
           </div>
@@ -212,6 +181,10 @@ export function ServiceCarouselSection({
                 </div>
               </div>
             ))}
+          </div>
+        ) : services.length === 0 ? (
+          <div className="flex items-center justify-center rounded-2xl border border-dashed border-border/60 bg-card/50 py-10 text-sm text-muted-foreground">
+            Nenhum serviço em destaque disponível no momento.
           </div>
         ) : (
           <Carousel

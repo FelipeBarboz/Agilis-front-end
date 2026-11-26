@@ -7,7 +7,7 @@ import {
   addDays,
   formatLongDate,
 } from "@/lib/utils/date-schedule-helpers";
-import type { EmployeeCalendarAppointment } from "@/lib/mocks/employee-calendar-appointments";
+import type { EmployeeCalendarAppointment } from "@/lib/utils/employee-bookings-mapper";
 import { CalendarStatsCards } from "./calendar-stats-cards";
 import { CalendarAppointmentCard } from "./calendar-appointment-card";
 

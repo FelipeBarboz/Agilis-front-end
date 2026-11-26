@@ -3,7 +3,7 @@
 import { ShieldCheck, UserCheck, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { mockPositions, type Position } from "@/lib/mocks/positions";
+import { SELECTABLE_ROLES, type Position } from "@/lib/constants/store-roles";
 
 interface EmployeeRoleSectionProps {
   employeeName: string;
@@ -48,7 +48,7 @@ export function EmployeeRoleSection({
             Selecione o cargo para {employeeName}:
           </span>
           <div className="grid grid-cols-1 gap-2">
-            {mockPositions.map((pos) => {
+            {SELECTABLE_ROLES.map((pos) => {
               const isSelected = selectedRole === pos.title;
               return (
                 <div

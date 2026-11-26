@@ -3,35 +3,39 @@ export interface PositionCity {
   state: string;
 }
 
-export type AttendanceType = "CLIENT_LOCATION" | "FIXED_LOCATION" | "BOTH" | string;
+export type AttendanceType = "CLIENT_LOCATION" | "FIXED_LOCATION" | "BOTH";
 
 export interface StorePosition {
   id: string;
   storeId?: string;
-  attendanceType: AttendanceType;
-  radiusKm: number;
-  referenceAddress: string;
-  cities: PositionCity[];
+  title: string;
+  description: string;
+  employeeCount?: number;
+  canManageBookings: boolean;
+  canAccessChats: boolean;
+  canManageStoreSettings: boolean;
+  canViewReports: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateStorePositionPayload {
-  requesterId?: string;
   storeId: string;
-  attendanceType: AttendanceType;
-  radiusKm: number;
-  referenceAddress: string;
-  cities: PositionCity[];
+  title: string;
+  description: string;
+  canManageBookings: boolean;
+  canAccessChats: boolean;
+  canManageStoreSettings: boolean;
+  canViewReports: boolean;
 }
 
 export interface UpdateStorePositionPayload {
-  requesterId?: string;
-  storeId: string;
-  attendanceType: AttendanceType;
-  radiusKm: number;
-  referenceAddress: string;
-  cities: PositionCity[];
+  title: string;
+  description: string;
+  canManageBookings: boolean;
+  canAccessChats: boolean;
+  canManageStoreSettings: boolean;
+  canViewReports: boolean;
 }
 
 export interface UpdateMemberPositionPayload {

@@ -1,86 +1,108 @@
 "use client";
 
 import { useState } from "react";
-import { Link2, Shield, ArrowRight, CheckCircle2, Clock, Mail, AlertCircle, X } from "lucide-react";
+import {
+  Link2,
+  Shield,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Loader2,
+  UserPlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { resolveInviteToken, type InviteLink, type UserStoreAssociation } from "@/lib/mocks/invites";
+import {
+  extractInviteCode,
+  getPublicStoreInvite,
+  acceptStoreInvite,
+  type PublicStoreInviteDTO,
+} from "@/lib/services/store-invites-service";
+import { getRoleDefinition } from "@/lib/constants/store-roles";
 
 interface JoinStoreCardProps {
-  onStoreJoined: (newAssoc: UserStoreAssociation) => void;
+  onStoreJoined?: () => void;
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
   const [inviteInput, setInviteInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [validatedInvite, setValidatedInvite] = useState<InviteLink | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validatedInvite, setValidatedInvite] =
+    useState<PublicStoreInviteDTO | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successInfo, setSuccessInfo] = useState<{ storeName: string; position: string } | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{
+    storeName: string;
+    position: string;
+  } | null>(null);
 
-  const handleValidate = (e: React.FormEvent) => {
+  const handleValidate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessInfo(null);
 
-    const trimmed = inviteInput.trim();
-    if (!trimmed) {
+    const code = extractInviteCode(inviteInput);
+    if (!code) {
       setError("Por favor, cole um link ou código de convite.");
       return;
     }
 
-    const invite = resolveInviteToken(trimmed);
-    if (!invite) {
-      // Fallback amigável para testes com qualquer link ou token genérico apontando para loja contratante (E-Clean)
-      if (trimmed.toLowerCase().includes("invite") || trimmed.length > 3) {
-        setValidatedInvite({
-          token: trimmed,
-          storeId: "store-1",
-          storeName: "E-Clean",
-          storeInitials: "EC",
-          storeCategory: "Tecnologia e Manutenção",
-          positionId: "3",
-          positionTitle: "Atendente Operacional",
-          permissions: ["manage_appointments", "access_chats"],
-          generatedAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          isUsed: false,
-        });
-        return;
-      }
-      setError("Link ou código de convite inválido ou expirado. Verifique com o proprietário da loja.");
-      return;
+    setIsValidating(true);
+    try {
+      const invite = await getPublicStoreInvite(code);
+      setValidatedInvite(invite);
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Link ou código de convite inválido ou expirado. Verifique com o proprietário da loja.";
+      setError(msg);
+      setValidatedInvite(null);
+    } finally {
+      setIsValidating(false);
     }
-
-    setValidatedInvite(invite);
   };
 
   const handleConfirmJoin = async () => {
     if (!validatedInvite) return;
     setIsSubmitting(true);
+    setError(null);
 
-    // Simula o tempo de envio de solicitação e envio de e-mail ao provedor
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const accepted = await acceptStoreInvite(validatedInvite.code);
+      const roleDef = getRoleDefinition(accepted.role || validatedInvite.role);
 
-    const newAssociation: UserStoreAssociation = {
-      id: `assoc-emp-${Date.now()}`,
-      storeId: validatedInvite.storeId,
-      storeName: validatedInvite.storeName,
-      storeInitials: validatedInvite.storeInitials,
-      storeCategory: validatedInvite.storeCategory || "Tecnologia e Manutenção",
-      role: "employee",
-      positionTitle: validatedInvite.positionTitle,
-      permissions: validatedInvite.permissions,
-      status: "pending", // Inicialmente pendente aguardando confirmação do email do provedor
-      joinedAt: new Date().toISOString(),
-    };
-
-    onStoreJoined(newAssociation);
-    setSuccessInfo({
-      storeName: validatedInvite.storeName,
-      position: validatedInvite.positionTitle,
-    });
-    setValidatedInvite(null);
-    setInviteInput("");
-    setIsSubmitting(false);
+      setSuccessInfo({
+        storeName: validatedInvite.storeName,
+        position: roleDef.title,
+      });
+      setValidatedInvite(null);
+      setInviteInput("");
+      onStoreJoined?.();
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível aceitar o convite.";
+      setError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const roleDef = validatedInvite
+    ? getRoleDefinition(validatedInvite.role)
+    : null;
 
   return (
     <div className="flex flex-col rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-7">
@@ -93,13 +115,17 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
             Entrar como Funcionário
           </h2>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Tem um link de convite fornecido pelo proprietário da loja? Cole-o abaixo.
+            Tem um link ou código de convite fornecido pelo proprietário da loja?
+            Cole-o abaixo.
           </p>
         </div>
       </div>
 
       {/* Input de link */}
-      <form onSubmit={handleValidate} className="mt-4 flex flex-col gap-2 sm:flex-row">
+      <form
+        onSubmit={handleValidate}
+        className="mt-4 flex flex-col gap-2 sm:flex-row"
+      >
         <div className="relative flex-1">
           <input
             type="text"
@@ -108,16 +134,27 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
               setInviteInput(e.target.value);
               setError(null);
             }}
-            placeholder="Ex: https://agilis.com.br/invite/inv-atendente-xyz789 ou inv-atendente-xyz789"
+            disabled={isValidating || isSubmitting}
+            placeholder="Ex: https://agilis.com.br/invite/CODIGO ou CODIGO"
             className="w-full rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-card focus:outline-none transition-all"
           />
         </div>
         <Button
           type="submit"
+          disabled={isValidating || isSubmitting}
           className="gap-2 rounded-2xl px-6 py-3 text-sm font-semibold cursor-pointer shrink-0"
         >
-          <span>Validar Link</span>
-          <ArrowRight className="size-4" />
+          {isValidating ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              <span>Validando...</span>
+            </>
+          ) : (
+            <>
+              <span>Validar Link</span>
+              <ArrowRight className="size-4" />
+            </>
+          )}
         </Button>
       </form>
 
@@ -128,13 +165,13 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
         </div>
       )}
 
-      {/* Modal / Card de validação do convite */}
-      {validatedInvite && (
+      {/* Card de validação do convite */}
+      {validatedInvite && roleDef && (
         <div className="mt-5 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-lg shadow-sm">
-                {validatedInvite.storeInitials}
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-lg shadow-sm shrink-0">
+                {getInitials(validatedInvite.storeName)}
               </div>
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
@@ -144,7 +181,8 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
                   {validatedInvite.storeName}
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Cargo a ser atribuído: <strong className="text-foreground">{validatedInvite.positionTitle}</strong>
+                  Cargo a ser atribuído:{" "}
+                  <strong className="text-foreground">{roleDef.title}</strong>
                 </p>
               </div>
             </div>
@@ -162,7 +200,7 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
               Permissões incluídas neste cargo:
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {validatedInvite.permissions.map((perm) => (
+              {roleDef.permissions.map((perm) => (
                 <span
                   key={perm}
                   className="inline-flex items-center gap-1 rounded-md bg-card/80 border border-primary/20 px-2 py-0.5 text-xs text-foreground font-medium"
@@ -179,7 +217,8 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
 
           <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-primary/20">
             <p className="text-[11px] text-muted-foreground max-w-sm">
-              Ao confirmar, um e-mail será enviado ao proprietário para verificar sua condição de funcionário.
+              Ao confirmar, você será vinculado à equipe desta loja
+              imediatamente.
             </p>
             <Button
               type="button"
@@ -189,13 +228,13 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
             >
               {isSubmitting ? (
                 <>
-                  <div className="size-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span>Enviando solicitação...</span>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Entrando...</span>
                 </>
               ) : (
                 <>
-                  <Mail className="size-3.5" />
-                  <span>Solicitar Entrada</span>
+                  <UserPlus className="size-3.5" />
+                  <span>Aceitar Convite</span>
                 </>
               )}
             </Button>
@@ -209,19 +248,18 @@ export function JoinStoreCard({ onStoreJoined }: JoinStoreCardProps) {
           <div className="flex items-start gap-3">
             <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div className="flex flex-col gap-1 text-xs">
-              <span className="font-bold text-sm">Solicitação enviada com sucesso!</span>
+              <span className="font-bold text-sm">
+                Vínculo confirmado com sucesso!
+              </span>
               <p>
-                Foi enviado um e-mail para o proprietário da <strong>{successInfo.storeName}</strong> solicitando a confirmação do seu vínculo como <strong>{successInfo.position}</strong>.
-              </p>
-              <p className="text-muted-foreground mt-1 flex items-center gap-1.5">
-                <Clock className="size-3.5" />
-                Assim que for confirmado, a tela de funcionário ficará ativa nesta página.
+                Você entrou na equipe da <strong>{successInfo.storeName}</strong>{" "}
+                como <strong>{successInfo.position}</strong>. A loja já está
+                disponível na sua lista acima.
               </p>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

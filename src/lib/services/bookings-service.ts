@@ -451,27 +451,27 @@ export async function getPendingDelays(): Promise<PendingDelayItem[]> {
 
 /**
  * 11c. Cliente responde ao aviso de atraso:
- * POST /api/v1/bookings/delays/{delayId}/respond
+ * PATCH /api/v1/bookings/delays/{delayId}/respond
  */
 export async function respondToDelay(
   delayId: string,
   action: DelayAction
 ): Promise<void> {
   await api(`/api/v1/bookings/delays/${encodeURIComponent(delayId)}/respond`, {
-    method: "POST",
-    body: JSON.stringify({ action }),
+    method: "PATCH",
+    body: JSON.stringify({ delayId, action }),
   });
 }
 
 /**
- * 12. Solicita reembolso por problema após serviço concluído (cliente):
- * POST /api/v1/bookings/{id}/refund-request
+ * 12. Reporta um problema / solicita reembolso após serviço concluído (cliente):
+ * POST /api/v1/bookings/{bookingId}/report-issue
  */
 export async function requestRefund(
   bookingId: string,
   description: string
 ): Promise<void> {
-  await api(`/api/v1/bookings/${encodeURIComponent(bookingId)}/refund-request`, {
+  await api(`/api/v1/bookings/${encodeURIComponent(bookingId)}/report-issue`, {
     method: "POST",
     body: JSON.stringify({ description }),
   });

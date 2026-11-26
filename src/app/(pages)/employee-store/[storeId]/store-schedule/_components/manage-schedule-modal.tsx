@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { X, Clock, Check, Loader2, Trash2, CalendarDays } from "lucide-react";
 import {
   saveEmployeeWeeklySchedule,
+  createEmployeeSchedule,
   removeEmployeeFromSchedule,
   type WeeklyScheduleDaySlotPayload,
   type WeeklyScheduleEmployee,
 } from "@/lib/services/employee-schedules-service";
+import { ApiError } from "@/lib/api";
 import { getMyStores } from "@/lib/services/stores-service";
 
 interface ManageScheduleModalProps {
@@ -179,8 +181,7 @@ export function ManageScheduleModal({
         return;
       }
 
-      // Payload estrito conforme o guia:
-      // Array com os 7 dias da semana (0 a 6)
+      // Payload: Array com os 7 dias da semana (0 a 6)
       // Quando !isDayOff: startTime e endTime no formato "HH:mm:ss"
       // Quando isDayOff: startTime: null, endTime: null
       const payload: WeeklyScheduleDaySlotPayload[] = days.map((d) => ({
@@ -191,7 +192,36 @@ export function ManageScheduleModal({
       }));
 
       // PUT /api/v1/stores/{storeId}/schedules/employees/{employeeId}/weekly
-      await saveEmployeeWeeklySchedule(effectiveStoreId, effectiveId, payload);
+      // Se a escala não existir ainda (404 ou 500), cria-a primeiro via POST e tenta de novo.
+      try {
+        await saveEmployeeWeeklySchedule(effectiveStoreId, effectiveId, payload);
+      } catch (firstErr) {
+        const isScheduleNotFound =
+          firstErr instanceof ApiError &&
+          (firstErr.status === 404 || firstErr.status === 500);
+
+        if (isScheduleNotFound) {
+          // Cria a escala e tenta salvar os turnos novamente
+          try {
+            await createEmployeeSchedule(effectiveStoreId, {
+              employeeId: effectiveId,
+              scheduleType: "FIXED",
+            });
+          } catch (createErr) {
+            // Se a criação falhar (ex: o dono não pode ser cadastrado como funcionário),
+            // relança o erro original com mensagem clara
+            const createMsg =
+              createErr instanceof ApiError
+                ? createErr.message
+                : "Erro ao inicializar a escala do funcionário.";
+            throw new Error(createMsg);
+          }
+          // Tenta salvar os turnos novamente após criar a escala
+          await saveEmployeeWeeklySchedule(effectiveStoreId, effectiveId, payload);
+        } else {
+          throw firstErr;
+        }
+      }
 
       await onSuccess();
       onClose();

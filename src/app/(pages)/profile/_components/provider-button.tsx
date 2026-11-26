@@ -7,28 +7,39 @@ import {
   CalendarDays,
   Store,
 } from "lucide-react";
+import { getMyStores } from "@/lib/services/stores-service";
 
 export function ProviderButton() {
   const [mounted, setMounted] = useState(false);
-  const [isProvider, setIsProvider] = useState(false);
   const [hasActiveStore, setHasActiveStore] = useState(false);
 
   useEffect(() => {
+    let isCancelled = false;
     setMounted(true);
-    const checkState = () => {
-      const storedCnpj = localStorage.getItem("provider_cnpj");
-      const providerFlag = localStorage.getItem("is_provider");
-      const storeFlag = localStorage.getItem("has_active_store");
 
-      setIsProvider(Boolean(storedCnpj || providerFlag === "true"));
-      setHasActiveStore(storeFlag === "true");
-    };
+    async function checkState() {
+      try {
+        const myStores = await getMyStores();
+        if (isCancelled) return;
+        const hasStore = Array.isArray(myStores) && myStores.length > 0;
+        setHasActiveStore(hasStore);
+        if (hasStore && myStores[0]?.storeId) {
+          try {
+            localStorage.setItem("current_store_id", myStores[0].storeId);
+            localStorage.setItem("has_active_store", "true");
+            localStorage.setItem("is_provider", "true");
+          } catch {}
+        }
+      } catch {
+        if (!isCancelled) {
+          setHasActiveStore(false);
+        }
+      }
+    }
 
-    checkState();
-
-    window.addEventListener("storage", checkState);
+    void checkState();
     return () => {
-      window.removeEventListener("storage", checkState);
+      isCancelled = true;
     };
   }, []);
 

@@ -1,5 +1,4 @@
 import { api } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
 import type {
   StorePosition,
   CreateStorePositionPayload,
@@ -29,21 +28,8 @@ export function formatCityString(city: PositionCity | string): string {
 }
 
 /**
- * Obtém o ID do usuário atualmente autenticado
- */
-async function getCurrentUserId(): Promise<string> {
-  try {
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.user?.id) {
-      return data.session.user.id;
-    }
-  } catch {}
-  return "";
-}
-
-/**
  * GET /api/v1/stores/{storeId}/positions/{positionId}
- * Retorna os dados da posição (área de atendimento) especificada.
+ * Retorna os dados do cargo especificado.
  */
 export async function getStorePosition(
   storeId: string,
@@ -61,7 +47,7 @@ export async function getStorePosition(
 
 /**
  * GET /api/v1/stores/{storeId}/positions (ou com positionId)
- * Lista posições ou obtém uma posição específica de uma loja.
+ * Lista cargos da loja.
  */
 export async function fetchStorePositions(
   storeId: string,
@@ -80,24 +66,21 @@ export async function fetchStorePositions(
 
 /**
  * POST /api/v1/stores/{storeId}/positions
- * Cria uma nova posição / área de atendimento para a loja.
+ * Cria um novo cargo da loja.
  */
 export async function createStorePosition(
   payload: CreateStorePositionPayload
-): Promise<StorePosition | StorePosition[]> {
-  const currentUserId = await getCurrentUserId();
-  const requesterId = payload.requesterId ?? currentUserId;
-
+): Promise<StorePosition> {
   const body = {
-    requesterId,
-    storeId: payload.storeId,
-    attendanceType: payload.attendanceType,
-    radiusKm: Number(payload.radiusKm) || 0,
-    referenceAddress: payload.referenceAddress ?? "",
-    cities: payload.cities ?? [],
+    title: payload.title.trim(),
+    description: payload.description.trim(),
+    canManageBookings: Boolean(payload.canManageBookings),
+    canAccessChats: Boolean(payload.canAccessChats),
+    canManageStoreSettings: Boolean(payload.canManageStoreSettings),
+    canViewReports: Boolean(payload.canViewReports),
   };
 
-  return await api<StorePosition | StorePosition[]>(
+  return await api<StorePosition>(
     `/api/v1/stores/${encodeURIComponent(payload.storeId)}/positions`,
     {
       method: "POST",
@@ -108,26 +91,23 @@ export async function createStorePosition(
 
 /**
  * PUT /api/v1/stores/{storeId}/positions/{positionId}
- * Atualiza uma posição / área de atendimento existente.
+ * Atualiza um cargo existente da loja.
  */
 export async function updateStorePosition(
   storeId: string,
   positionId: string,
   payload: UpdateStorePositionPayload
-): Promise<StorePosition | StorePosition[]> {
-  const currentUserId = await getCurrentUserId();
-  const requesterId = payload.requesterId ?? currentUserId;
-
+): Promise<StorePosition> {
   const body = {
-    requesterId,
-    storeId: payload.storeId || storeId,
-    attendanceType: payload.attendanceType,
-    radiusKm: Number(payload.radiusKm) || 0,
-    referenceAddress: payload.referenceAddress ?? "",
-    cities: payload.cities ?? [],
+    title: payload.title.trim(),
+    description: payload.description.trim(),
+    canManageBookings: Boolean(payload.canManageBookings),
+    canAccessChats: Boolean(payload.canAccessChats),
+    canManageStoreSettings: Boolean(payload.canManageStoreSettings),
+    canViewReports: Boolean(payload.canViewReports),
   };
 
-  return await api<StorePosition | StorePosition[]>(
+  return await api<StorePosition>(
     `/api/v1/stores/${encodeURIComponent(storeId)}/positions/${encodeURIComponent(positionId)}`,
     {
       method: "PUT",

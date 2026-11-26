@@ -1,11 +1,18 @@
-import { Receipt } from "lucide-react";
+import { useState } from "react";
+import { Receipt, Tag, X, Loader2, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface OrderSummaryProps {
   serviceName: string;
   providerName: string;
   price: number;
-  bookingFee: number;
+  discountAmount?: number;
+  appliedCouponCode?: string | null;
+  couponError?: string | null;
+  isValidatingCoupon?: boolean;
+  canApplyCoupon?: boolean;
+  onApplyCoupon?: (code: string) => void;
+  onRemoveCoupon?: () => void;
   total: number;
 }
 
@@ -13,9 +20,23 @@ export function OrderSummary({
   serviceName,
   providerName,
   price,
-  bookingFee,
+  discountAmount = 0,
+  appliedCouponCode = null,
+  couponError = null,
+  isValidatingCoupon = false,
+  canApplyCoupon = false,
+  onApplyCoupon,
+  onRemoveCoupon,
   total,
 }: OrderSummaryProps) {
+  const [couponInput, setCouponInput] = useState("");
+
+  function handleCouponSubmit() {
+    const trimmed = couponInput.trim();
+    if (!trimmed || !onApplyCoupon) return;
+    onApplyCoupon(trimmed);
+  }
+
   return (
     <Card className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col gap-5">
       <div className="flex items-center gap-3">
@@ -39,16 +60,86 @@ export function OrderSummary({
         ) : null}
       </div>
 
+      {/* Campo de cupom */}
+      {canApplyCoupon && onApplyCoupon && (
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <Tag className="size-3.5 text-primary" />
+            <span>Cupom de desconto</span>
+          </label>
+
+          {appliedCouponCode ? (
+            <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
+              <div className="flex items-center gap-1.5 font-semibold">
+                <CheckCircle2 className="size-3.5 shrink-0" />
+                <span>{appliedCouponCode}</span>
+                {discountAmount > 0 && (
+                  <span className="font-normal">(-{formatCurrency(discountAmount)})</span>
+                )}
+              </div>
+              {onRemoveCoupon && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCouponInput("");
+                    onRemoveCoupon();
+                  }}
+                  className="rounded-full p-1 hover:bg-emerald-500/20 cursor-pointer"
+                  aria-label="Remover cupom"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCouponSubmit();
+                  }
+                }}
+                placeholder="Digite o código"
+                disabled={isValidatingCoupon}
+                className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium uppercase tracking-wider text-foreground placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <button
+                type="button"
+                disabled={isValidatingCoupon || !couponInput.trim()}
+                onClick={handleCouponSubmit}
+                className="inline-flex items-center justify-center rounded-xl border border-border bg-muted px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted/80 disabled:opacity-50 cursor-pointer"
+              >
+                {isValidatingCoupon ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  "Aplicar"
+                )}
+              </button>
+            </div>
+          )}
+
+          {couponError && (
+            <p className="text-[11px] font-medium text-destructive">{couponError}</p>
+          )}
+        </div>
+      )}
+
       {/* Tabela de valores */}
       <div className="flex flex-col gap-2.5 text-sm">
         <div className="flex items-center justify-between text-muted-foreground">
           <span>Valor do serviço</span>
           <span className="font-medium text-foreground">{formatCurrency(price)}</span>
         </div>
-        <div className="flex items-center justify-between text-muted-foreground">
-          <span>Taxa de agendamento</span>
-          <span className="font-medium text-foreground">{formatCurrency(bookingFee)}</span>
-        </div>
+        {discountAmount > 0 && (
+          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+            <span>Desconto ({appliedCouponCode})</span>
+            <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+          </div>
+        )}
         <div className="border-t border-border/80 pt-3 flex items-center justify-between">
           <div>
             <span className="text-base font-bold text-foreground block">Total a pagar</span>

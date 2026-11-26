@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { getMockEmployeeAppointments } from "@/lib/mocks/employee-calendar-appointments";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import {
+  getStoreBookingsCalendar,
+  getStoreBookingsOverview,
+} from "@/lib/services/bookings-service";
+import {
+  mapOverviewToCalendarAppointment,
+  toDateKey,
+  type EmployeeCalendarAppointment,
+} from "@/lib/utils/employee-bookings-mapper";
 import { CalendarMonthView } from "./calendar-month-view";
 import { CalendarWeekView } from "./calendar-week-view";
 import { CalendarDayView } from "./calendar-day-view";
@@ -14,12 +22,71 @@ interface EmployeeCalendarBodyProps {
   storeId: string;
 }
 
-export function EmployeeCalendarBody({ storeId: _storeId }: EmployeeCalendarBodyProps) {
+export function EmployeeCalendarBody({ storeId }: EmployeeCalendarBodyProps) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<CalendarViewMode>("mes");
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [appointments, setAppointments] = useState<
+    EmployeeCalendarAppointment[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const appointments = getMockEmployeeAppointments();
+  const selectedYear = selectedDate.getFullYear();
+  const selectedMonth = selectedDate.getMonth() + 1;
+
+  useEffect(() => {
+    if (!storeId) {
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    async function loadMonthBookings() {
+      try {
+        const calendarRes = await getStoreBookingsCalendar(storeId, {
+          year: selectedYear,
+          month: selectedMonth,
+        });
+
+        const dateSet = new Set<string>(calendarRes.datesWithBookings ?? []);
+        dateSet.add(toDateKey(selectedDate));
+
+        const results = await Promise.allSettled(
+          Array.from(dateSet).map((dateStr) =>
+            getStoreBookingsOverview(storeId, dateStr)
+          )
+        );
+
+        if (!isMounted) return;
+
+        const all: EmployeeCalendarAppointment[] = [];
+        for (const r of results) {
+          if (r.status === "fulfilled" && Array.isArray(r.value.bookings)) {
+            for (const b of r.value.bookings) {
+              all.push(mapOverviewToCalendarAppointment(b));
+            }
+          }
+        }
+        setAppointments(all);
+      } catch (err) {
+        console.warn(
+          "[EmployeeCalendarBody] Falha ao carregar calendário:",
+          err
+        );
+        if (isMounted) setAppointments([]);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    void loadMonthBookings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId, selectedYear, selectedMonth, selectedDate]);
 
   function handleGoToToday() {
     setSelectedDate(new Date());
@@ -40,13 +107,18 @@ export function EmployeeCalendarBody({ storeId: _storeId }: EmployeeCalendarBody
       {/* Coluna central máx 705px */}
       <main className="mx-auto flex w-full max-w-[705px] flex-col gap-5 px-4 pt-14 pb-8 sm:px-6 sm:py-8 lg:px-8">
         {/* Cabeçalho */}
-        <div>
-          <h1 className="text-[28px] font-bold text-foreground leading-tight tracking-tight">
-            Meu calendário
-          </h1>
-          <p className="mt-1 text-[15px] text-muted-foreground">
-            Visualize seus atendimentos por dia, semana ou mês
-          </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-[28px] font-bold text-foreground leading-tight tracking-tight">
+              Meu calendário
+            </h1>
+            <p className="mt-1 text-[15px] text-muted-foreground">
+              Visualize seus atendimentos por dia, semana ou mês
+            </p>
+          </div>
+          {isLoading && (
+            <Loader2 className="mt-2 size-5 animate-spin text-primary shrink-0" />
+          )}
         </div>
 
         {/* Seletor Segmented: Dia | Semana | Mês */}

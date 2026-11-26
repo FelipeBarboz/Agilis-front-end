@@ -4,14 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { mockUser } from "@/lib/mocks/user";
-import { getStoreById } from "@/lib/mocks/stores";
+import { getMyStores } from "@/lib/services/stores-service";
+import { getStoreBookingsOverview } from "@/lib/services/bookings-service";
 import {
-  getEmployeeStoresFromStorage,
-  type UserStoreAssociation,
-} from "@/lib/mocks/invites";
-import { MOCK_STORE_APPOINTMENTS } from "@/lib/mocks/store-appointments";
-import { today } from "@/app/(pages)/store/store-scheduling/_components/date-helper";
+  getRoleDefinition,
+  type PermissionId,
+} from "@/lib/constants/store-roles";
+import {
+  mapOverviewToStoreAppointment,
+  toDateKey,
+} from "@/lib/utils/employee-bookings-mapper";
 import type { StoreAppointment } from "@/app/(pages)/store/store-scheduling/_components/store-appointment-card";
 import { EmployeeProfileCard } from "./employee-profile-card";
 import { EmployeeMetricsCards } from "./employee-metrics-cards";
@@ -27,55 +29,58 @@ export function EmployeeDashboardBody({ storeId }: EmployeeDashboardBodyProps) {
   const searchParams = useSearchParams();
   const queryPosition = searchParams.get("positionTitle");
   const { user } = useAuth();
-  const currentUser = user ?? mockUser;
+  const employeeDisplayName = user?.name ?? "Funcionário";
 
-  const [association, setAssociation] = useState<UserStoreAssociation | null>(null);
+  const [positionTitle, setPositionTitle] = useState<string>(
+    queryPosition ?? "Funcionário"
+  );
+  const [permissions, setPermissions] = useState<PermissionId[]>([
+    "manage_appointments",
+    "access_chats",
+  ]);
+  const [isOnShift, setIsOnShift] = useState<boolean>(true);
+  const [todayAppointments, setTodayAppointments] = useState<
+    StoreAppointment[]
+  >([]);
 
   useEffect(() => {
-    const list = getEmployeeStoresFromStorage();
-    const found = list.find((a) => a.storeId === storeId);
-    if (found) {
-      setAssociation(found);
-    } else {
-      const store = getStoreById(storeId);
-      setAssociation({
-        id: "mock-assoc",
-        storeId: store.id,
-        storeName: store.name,
-        storeInitials: store.initials,
-        storeCategory: store.category,
-        role: "employee",
-        positionTitle: queryPosition ?? "Atendente Operacional",
-        permissions: ["manage_appointments", "access_chats"],
-        status: "active",
-      });
-    }
-  }, [storeId, queryPosition]);
+    let isMounted = true;
+    const todayStr = toDateKey(new Date());
 
-  // ── Dados compartilhados ───────────────────────────────────────────
-  const positionTitle =
-    association?.positionTitle ?? queryPosition ?? "Atendente Operacional";
-  const permissions = association?.permissions ?? ["manage_appointments"];
+    void Promise.allSettled([
+      getMyStores(),
+      getStoreBookingsOverview(storeId, todayStr),
+    ]).then(([storesRes, overviewRes]) => {
+      if (!isMounted) return;
 
-  // Atendimentos do dia atribuídos ao funcionário
-  const todayAppointments: StoreAppointment[] = (() => {
-    const name = currentUser.name.toLowerCase();
-    const assigned = MOCK_STORE_APPOINTMENTS.filter(
-      (a) =>
-        a.date === today &&
-        (a.employeeName.toLowerCase().includes(name) ||
-          name.includes(a.employeeName.toLowerCase()))
-    );
-    if (assigned.length > 0) return assigned;
-    // Fallback: mostra atendimentos de hoje com o nome do funcionário
-    return MOCK_STORE_APPOINTMENTS.filter((a) => a.date === today).slice(0, 5).map((a) => ({
-      ...a,
-      employeeName: currentUser.name,
-    }));
-  })();
+      if (storesRes.status === "fulfilled") {
+        const found = storesRes.value.find((s) => s.storeId === storeId);
+        if (found) {
+          const roleDef = getRoleDefinition(found.role);
+          setPositionTitle(queryPosition ?? roleDef.title);
+          setPermissions(roleDef.permissions);
+          setIsOnShift(true);
+        }
+      }
 
-  // Estado "Em Expediente" — baseado no turno ativo (association.status)
-  const isOnShift = association?.status === "active";
+      if (overviewRes.status === "fulfilled") {
+        const mapped = (overviewRes.value.bookings ?? []).map(
+          mapOverviewToStoreAppointment
+        );
+        const lowerName = employeeDisplayName.toLowerCase();
+        const mine = mapped.filter(
+          (a) =>
+            a.employeeName.toLowerCase().includes(lowerName) ||
+            lowerName.includes(a.employeeName.toLowerCase())
+        );
+        setTodayAppointments(mine.length > 0 ? mine : mapped);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId, queryPosition, employeeDisplayName]);
 
   return (
     <div className="relative flex flex-1 flex-col bg-muted pb-20">
@@ -103,7 +108,7 @@ export function EmployeeDashboardBody({ storeId }: EmployeeDashboardBodyProps) {
 
         {/* 2. Card de perfil */}
         <EmployeeProfileCard
-          employeeName={currentUser.name}
+          employeeName={employeeDisplayName}
           positionTitle={positionTitle}
           isOnShift={isOnShift}
         />

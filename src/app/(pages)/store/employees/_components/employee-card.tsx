@@ -2,11 +2,11 @@
 
 import { Settings, Briefcase, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Employee } from "@/lib/mocks/employees";
+import type { StoreEmployeeItem } from "@/lib/constants/store-roles";
 
 interface EmployeeCardProps {
-  employee: Employee;
-  onManage: (employee: Employee) => void;
+  employee: StoreEmployeeItem;
+  onManage: (employee: StoreEmployeeItem) => void;
 }
 
 export function EmployeeCard({ employee, onManage }: EmployeeCardProps) {

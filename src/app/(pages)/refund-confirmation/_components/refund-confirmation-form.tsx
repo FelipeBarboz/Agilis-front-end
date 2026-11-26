@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { MOCK_HISTORY } from "../../../../lib/mocks/history";
+import { Button } from "@/components/ui/button";
 import { ServiceCard } from "./service-card";
 import { CancellationWarning } from "./cancellation-warning";
 import {
@@ -24,7 +24,8 @@ import {
   requestRefund,
 } from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
-import { type HistoryEntry } from "@/types/history";
+import { mapBookingDetailToHistoryEntry } from "@/lib/utils/booking-detail-mapper";
+import type { HistoryEntry } from "@/types/history";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -36,15 +37,9 @@ export function RefundConfirmationForm() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
-  const [entry, setEntry] = useState<HistoryEntry | null>(() => {
-    return (
-      MOCK_HISTORY.find((item) => item.id === id) ??
-      MOCK_HISTORY.find((item) => item.status === "agendado") ??
-      MOCK_HISTORY[1] ??
-      null
-    );
-  });
+  const [entry, setEntry] = useState<HistoryEntry | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(Boolean(id));
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
@@ -55,39 +50,26 @@ export function RefundConfirmationForm() {
     }
 
     async function loadBookingDetails() {
+      setIsLoading(true);
       try {
-        // Tenta obter os detalhes ricos primeiro
         try {
           const detail = await getBookingDetail(id!);
           if (!isCancelled && detail) {
-            setEntry({
-              id: detail.bookingId,
-              serviceName: detail.serviceTitle,
-              imageUrl:
-                detail.thumbnailUrl ||
-                "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800",
-              counterpartName: detail.storeName || "Prestador Agilis",
-              counterpartRole: "prestador" as const,
-              date: detail.date,
-              time: detail.time ? detail.time.slice(0, 5) : "14:00",
-              price: detail.price,
-              bookingFee: detail.serviceFee ?? 5,
-              status: detail.status.toLowerCase().includes("conclu") ? "concluido" : "agendado",
-              category: detail.category,
-              address: detail.address ?? undefined,
-              paymentMethod: typeof detail.paymentMethod === "string" ? detail.paymentMethod : "PIX",
-            });
+            setEntry(mapBookingDetailToHistoryEntry(detail));
             setIsLoading(false);
             return;
           }
-        } catch {}
+        } catch {
+          // Tenta fallback via getBookingById
+        }
 
         const b = await getBookingById(id!);
         if (!isCancelled && b) {
           let serviceTitle = b.serviceTitle ?? "Serviço";
           let companyName = "Prestador Agilis";
-          let imageUrl = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
-          let price = 120;
+          let imageUrl =
+            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+          let price = 0;
           let category = "Geral";
 
           if (b.serviceId) {
@@ -100,12 +82,17 @@ export function RefundConfirmationForm() {
                 price = s.price.inicial ?? price;
                 category = s.category ?? category;
               }
-            } catch {}
+            } catch {
+              // Mantém dados básicos
+            }
           }
 
           const dateObj = new Date(b.scheduledAt);
           const timeStr = !isNaN(dateObj.getTime())
-            ? dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+            ? dateObj.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "14:00";
           const formattedDate = !isNaN(dateObj.getTime())
             ? dateObj.toLocaleDateString("pt-BR")
@@ -120,13 +107,20 @@ export function RefundConfirmationForm() {
             date: formattedDate,
             time: timeStr,
             price,
-            bookingFee: 10,
-            status: b.status.toUpperCase().includes("COMPLET") ? "concluido" : "agendado",
+            bookingFee: 0,
+            status: b.status.toUpperCase().includes("COMPLET")
+              ? "concluido"
+              : b.status.toUpperCase().includes("CANCEL")
+              ? "cancelado"
+              : "agendado",
             category,
           });
         }
       } catch (err) {
-        console.warn("[RefundConfirmation] Erro ao buscar agendamento pelo ID:", err);
+        console.warn(
+          "[RefundConfirmation] Erro ao buscar agendamento pelo ID:",
+          err
+        );
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -144,40 +138,49 @@ export function RefundConfirmationForm() {
   const isCompleted = entry?.status === "concluido";
 
   const [selectedReason, setSelectedReason] = useState<string>(
-    () => (isCompleted ? COMPLETED_REFUND_REASONS[0] : CANCELLATION_REASONS[0]) ?? ""
+    () =>
+      (isCompleted ? COMPLETED_REFUND_REASONS[0] : CANCELLATION_REASONS[0]) ??
+      ""
   );
   const [comments, setComments] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const bookingFee = entry?.bookingFee ?? 10;
+  const bookingFee = entry?.bookingFee ?? 0;
   const totalPrice = (entry?.price ?? 0) + bookingFee;
-  const [protocol] = useState(
-    () => `AGL-${Math.floor(100000 + Math.random() * 900000)}`
-  );
+  const protocol = entry
+    ? `AGL-${entry.id.slice(0, 8).toUpperCase()}`
+    : "AGL-00000000";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (entry?.status === "em_andamento") return;
+    if (!id || entry?.status === "em_andamento") return;
 
     setIsSubmitting(true);
+    setErrorMessage(null);
     try {
-      if (id) {
-        if (isCompleted) {
-          const desc =
-            comments.trim() ||
-            selectedReason ||
-            "Solicitação de reembolso por insatisfação ou problema com o serviço concluído.";
-          await requestRefund(id, desc);
-        } else {
-          await cancelBooking(id);
-        }
+      if (isCompleted) {
+        const desc =
+          comments.trim() ||
+          selectedReason ||
+          "Solicitação de reembolso por insatisfação ou problema com o serviço concluído.";
+        await requestRefund(id, desc);
+      } else {
+        await cancelBooking(id);
       }
+      setIsSuccess(true);
     } catch (err) {
-      console.warn("[CancelBooking] Falha ao cancelar/solicitar reembolso no servidor:", err);
+      console.warn(
+        "[CancelBooking] Falha ao cancelar/solicitar reembolso no servidor:",
+        err
+      );
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível processar a solicitação.";
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
     }
   }
 
@@ -186,14 +189,40 @@ export function RefundConfirmationForm() {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-        <p className="text-sm font-semibold text-foreground">Carregando agendamento...</p>
-        <p className="text-xs text-muted-foreground mt-0.5">Buscando informações do serviço</p>
+        <p className="text-sm font-semibold text-foreground">
+          Carregando agendamento...
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Buscando informações do serviço
+        </p>
+      </div>
+    );
+  }
+
+  if (!entry) {
+    return (
+      <div className="w-full max-w-2xl rounded-2xl border border-border bg-background p-8 text-center space-y-4">
+        <AlertCircle className="mx-auto size-8 text-muted-foreground" />
+        <p className="text-base font-semibold text-foreground">
+          Agendamento não encontrado
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Selecione um agendamento válido no seu histórico para cancelar ou
+          solicitar reembolso.
+        </p>
+        <Button
+          type="button"
+          onClick={() => router.push("/history")}
+          className="rounded-xl cursor-pointer"
+        >
+          Voltar ao Histórico
+        </Button>
       </div>
     );
   }
 
   // Estado de sucesso
-  if (isSuccess && entry) {
+  if (isSuccess) {
     return (
       <SuccessCard
         protocol={protocol}
@@ -207,7 +236,7 @@ export function RefundConfirmationForm() {
   }
 
   // Bloqueio para serviços em andamento
-  if (entry?.status === "em_andamento") {
+  if (entry.status === "em_andamento") {
     return (
       <div className="w-full max-w-2xl space-y-6">
         <ServiceCard
@@ -225,7 +254,10 @@ export function RefundConfirmationForm() {
               Serviço em Andamento
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Serviços em andamento não podem ser cancelados pela plataforma pois o atendimento já foi iniciado. Se tiver dúvidas ou imprevistos, entre em contato diretamente com o prestador ou contate o suporte.
+              Serviços em andamento não podem ser cancelados pela plataforma
+              pois o atendimento já foi iniciado. Se tiver dúvidas ou
+              imprevistos, entre em contato diretamente com o prestador ou
+              contate o suporte.
             </p>
           </div>
 
@@ -249,7 +281,7 @@ export function RefundConfirmationForm() {
   }
 
   // Redirecionamento / aviso para serviços já cancelados
-  if (entry?.status === "cancelado") {
+  if (entry.status === "cancelado") {
     return (
       <div className="w-full max-w-2xl space-y-6">
         <ServiceCard
@@ -267,7 +299,9 @@ export function RefundConfirmationForm() {
               Serviço Já Cancelado
             </h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Este serviço já foi cancelado e a solicitação de reembolso já foi realizada. Você pode acompanhar o andamento do estorno na página de cancelamento.
+              Este serviço já foi cancelado e a solicitação de reembolso já foi
+              realizada. Você pode acompanhar o andamento do estorno na página
+              de cancelamento.
             </p>
           </div>
 
@@ -292,12 +326,10 @@ export function RefundConfirmationForm() {
 
   return (
     <div className="w-full max-w-2xl space-y-6">
-      {entry && (
-        <ServiceCard
-          entry={entry}
-          formattedTotal={currencyFormatter.format(totalPrice)}
-        />
-      )}
+      <ServiceCard
+        entry={entry}
+        formattedTotal={currencyFormatter.format(totalPrice)}
+      />
 
       <form
         onSubmit={handleSubmit}
@@ -314,12 +346,18 @@ export function RefundConfirmationForm() {
         <CommentsTextarea value={comments} onChange={setComments} />
 
         <RefundSummary
-          servicePrice={currencyFormatter.format(entry?.price ?? 0)}
+          servicePrice={currencyFormatter.format(entry.price ?? 0)}
           bookingFee={currencyFormatter.format(bookingFee)}
           totalPrice={currencyFormatter.format(totalPrice)}
-          paymentMethod={entry?.paymentMethod ?? "PIX"}
+          paymentMethod={entry.paymentMethod ?? "PIX"}
         />
 
+        {errorMessage && (
+          <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <ActionButtons isSubmitting={isSubmitting} isCompleted={isCompleted} />
       </form>

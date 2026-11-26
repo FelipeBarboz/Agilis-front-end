@@ -359,20 +359,28 @@ export async function updateUserProfile(
     throw error;
   }
 
+  const user = updated.user;
+
   try {
     await api<UserProfile>("/api/v1/users/me", {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify({
-        ...data,
-        ...(formattedPhone !== undefined ? { phone: formattedPhone } : {}),
-        ...(formattedCpf !== undefined ? { cpf: formattedCpf } : {}),
+        userId: user.id,
+        name:
+          data.name?.trim() ??
+          (user.user_metadata?.name as string | undefined) ??
+          (user.user_metadata?.full_name as string | undefined) ??
+          "",
+        phone:
+          formattedPhone ??
+          (user.user_metadata?.phone as string | undefined) ??
+          "",
+        email: data.email?.trim() ?? user.email ?? "",
       }),
     });
-  } catch {
-    // Silencia se a API remota não tiver o endpoint
+  } catch (apiErr) {
+    console.warn("[Auth] Falha ao sincronizar perfil via PUT /api/v1/users/me:", apiErr);
   }
-
-  const user = updated.user;
   return {
     id: user.id,
     name:

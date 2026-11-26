@@ -105,7 +105,11 @@ export function ServiceReviews({
       }, 2000);
     } catch (err) {
       console.warn("[Reviews] Erro ao enviar review:", err);
-      setErrorMessage("Não foi possível enviar a avaliação. Tente novamente.");
+      const msg =
+        err instanceof Error && err.message
+          ? err.message
+          : "Não foi possível enviar a avaliação. Tente novamente.";
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -208,6 +212,13 @@ export function ServiceReviews({
               Compartilhe como foi a qualidade, pontualidade e o atendimento deste profissional
             </span>
           </div>
+
+          {errorMessage && (
+            <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           {/* Seleção de Estrelas */}
           <div className="flex items-center gap-2">

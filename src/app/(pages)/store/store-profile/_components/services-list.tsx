@@ -12,7 +12,6 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { mockProfileServices } from "@/lib/mocks/profile-services";
 import { fetchServicesByStore, type ServiceDetailDTO } from "@/lib/services/services-service";
 
 const PAGE_SIZE = 15;
@@ -39,8 +38,8 @@ interface ServicesListProps {
 
 export function ServicesList({ isRestricted = false, storeId }: ServicesListProps) {
   const [page, setPage] = useState(1);
-  const [services, setServices] = useState<ServiceItemView[]>(mockProfileServices);
-  const [isLoading, setIsLoading] = useState(false);
+  const [services, setServices] = useState<ServiceItemView[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const effectiveStoreId =
@@ -50,7 +49,10 @@ export function ServicesList({ isRestricted = false, storeId }: ServicesListProp
           sessionStorage.getItem("form_storeId"))) ||
       "";
 
-    if (!effectiveStoreId) return;
+    if (!effectiveStoreId) {
+      setIsLoading(false);
+      return;
+    }
 
     let isMounted = true;
     setIsLoading(true);
@@ -58,7 +60,7 @@ export function ServicesList({ isRestricted = false, storeId }: ServicesListProp
     fetchServicesByStore(effectiveStoreId)
       .then((data: ServiceDetailDTO[]) => {
         if (!isMounted) return;
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           const mapped: ServiceItemView[] = data.map((item) => {
             const numPrice = Number(item.price) || 0;
             const priceFormatted = numPrice.toLocaleString("pt-BR", {

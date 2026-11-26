@@ -1,32 +1,141 @@
 "use client";
 
-import { useState } from "react";
-import { Link2, Copy, Check, Shield, AlertCircle, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  Link2,
+  Copy,
+  Check,
+  Shield,
+  AlertCircle,
+  X,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Position } from "@/lib/mocks/positions";
-import { mockInviteLinks } from "@/lib/mocks/invites";
+import type { Position } from "@/lib/constants/store-roles";
+import {
+  createStoreInvite,
+  getStoreInvites,
+  type InviteRole,
+} from "@/lib/services/store-invites-service";
+import { getMyStores } from "@/lib/services/stores-service";
 
 interface GenerateInviteModalProps {
   position: Position | null;
   isOpen: boolean;
   onClose: () => void;
+  storeId?: string;
 }
 
-export function GenerateInviteModal({ position, isOpen, onClose }: GenerateInviteModalProps) {
+function resolveApiRole(position: Position): InviteRole {
+  const idUpper = position.id.toUpperCase();
+  const titleUpper = position.title.toUpperCase();
+  if (
+    idUpper === "ADMIN" ||
+    idUpper === "1" ||
+    titleUpper.includes("ADMIN") ||
+    titleUpper.includes("GERENTE")
+  ) {
+    return "ADMIN";
+  }
+  return "EMPLOYEE";
+}
+
+export function GenerateInviteModal({
+  position,
+  isOpen,
+  onClose,
+  storeId: propStoreId,
+}: GenerateInviteModalProps) {
   const [copied, setCopied] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [resolvedStoreId, setResolvedStoreId] = useState<string>(
+    propStoreId ?? ""
+  );
+
+  const generateOrFetchInvite = useCallback(
+    async (forceNew = false) => {
+      if (!position) return;
+
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        let targetStoreId = propStoreId ?? resolvedStoreId;
+        if (!targetStoreId && typeof window !== "undefined") {
+          const stored =
+            localStorage.getItem("current_store_id") ??
+            localStorage.getItem("active_store_id") ??
+            "";
+          if (stored && !stored.startsWith("store-super")) {
+            targetStoreId = stored;
+          }
+        }
+
+        if (!targetStoreId) {
+          const stores = await getMyStores();
+          if (stores.length > 0 && stores[0]?.storeId) {
+            targetStoreId = stores[0].storeId;
+          }
+        }
+
+        if (!targetStoreId) {
+          setErrorMessage("Identificador da loja não encontrado.");
+          return;
+        }
+
+        setResolvedStoreId(targetStoreId);
+        const role = resolveApiRole(position);
+
+        if (!forceNew) {
+          const existing = await getStoreInvites(targetStoreId);
+          const validExisting = existing.find(
+            (inv) => inv.valid && inv.role === role
+          );
+          if (validExisting) {
+            setInviteCode(validExisting.code);
+            return;
+          }
+        }
+
+        const created = await createStoreInvite(targetStoreId, {
+          role,
+          expirationDays: 7,
+          maxUses: 10,
+        });
+        setInviteCode(created.code);
+      } catch (err) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Não foi possível gerar o link de convite.";
+        setErrorMessage(msg);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [position, propStoreId, resolvedStoreId]
+  );
+
+  useEffect(() => {
+    if (isOpen && position) {
+      setInviteCode("");
+      void generateOrFetchInvite(false);
+    }
+  }, [isOpen, position, generateOrFetchInvite]);
 
   if (!isOpen || !position) return null;
 
-  // Encontra ou gera um token para esta posição
-  const existingInvite = mockInviteLinks.find((i) => i.positionId === position.id);
-  const token = existingInvite ? existingInvite.token : `inv-${position.id}-${Date.now().toString(36)}`;
-  
-  // Link completo ou token
-  const inviteUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/invite/${token}`
-    : `https://agilis.com.br/invite/${token}`;
+  const inviteUrl = inviteCode
+    ? typeof window !== "undefined"
+      ? `${window.location.origin}/invite/${inviteCode}`
+      : `https://agilis.com.br/invite/${inviteCode}`
+    : "";
 
   const handleCopy = async () => {
+    if (!inviteUrl) return;
     try {
       await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
@@ -39,7 +148,6 @@ export function GenerateInviteModal({ position, isOpen, onClose }: GenerateInvit
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
       <div className="relative w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-border">
           <div className="flex items-center gap-3">
@@ -47,8 +155,12 @@ export function GenerateInviteModal({ position, isOpen, onClose }: GenerateInvit
               <Link2 className="size-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Gerar Link de Convite</h2>
-              <p className="text-xs text-muted-foreground">Cargo: {position.title}</p>
+              <h2 className="text-lg font-bold text-foreground">
+                Gerar Link de Convite
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Cargo: {position.title}
+              </p>
             </div>
           </div>
           <button
@@ -66,49 +178,76 @@ export function GenerateInviteModal({ position, isOpen, onClose }: GenerateInvit
             <div className="flex items-start gap-3">
               <AlertCircle className="size-5 text-primary shrink-0 mt-0.5" />
               <div className="text-xs text-foreground leading-relaxed space-y-1">
-                <p className="font-semibold text-primary">Como funciona este convite?</p>
-                <p className="text-muted-foreground">
-                  1. O candidato cola este link na tela de <strong>Lojas</strong> da conta dele.
+                <p className="font-semibold text-primary">
+                  Como funciona este convite?
                 </p>
                 <p className="text-muted-foreground">
-                  2. Um e-mail de confirmação é enviado para você (provedor) autorizar o acesso.
+                  1. Envie este link para o profissional ou peça para ele colar
+                  na tela de <strong>Lojas</strong>.
                 </p>
                 <p className="text-muted-foreground">
-                  3. Após a confirmação, a tela da loja aparecerá para ele com as permissões de <strong>{position.title}</strong>.
+                  2. Ao aceitar o convite com a conta dele, o vínculo com a loja
+                  é criado automaticamente como <strong>{position.title}</strong>.
                 </p>
               </div>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
-              Link de Convite do Cargo
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={inviteUrl}
-                className="flex-1 rounded-xl border border-border bg-muted/50 px-3.5 py-2.5 text-xs font-mono text-foreground focus:outline-none select-all"
-              />
-              <Button
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Link de Convite do Cargo
+              </label>
+              <button
                 type="button"
-                onClick={handleCopy}
-                className="gap-2 rounded-xl shrink-0 cursor-pointer text-xs font-semibold"
+                disabled={isLoading}
+                onClick={() => void generateOrFetchInvite(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50 cursor-pointer"
               >
-                {copied ? (
-                  <>
-                    <Check className="size-4 text-emerald-300" />
-                    <span>Copiado!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="size-4" />
-                    <span>Copiar</span>
-                  </>
-                )}
-              </Button>
+                <RefreshCw
+                  className={`size-3 ${isLoading ? "animate-spin" : ""}`}
+                />
+                <span>Gerar novo código</span>
+              </button>
             </div>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 py-3 text-xs text-muted-foreground">
+                <Loader2 className="size-4 animate-spin text-primary" />
+                <span>Gerando link de convite...</span>
+              </div>
+            ) : errorMessage ? (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+                {errorMessage}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={inviteUrl}
+                  className="flex-1 rounded-xl border border-border bg-muted/50 px-3.5 py-2.5 text-xs font-mono text-foreground focus:outline-none select-all"
+                />
+                <Button
+                  type="button"
+                  onClick={handleCopy}
+                  disabled={!inviteUrl}
+                  className="gap-2 rounded-xl shrink-0 cursor-pointer text-xs font-semibold"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="size-4 text-emerald-300" />
+                      <span>Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-4" />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Permissões concedidas pelo cargo */}
@@ -123,7 +262,8 @@ export function GenerateInviteModal({ position, isOpen, onClose }: GenerateInvit
                   className="inline-flex items-center gap-1 rounded-md bg-card border border-border px-2 py-1 text-xs text-foreground"
                 >
                   <Shield className="size-3 text-primary" />
-                  {permId === "manage_appointments" && "Gerenciar atendimentos"}
+                  {permId === "manage_appointments" &&
+                    "Gerenciar atendimentos"}
                   {permId === "access_chats" && "Acessar chats"}
                   {permId === "access_reports" && "Relatórios e métricas"}
                   {permId === "store_settings" && "Configurações da loja"}
@@ -144,7 +284,6 @@ export function GenerateInviteModal({ position, isOpen, onClose }: GenerateInvit
             Fechar
           </Button>
         </div>
-
       </div>
     </div>
   );

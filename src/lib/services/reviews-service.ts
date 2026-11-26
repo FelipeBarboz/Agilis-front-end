@@ -151,31 +151,17 @@ export async function createReview(payload: CreateReviewDTO): Promise<ReviewDTO>
     comment: payload.comment,
   };
 
-  try {
-    const res = await api<ReviewDTO>("/api/v1/reviews", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
+  const res = await api<ReviewDTO>("/api/v1/reviews", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 
-    if (res?.reviewId) {
-      return {
-        ...res,
-        reviewerName,
-      };
-    }
-  } catch (err) {
-    console.warn("[Reviews] Erro ao enviar avaliação para a API real, usando resposta simulada:", err);
+  if (!res?.reviewId) {
+    throw new Error("O servidor não retornou a avaliação criada.");
   }
 
-  // Fallback simulado para persistência visual na interface
   return {
-    reviewId: `rev-${Date.now()}`,
-    bookingId: effectiveBookingId,
-    reviewerId: effectiveReviewerId,
-    reviewedId: payload.reviewedId,
-    rating: payload.rating,
-    comment: payload.comment,
-    createdAt: new Date().toISOString(),
+    ...res,
     reviewerName,
   };
 }

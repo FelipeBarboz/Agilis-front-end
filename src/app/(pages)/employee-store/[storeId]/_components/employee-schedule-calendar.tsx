@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Calendar,
   Clock,
@@ -11,11 +11,16 @@ import {
   XCircle,
   CalendarCheck2,
   Store,
+  Loader2,
 } from "lucide-react";
 import { StoreCalendar } from "@/app/(pages)/store/store-scheduling/_components/store-calendar";
-import { MOCK_STORE_APPOINTMENTS } from "@/lib/mocks/store-appointments";
 import type { StoreAppointment } from "@/app/(pages)/store/store-scheduling/_components/store-appointment-card";
 import { today } from "@/app/(pages)/store/store-scheduling/_components/date-helper";
+import {
+  getStoreBookingsCalendar,
+  getStoreBookingsOverview,
+} from "@/lib/services/bookings-service";
+import { mapOverviewToStoreAppointment } from "@/lib/utils/employee-bookings-mapper";
 
 interface EmployeeScheduleCalendarProps {
   employeeName: string;
@@ -127,33 +132,82 @@ function AppointmentRow({
 
 export function EmployeeScheduleCalendar({
   employeeName,
+  storeId,
 }: EmployeeScheduleCalendarProps) {
   const [activeTab, setActiveTab] = useState<TabView>("mine");
   const [selectedDate, setSelectedDate] = useState<string>(today);
+  const [bookedDates, setBookedDates] = useState<string[]>([]);
+  const [storeDayAppointments, setStoreDayAppointments] = useState<
+    StoreAppointment[]
+  >([]);
+  const [isLoadingDay, setIsLoadingDay] = useState(false);
 
-  // Escala do funcionario especifico
-  const matched = MOCK_STORE_APPOINTMENTS.filter(
+  // Carrega datas com agendamento no mês da data selecionada
+  useEffect(() => {
+    if (!storeId) return;
+    let isMounted = true;
+
+    const [yStr, mStr] = selectedDate.split("-");
+    const year = Number(yStr) || new Date().getFullYear();
+    const month = Number(mStr) || new Date().getMonth() + 1;
+
+    getStoreBookingsCalendar(storeId, { year, month })
+      .then((res) => {
+        if (isMounted) {
+          setBookedDates(res.datesWithBookings ?? []);
+        }
+      })
+      .catch(() => {
+        // Ignora erro de calendário silenciosamente
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId, selectedDate]);
+
+  // Carrega os agendamentos do dia selecionado
+  useEffect(() => {
+    if (!storeId) return;
+    let isMounted = true;
+    setIsLoadingDay(true);
+
+    getStoreBookingsOverview(storeId, selectedDate)
+      .then((res) => {
+        if (isMounted) {
+          const mapped = (res.bookings ?? []).map(
+            mapOverviewToStoreAppointment
+          );
+          setStoreDayAppointments(mapped);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setStoreDayAppointments([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingDay(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId, selectedDate]);
+
+  const lowerName = employeeName.toLowerCase();
+  const myDayAppointments = storeDayAppointments.filter(
     (a) =>
-      a.employeeName.toLowerCase().includes(employeeName.toLowerCase()) ||
-      employeeName.toLowerCase().includes(a.employeeName.toLowerCase())
+      a.employeeName.toLowerCase().includes(lowerName) ||
+      lowerName.includes(a.employeeName.toLowerCase())
   );
-  const myAppointments: StoreAppointment[] =
-    matched.length > 0
-      ? matched
-      : MOCK_STORE_APPOINTMENTS.slice(0, 3).map((a) => ({ ...a, employeeName }));
 
-  // Todos os agendamentos da loja
-  const storeAppointments: StoreAppointment[] = MOCK_STORE_APPOINTMENTS;
-
-  const source = activeTab === "mine" ? myAppointments : storeAppointments;
-
-  const bookedDates = [...new Set(source.map((a) => a.date))];
-  const dayAppointments = source
-    .filter((a) => a.date === selectedDate)
-    .sort((a, b) => a.time.localeCompare(b.time));
+  const dayAppointments = (
+    activeTab === "mine" ? myDayAppointments : storeDayAppointments
+  ).sort((a, b) => a.time.localeCompare(b.time));
 
   const total = dayAppointments.length;
-  const confirmed = dayAppointments.filter((a) => a.status === "confirmed").length;
+  const confirmed = dayAppointments.filter(
+    (a) => a.status === "confirmed"
+  ).length;
   const pending = dayAppointments.filter((a) => a.status === "pending").length;
 
   return (
@@ -212,7 +266,10 @@ export function EmployeeScheduleCalendar({
       {total > 0 && (
         <div className="grid grid-cols-3 gap-3">
           <div className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card p-3 shadow-sm text-center">
-            <CalendarCheck2 className="size-5 text-primary" strokeWidth={1.5} />
+            <CalendarCheck2
+              className="size-5 text-primary"
+              strokeWidth={1.5}
+            />
             <span className="text-lg font-bold text-foreground leading-none">
               {total}
             </span>
@@ -230,7 +287,10 @@ export function EmployeeScheduleCalendar({
             </span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card p-3 shadow-sm text-center">
-            <CheckCircle2 className="size-5 text-emerald-500" strokeWidth={1.5} />
+            <CheckCircle2
+              className="size-5 text-emerald-500"
+              strokeWidth={1.5}
+            />
             <span className="text-lg font-bold text-foreground leading-none">
               {confirmed}
             </span>
@@ -247,7 +307,12 @@ export function EmployeeScheduleCalendar({
           {formatDate(selectedDate)}
         </h3>
 
-        {dayAppointments.length === 0 ? (
+        {isLoadingDay ? (
+          <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin text-primary" />
+            <span className="text-xs">Carregando agendamentos...</span>
+          </div>
+        ) : dayAppointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/80 bg-card p-10 text-center shadow-2xs">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-3">
               <Calendar className="size-5" />

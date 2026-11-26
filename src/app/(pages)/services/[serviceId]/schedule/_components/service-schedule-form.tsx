@@ -14,11 +14,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { type Service, mockServices } from "@/lib/mocks/services";
-import { superPinturasServices } from "@/lib/mocks/stores";
+import { type Service } from "@/lib/mocks/services";
 import { getServiceById } from "@/lib/services/services-service";
 import {
-  createBooking,
   getBookingsByService,
   type ServiceBookingItemDTO,
 } from "@/lib/services/bookings-service";
@@ -60,11 +58,8 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
   const titleFromParams = searchParams.get("serviceTitle") ?? searchParams.get("title") ?? searchParams.get("serviceName") ?? "";
   const companyFromParams = searchParams.get("company") ?? searchParams.get("providerName") ?? "";
 
-  const [service, setService] = useState<Service | null>(() => {
-    const all = [...mockServices, ...superPinturasServices];
-    return all.find((s) => s.id === serviceId) ?? null;
-  });
-  const [isLoadingService, setIsLoadingService] = useState<boolean>(!service);
+  const [service, setService] = useState<Service | null>(null);
+  const [isLoadingService, setIsLoadingService] = useState<boolean>(true);
 
   useEffect(() => {
     let isCancelled = false;
@@ -72,17 +67,15 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
 
     getServiceById(serviceId, companyFromParams)
       .then((data) => {
-        if (!isCancelled && data) {
-          setService(data);
+        if (!isCancelled) {
+          setService(data ?? null);
           setIsLoadingService(false);
         }
       })
       .catch((err) => {
         if (!isCancelled) {
-          console.warn(`[Schedule] Usando fallback local para ${serviceId}:`, err);
-          const all = [...mockServices, ...superPinturasServices];
-          const found = all.find((s) => s.id === serviceId);
-          if (found) setService(found);
+          console.warn(`[Schedule] Erro ao carregar serviço ${serviceId}:`, err);
+          setErrorMessage("Não foi possível carregar os dados do serviço.");
           setIsLoadingService(false);
         }
       });
@@ -212,35 +205,9 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
     const timeFormatted = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
     const scheduledAt = `${dateStr}T${timeFormatted}`;
 
-    let bookingId = "";
-    try {
-      const effectiveClientId = clientId || (await getAuthenticatedUserId());
-      if (!effectiveClientId) {
-        setErrorMessage("Identificação do cliente não encontrada. Por favor, realize o login novamente.");
-        setIsSubmitting(false);
-        return;
-      }
-
-      const bookingRes = await createBooking({
-        clientId: effectiveClientId,
-        serviceId: service?.id ?? serviceId,
-        employeeId: selectedEmployeeId || undefined,
-        scheduledAt,
-        notes: notes.trim() || undefined,
-        // Compatibilidade adicional
-        storeId,
-        address: addressText,
-        price: initialPrice,
-        package: initialPackage,
-      });
-      bookingId = bookingRes.bookingId ?? bookingRes.id ?? "";
-    } catch (err: unknown) {
-      console.warn(
-        "[Schedule] Falha na criação remota de agendamento:",
-        err
-      );
-      const msg = err instanceof Error ? err.message : "Não foi possível criar o agendamento no servidor.";
-      setErrorMessage(msg);
+    const effectiveClientId = clientId || (await getAuthenticatedUserId());
+    if (!effectiveClientId) {
+      setErrorMessage("Identificação do cliente não encontrada. Por favor, realize o login novamente.");
       setIsSubmitting(false);
       return;
     }
@@ -249,18 +216,23 @@ export function ServiceScheduleForm({ serviceId }: ServiceScheduleFormProps) {
     const resolvedProviderName = service?.company ?? (companyFromParams ? companyFromParams : "Prestador Agilis");
 
     const query = new URLSearchParams({
-      bookingId,
       serviceId: service?.id ?? serviceId,
+      clientId: effectiveClientId,
       serviceName: resolvedServiceName,
       providerName: resolvedProviderName,
       price: String(initialPrice),
       date: formattedDate,
       time: selectedTime,
+      scheduledAt,
       address: addressText,
       package: initialPackage,
       storeId,
-      notes,
+      notes: notes.trim(),
     });
+
+    if (selectedEmployeeId) {
+      query.set("employeeId", selectedEmployeeId);
+    }
 
     router.push(`/payment?${query.toString()}`);
   }

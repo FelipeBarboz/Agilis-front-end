@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -9,16 +9,21 @@ import {
   User,
   CheckCircle2,
   AlertCircle,
-  PlayCircle,
   Check,
   ChevronRight,
-  Sparkles,
-  Phone,
-  MessageSquare,
   CalendarDays,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MOCK_STORE_APPOINTMENTS } from "@/lib/mocks/store-appointments";
+import {
+  getStoreBookingsOverview,
+  confirmBooking,
+  completeBooking,
+} from "@/lib/services/bookings-service";
+import {
+  mapOverviewToStoreAppointment,
+  toDateKey,
+} from "@/lib/utils/employee-bookings-mapper";
 import type { StoreAppointment } from "@/app/(pages)/store/store-scheduling/_components/store-appointment-card";
 import { EmployeeStatsCards } from "./employee-stats-cards";
 
@@ -27,29 +32,96 @@ interface EmployeeAppointmentsSectionProps {
   storeId?: string;
 }
 
-export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeAppointmentsSectionProps) {
-  const [appointments, setAppointments] = useState<StoreAppointment[]>(() => {
-    const assigned = MOCK_STORE_APPOINTMENTS.filter(
-      (a) =>
-        a.employeeName.toLowerCase().includes(employeeName.toLowerCase()) ||
-        employeeName.toLowerCase().includes(a.employeeName.toLowerCase())
-    );
-    if (assigned.length > 0) return assigned;
-    return MOCK_STORE_APPOINTMENTS.slice(0, 5).map((a) => ({
-      ...a,
-      employeeName,
-    }));
-  });
+export function EmployeeAppointmentsSection({
+  employeeName,
+  storeId,
+}: EmployeeAppointmentsSectionProps) {
+  const [appointments, setAppointments] = useState<StoreAppointment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "confirmed" | "pending">(
+    "all"
+  );
   const [justUpdatedId, setJustUpdatedId] = useState<string | null>(null);
 
-  const handleUpdateStatus = (id: string, newStatus: StoreAppointment["status"]) => {
-    setAppointments((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-    );
-    setJustUpdatedId(id);
-    setTimeout(() => setJustUpdatedId(null), 2000);
+  const loadAppointments = useCallback(async () => {
+    if (!storeId) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const todayStr = toDateKey(new Date());
+      const res = await getStoreBookingsOverview(storeId, todayStr);
+      const mapped = (res.bookings ?? []).map(mapOverviewToStoreAppointment);
+
+      const lowerName = employeeName.toLowerCase();
+      const assigned = mapped.filter(
+        (a) =>
+          a.employeeName.toLowerCase().includes(lowerName) ||
+          lowerName.includes(a.employeeName.toLowerCase())
+      );
+      setAppointments(assigned.length > 0 ? assigned : mapped);
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os agendamentos.";
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [storeId, employeeName]);
+
+  useEffect(() => {
+    void loadAppointments();
+  }, [loadAppointments]);
+
+  const handleConfirm = async (id: string) => {
+    setUpdatingId(id);
+    setActionError(null);
+    try {
+      await confirmBooking(id);
+      setAppointments((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: "confirmed" } : item
+        )
+      );
+      setJustUpdatedId(id);
+      setTimeout(() => setJustUpdatedId(null), 2000);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Erro ao confirmar atendimento.";
+      setActionError(msg);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleComplete = async (id: string) => {
+    setUpdatingId(id);
+    setActionError(null);
+    try {
+      await completeBooking(id);
+      setAppointments((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: "done" } : item
+        )
+      );
+      setJustUpdatedId(id);
+      setTimeout(() => setJustUpdatedId(null), 2000);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Erro ao concluir atendimento.";
+      setActionError(msg);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const filtered = appointments.filter((item) => {
@@ -127,9 +199,26 @@ export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeA
         </Link>
       </div>
 
+      {actionError && (
+        <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+          <AlertCircle className="size-4 shrink-0" />
+          <span>{actionError}</span>
+        </div>
+      )}
+
       {/* 3. Lista de Cards de Atendimentos */}
       <div className="flex flex-col gap-4">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
+            <Loader2 className="size-5 animate-spin text-primary" />
+            <span className="text-sm">Carregando atendimentos...</span>
+          </div>
+        ) : errorMessage ? (
+          <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+            <AlertCircle className="size-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/80 bg-card p-12 text-center shadow-2xs">
             <div className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-3">
               <Calendar className="size-6" />
@@ -138,14 +227,17 @@ export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeA
               Nenhum agendamento encontrado
             </h3>
             <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-              Não há atendimentos correspondentes ao filtro de status selecionado.
+              Não há atendimentos correspondentes ao filtro de status
+              selecionado.
             </p>
           </div>
         ) : (
           filtered.map((appt) => {
             const isConfirmed = appt.status === "confirmed";
             const isPending = appt.status === "pending";
+            const isDone = appt.status === "done";
             const isJustUpdated = justUpdatedId === appt.id;
+            const isUpdatingThis = updatingId === appt.id;
 
             return (
               <div
@@ -155,15 +247,17 @@ export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeA
                 {/* Linha de status na borda esquerda */}
                 <div
                   className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors ${
-                    isConfirmed ? "bg-emerald-500" : isPending ? "bg-amber-500" : "bg-muted"
+                    isConfirmed
+                      ? "bg-emerald-500"
+                      : isPending
+                      ? "bg-amber-500"
+                      : "bg-muted"
                   }`}
                 />
 
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pl-2">
-                  
                   {/* Informações do Atendimento */}
                   <div className="flex items-start gap-4">
-                    {/* Iniciais do Cliente */}
                     <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-muted to-muted/80 text-foreground font-bold text-base shadow-2xs group-hover:scale-105 transition-transform">
                       {appt.clientName.slice(0, 2).toUpperCase()}
                     </div>
@@ -186,6 +280,12 @@ export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeA
                             Aguardando Confirmação
                           </span>
                         )}
+                        {isDone && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted border border-border px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                            <Check className="size-3" />
+                            Concluído
+                          </span>
+                        )}
                         {isJustUpdated && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary animate-in fade-in">
                             <Check className="size-3" />
@@ -201,7 +301,10 @@ export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeA
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Clock className="size-3.5 text-muted-foreground" />
-                          <strong className="text-foreground">{appt.time}</strong> ({appt.duration} min)
+                          <strong className="text-foreground">
+                            {appt.time}
+                          </strong>{" "}
+                          ({appt.duration} min)
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Calendar className="size-3.5 text-muted-foreground" />
@@ -211,45 +314,48 @@ export function EmployeeAppointmentsSection({ employeeName, storeId }: EmployeeA
 
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                         <MapPin className="size-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate max-w-md">{appt.address}</span>
+                        <span className="truncate max-w-md">
+                          {appt.address}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Ações do Funcionário */}
                   <div className="flex flex-wrap items-center gap-2 self-end sm:self-center shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/80 w-full sm:w-auto justify-end pl-2">
-                    {isPending ? (
+                    {isPending && (
                       <Button
                         size="sm"
-                        onClick={() => handleUpdateStatus(appt.id, "confirmed")}
+                        disabled={isUpdatingThis}
+                        onClick={() => void handleConfirm(appt.id)}
                         className="gap-2 rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold px-4 py-2.5 shadow-sm cursor-pointer"
                       >
-                        <CheckCircle2 className="size-4" />
+                        {isUpdatingThis ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="size-4" />
+                        )}
                         <span>Confirmar Atendimento</span>
                       </Button>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUpdateStatus(appt.id, "confirmed")}
-                          className="gap-1.5 rounded-2xl border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3.5 py-2 cursor-pointer"
-                        >
-                          <PlayCircle className="size-3.5" />
-                          <span>Em Execução</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUpdateStatus(appt.id, "confirmed")}
-                          className="gap-1.5 rounded-2xl border-border hover:bg-muted text-muted-foreground text-xs font-medium px-3 py-2 cursor-pointer"
-                        >
-                          <span>Concluir</span>
-                        </Button>
-                      </div>
+                    )}
+
+                    {isConfirmed && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isUpdatingThis}
+                        onClick={() => void handleComplete(appt.id)}
+                        className="gap-1.5 rounded-2xl border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3.5 py-2 cursor-pointer"
+                      >
+                        {isUpdatingThis ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Check className="size-3.5" />
+                        )}
+                        <span>Concluir Atendimento</span>
+                      </Button>
                     )}
                   </div>
-
                 </div>
               </div>
             );

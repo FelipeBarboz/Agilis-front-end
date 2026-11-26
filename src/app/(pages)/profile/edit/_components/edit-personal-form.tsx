@@ -91,6 +91,7 @@ export function EditPersonalForm() {
     try {
       await updateProfile({
         name: formData.name,
+        email: formData.email,
         phone: formData.phone,
         cpf: formData.cpf,
       });

@@ -64,8 +64,8 @@ export function ConfirmProviderModal({
               {formattedCnpj || cnpj}
             </p>
             <p className="mb-6 text-center text-sm text-muted-foreground">
-              Ao confirmar, você será registrado como prestador de serviços e
-              terá acesso ao painel de gerenciamento.
+              Ao confirmar, você seguirá para completar os dados da sua loja e
+              ativar o seu painel de gerenciamento.
             </p>
 
             {/* Aviso */}

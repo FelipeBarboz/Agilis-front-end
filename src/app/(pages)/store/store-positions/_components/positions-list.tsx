@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mockPositions, type Position } from "@/lib/mocks/positions";
+import { type Position, type PermissionId } from "@/lib/mocks/positions";
 import { AddPositionModal } from "./add-position-modal";
 import { EditPositionModal } from "./edit-position-modal";
 import { DeletePositionModal } from "./delete-position-modal";
@@ -16,85 +16,161 @@ import {
   deleteStorePosition,
   fetchStorePositions,
 } from "@/lib/services/store-positions-service";
+import { getMyStores } from "@/lib/services/stores-service";
+import type { StorePosition } from "@/types/store-position";
+
+function permissionsToFlags(permissions: PermissionId[]) {
+  const set = new Set(permissions);
+  return {
+    canManageBookings: set.has("manage_appointments"),
+    canAccessChats: set.has("access_chats"),
+    canViewReports: set.has("access_reports"),
+    canManageStoreSettings: set.has("store_settings"),
+  };
+}
+
+function flagsToPermissions(dto: StorePosition): PermissionId[] {
+  const permissions: PermissionId[] = [];
+  if (dto.canManageBookings) permissions.push("manage_appointments");
+  if (dto.canAccessChats) permissions.push("access_chats");
+  if (dto.canViewReports) permissions.push("access_reports");
+  if (dto.canManageStoreSettings) permissions.push("store_settings");
+  return permissions;
+}
+
+function mapDtoToPosition(dto: StorePosition): Position {
+  return {
+    id: dto.id,
+    title: dto.title,
+    description: dto.description ?? "",
+    employeeCount: dto.employeeCount ?? 0,
+    permissions: flagsToPermissions(dto),
+  };
+}
 
 export function PositionsList() {
-  const [positions, setPositions] = useState<Position[]>(mockPositions);
+  const [storeId, setStoreId] = useState<string>("");
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
 
-  const getStoreId = () => {
-    return (
-      (typeof window !== "undefined" &&
-        (localStorage.getItem("current_store_id") ||
-          localStorage.getItem("active_store_id"))) ||
-      "store-super-pinturas"
-    );
-  };
+  const loadPositions = useCallback(async (resolvedStoreId: string) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const list = await fetchStorePositions(resolvedStoreId);
+      setPositions(list.map(mapDtoToPosition));
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível carregar os cargos da loja.";
+      setErrorMessage(msg);
+      setPositions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function init() {
+      let resolvedStoreId = "";
+      try {
+        const stored =
+          localStorage.getItem("current_store_id") ??
+          localStorage.getItem("active_store_id");
+        if (stored && !stored.startsWith("store-super")) {
+          resolvedStoreId = stored;
+        }
+      } catch {}
+
+      if (!resolvedStoreId) {
+        try {
+          const myStores = await getMyStores();
+          if (myStores.length > 0 && myStores[0]?.storeId) {
+            resolvedStoreId = myStores[0].storeId;
+          }
+        } catch {}
+      }
+
+      if (!isMounted) return;
+
+      if (!resolvedStoreId) {
+        setErrorMessage("Loja não encontrada. Crie ou selecione uma loja primeiro.");
+        setIsLoading(false);
+        return;
+      }
+
+      setStoreId(resolvedStoreId);
+      await loadPositions(resolvedStoreId);
+    }
+
+    void init();
+    return () => {
+      isMounted = false;
+    };
+  }, [loadPositions]);
 
   const handleAddPosition = async (newPos: Omit<Position, "id" | "employeeCount">) => {
-    const tempId = String(Date.now());
-    const created: Position = {
-      id: tempId,
-      title: newPos.title,
-      description: newPos.description,
-      employeeCount: 0,
-      permissions: newPos.permissions ?? ["manage_appointments"],
-    };
-    setPositions((prev) => [...prev, created]);
+    if (!storeId) return;
+    setErrorMessage(null);
 
-    // Integração POST /api/v1/stores/{storeId}/positions
+    const flags = permissionsToFlags(newPos.permissions ?? []);
     try {
-      const storeId = getStoreId();
-      const res = await createStorePosition({
+      const createdDto = await createStorePosition({
         storeId,
-        attendanceType: "CLIENT_LOCATION",
-        radiusKm: 10,
-        referenceAddress: newPos.description || newPos.title,
-        cities: [],
+        title: newPos.title,
+        description: newPos.description,
+        ...flags,
       });
-      const remotePos = Array.isArray(res) ? res[0] : res;
-      if (remotePos?.id) {
-        setPositions((prev) =>
-          prev.map((p) => (p.id === tempId ? { ...p, id: remotePos.id } : p))
-        );
-      }
+      setPositions((prev) => [...prev, mapDtoToPosition(createdDto)]);
     } catch (err) {
-      console.warn("[PositionsList] Aviso ao criar posição na API:", err);
+      const msg =
+        err instanceof Error ? err.message : "Não foi possível criar o cargo.";
+      setErrorMessage(msg);
     }
   };
 
   const handleEditPosition = async (updated: Position) => {
-    setPositions((prev) =>
-      prev.map((pos) => (pos.id === updated.id ? updated : pos))
-    );
+    if (!storeId) return;
+    setErrorMessage(null);
 
-    // Integração PUT /api/v1/stores/{storeId}/positions/{positionId}
+    const flags = permissionsToFlags(updated.permissions ?? []);
     try {
-      const storeId = getStoreId();
-      await updateStorePosition(storeId, updated.id, {
-        storeId,
-        attendanceType: "CLIENT_LOCATION",
-        radiusKm: 10,
-        referenceAddress: updated.description || updated.title,
-        cities: [],
+      const updatedDto = await updateStorePosition(storeId, updated.id, {
+        title: updated.title,
+        description: updated.description,
+        ...flags,
       });
+      setPositions((prev) =>
+        prev.map((pos) => (pos.id === updated.id ? mapDtoToPosition(updatedDto) : pos))
+      );
     } catch (err) {
-      console.warn("[PositionsList] Aviso ao atualizar posição na API:", err);
+      const msg =
+        err instanceof Error ? err.message : "Não foi possível atualizar o cargo.";
+      setErrorMessage(msg);
     }
   };
 
   const handleDeletePosition = async (id: string) => {
-    setPositions((prev) => prev.filter((pos) => pos.id !== id));
+    if (!storeId) return;
+    setErrorMessage(null);
 
-    // Integração DELETE /api/v1/stores/{storeId}/positions/{positionId}
     try {
-      const storeId = getStoreId();
       await deleteStorePosition(storeId, id);
+      setPositions((prev) => prev.filter((pos) => pos.id !== id));
     } catch (err) {
-      console.warn("[PositionsList] Aviso ao excluir posição na API:", err);
+      const msg =
+        err instanceof Error ? err.message : "Não foi possível excluir o cargo.";
+      setErrorMessage(msg);
     }
   };
 
@@ -132,9 +208,22 @@ export function PositionsList() {
         </Button>
       </div>
 
+      {/* Error feedback */}
+      {errorMessage && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs font-medium text-destructive">
+          <AlertCircle className="size-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {/* Positions List */}
       <div className="flex flex-col gap-3.5">
-        {positions.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card p-10 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin text-primary" />
+            <span>Carregando cargos...</span>
+          </div>
+        ) : positions.length === 0 ? (
           <PositionsEmptyState onAddPosition={() => setAddModalOpen(true)} />
         ) : (
           positions.map((pos) => (

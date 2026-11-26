@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   STORE_PERMISSIONS,
   type PermissionId,
-} from "@/lib/mocks/positions";
+} from "@/lib/constants/store-roles";
 
 const PERMISSION_ICONS: Record<PermissionId, React.ComponentType<{ className?: string }>> = {
   manage_appointments: CalendarDays,

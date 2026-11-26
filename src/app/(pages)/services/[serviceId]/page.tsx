@@ -4,8 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { type Service, mockServices } from "@/lib/mocks/services";
-import { superPinturasServices } from "@/lib/mocks/stores";
+import { type Service } from "@/lib/mocks/services";
 import { getServiceById, getServicesByStoreId } from "@/lib/services/services-service";
 import { fetchReviewsByReviewedId } from "@/lib/services/reviews-service";
 import { ServiceInfo } from "./_components/service-info";
@@ -60,16 +59,7 @@ function ServiceDetailContent() {
       .catch((err) => {
         if (!isCancelled) {
           console.warn(`[Services] Falha ao carregar serviço ${serviceId} da API:`, err);
-          // Fallback para mock caso o ID seja de exemplo ou o backend esteja indisponível
-          const all = [...mockServices, ...superPinturasServices];
-          const localFallback = all.find((s) => s.id === serviceId);
-          if (localFallback) {
-            setService(localFallback);
-            setSelectedPrice(localFallback.price.inicial);
-            setSelectedPackage(localFallback.packages[0]?.label ?? "Padrão");
-          } else {
-            setService(null);
-          }
+          setService(null);
           setIsLoading(false);
         }
       });

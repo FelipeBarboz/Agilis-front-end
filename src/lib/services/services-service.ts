@@ -282,6 +282,7 @@ export async function fetchServicesSearch(
   if (searchTerm) {
     query.set("q", searchTerm);
     query.set("search", searchTerm);
+    query.set("title", searchTerm);
   }
 
   if (params.category && params.category !== "todos") {
@@ -535,6 +536,72 @@ export async function createService(
   );
 }
 
+// ==========================================
+// Management: GET + PUT /stores/{storeId}/services/{serviceId}
+// ==========================================
+
+export interface ManagementServiceDTO {
+  id: string;
+  storeId: string;
+  unitId?: string;
+  title: string;
+  description: string;
+  price: number;
+  priceType: string; // "FIXED" | "HOURLY" | "QUOTE"
+  durationMinutes: number;
+  category: string;
+  createdAt?: string;
+}
+
+/**
+ * Busca um serviço específico de uma loja pelo endpoint de gestão:
+ * GET /api/v1/stores/{storeId}/services/{serviceId}
+ */
+export async function getStoreServiceById(
+  storeId: string,
+  serviceId: string
+): Promise<ManagementServiceDTO> {
+  return await api<ManagementServiceDTO>(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}`
+  );
+}
+
+export interface UpdateServicePayload {
+  requesterId?: string;
+  serviceId: string;
+  unitId?: string;
+  title: string;
+  description: string;
+  price: number;
+  priceType: string; // "FIXED" | "HOURLY" | "QUOTE"
+  durationMinutes: number;
+  category?: string;
+}
+
+/**
+ * Atualiza os dados de um serviço de uma loja:
+ * PUT /api/v1/stores/{storeId}/services/{serviceId}
+ */
+export async function updateService(
+  storeId: string,
+  serviceId: string,
+  payload: UpdateServicePayload
+): Promise<ManagementServiceDTO> {
+  return await api<ManagementServiceDTO>(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        ...payload,
+        price: Number(payload.price) || 0,
+        durationMinutes: Number(payload.durationMinutes) || 60,
+        priceType: normalizePriceType(payload.priceType || "FIXED"),
+        category: normalizeCategory(payload.category || ""),
+      }),
+    }
+  );
+}
+
 export interface UpdateServiceThumbnailPayload {
   requesterId: string;
   serviceId: string;
@@ -569,6 +636,35 @@ export interface AddServiceImagePayload {
   requesterId: string;
   serviceId: string;
   url: string;
+}
+
+/**
+ * Remove um serviço da loja:
+ * DELETE /api/v1/stores/{storeId}/services/{serviceId}
+ */
+export async function deleteService(
+  storeId: string,
+  serviceId: string
+): Promise<void> {
+  await api(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}`,
+    { method: "DELETE" }
+  );
+}
+
+/**
+ * Remove uma imagem da galeria do serviço:
+ * DELETE /api/v1/stores/{storeId}/services/{serviceId}/images/{imageId}
+ */
+export async function deleteServiceImage(
+  storeId: string,
+  serviceId: string,
+  imageId: string
+): Promise<void> {
+  await api(
+    `/api/v1/stores/${encodeURIComponent(storeId)}/services/${encodeURIComponent(serviceId)}/images/${encodeURIComponent(imageId)}`,
+    { method: "DELETE" }
+  );
 }
 
 /**
@@ -657,4 +753,66 @@ export async function getServicesByStoreId(
   );
 
   return enriched;
+}
+
+/**
+ * Normaliza resposta genérica de listas de destaque (/most-hired, /top-rated, /trending)
+ * aceitando array direto ou objeto paginado { items: [...] }.
+ */
+function normalizeHighlightResponse(raw: unknown): Service[] {
+  const list = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && "items" in raw && Array.isArray((raw as { items: unknown[] }).items)
+    ? (raw as { items: unknown[] }).items
+    : [];
+
+  return list.map((entry) => {
+    const item = entry as Partial<ServiceSearchItem & ServiceDetailDTO>;
+    if ("serviceId" in item && item.serviceId) {
+      return normalizeSearchItemToService(item as ServiceSearchItem);
+    }
+    return normalizeDetailToService(item as ServiceDetailDTO);
+  });
+}
+
+/**
+ * Serviços mais contratados:
+ * GET /api/v1/services/most-hired
+ */
+export async function fetchMostHiredServices(limit = 15): Promise<Service[]> {
+  try {
+    const res = await api<unknown>(`/api/v1/services/most-hired?limit=${limit}`);
+    return normalizeHighlightResponse(res);
+  } catch (err) {
+    console.warn("[Services] Falha ao buscar /api/v1/services/most-hired:", err);
+    return [];
+  }
+}
+
+/**
+ * Serviços mais bem avaliados:
+ * GET /api/v1/services/top-rated
+ */
+export async function fetchTopRatedServices(limit = 15): Promise<Service[]> {
+  try {
+    const res = await api<unknown>(`/api/v1/services/top-rated?limit=${limit}`);
+    return normalizeHighlightResponse(res);
+  } catch (err) {
+    console.warn("[Services] Falha ao buscar /api/v1/services/top-rated:", err);
+    return [];
+  }
+}
+
+/**
+ * Serviços em alta (trending):
+ * GET /api/v1/services/trending
+ */
+export async function fetchTrendingServices(limit = 15): Promise<Service[]> {
+  try {
+    const res = await api<unknown>(`/api/v1/services/trending?limit=${limit}`);
+    return normalizeHighlightResponse(res);
+  } catch (err) {
+    console.warn("[Services] Falha ao buscar /api/v1/services/trending:", err);
+    return [];
+  }
 }

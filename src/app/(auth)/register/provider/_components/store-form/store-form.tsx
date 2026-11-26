@@ -38,19 +38,18 @@ export function StoreForm() {
     setShowConfirm(true);
   }
 
-  async function handleConfirm() {
+  function handleConfirm() {
     if (!pendingData) return;
     setIsRegistering(true);
 
-    // Simula registro (aqui entraria a chamada real à API)
-    await new Promise((res) => setTimeout(res, 1000));
+    const formattedCnpj = formatCnpj(pendingData.cnpj);
+    try {
+      sessionStorage.setItem("provider_cnpj", formattedCnpj);
+      localStorage.setItem("provider_cnpj", formattedCnpj);
+    } catch {}
 
-    localStorage.setItem("provider_cnpj", formatCnpj(pendingData.cnpj));
-    localStorage.setItem("is_provider", "true");
-
-    setIsRegistering(false);
     setShowConfirm(false);
-    router.push("/profile");
+    router.push("/provider/create-store");
   }
 
   function handleCancel() {

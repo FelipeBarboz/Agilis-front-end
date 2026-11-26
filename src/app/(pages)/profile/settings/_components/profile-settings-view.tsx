@@ -9,6 +9,7 @@ import { NotificationSettingsCard } from "./changes/notification-settings-card";
 import { ProviderNotificationsCard } from "./changes/provider-notifications-card";
 import { StoreSettingsCard } from "./store-settings-card";
 import { DeleteAccountCard } from "./delete/delete-account-card";
+import { getMyStores } from "@/lib/services/stores-service";
 
 export function ProfileSettingsView() {
   const router = useRouter();
@@ -17,12 +18,27 @@ export function ProfileSettingsView() {
   const [hasActiveStore, setHasActiveStore] = useState(false);
 
   useEffect(() => {
-    const storedCnpj = localStorage.getItem("provider_cnpj");
-    const providerFlag = localStorage.getItem("is_provider");
-    const storeFlag = localStorage.getItem("has_active_store");
+    let isCancelled = false;
 
-    setIsProvider(Boolean(storedCnpj || providerFlag === "true"));
-    setHasActiveStore(storeFlag === "true");
+    async function loadStoreRole() {
+      try {
+        const myStores = await getMyStores();
+        if (isCancelled) return;
+        const hasStore = Array.isArray(myStores) && myStores.length > 0;
+        setHasActiveStore(hasStore);
+        setIsProvider(hasStore);
+      } catch {
+        if (!isCancelled) {
+          setHasActiveStore(false);
+          setIsProvider(false);
+        }
+      }
+    }
+
+    void loadStoreRole();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   return (

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MOCK_HISTORY } from "../../../../lib/mocks/history";
 import { RescheduleServiceCard } from "./reschedule-service-card";
 import { RescheduleDateTimePicker } from "./reschedule-datetime-picker";
 import { RescheduleReasonField } from "./reschedule-reason-field";
@@ -12,14 +11,17 @@ import { RescheduleActions } from "./reschedule-actions";
 import { RescheduleSuccess } from "./reschedule-success";
 import {
   getBookingById,
+  getBookingDetail,
   createBooking,
   cancelBooking,
   type BookingDetailDTO,
 } from "@/lib/services/bookings-service";
 import { getServiceById } from "@/lib/services/services-service";
+import { mapBookingDetailToHistoryEntry } from "@/lib/utils/booking-detail-mapper";
 import { useAuth } from "@/lib/auth/auth-context";
-import { type HistoryEntry } from "@/types/history";
-import { Loader2 } from "lucide-react";
+import type { HistoryEntry } from "@/types/history";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export function RescheduleForm() {
   const router = useRouter();
@@ -30,9 +32,7 @@ export function RescheduleForm() {
   const id = searchParams.get("id");
 
   const [booking, setBooking] = useState<BookingDetailDTO | null>(null);
-  const [entry, setEntry] = useState<HistoryEntry | null>(() => {
-    return MOCK_HISTORY.find((item) => item.id === id) ?? MOCK_HISTORY[1] ?? null;
-  });
+  const [entry, setEntry] = useState<HistoryEntry | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(Boolean(id));
 
   const [selectedDate, setSelectedDate] = useState<Date>(
@@ -56,20 +56,35 @@ export function RescheduleForm() {
     }
 
     async function loadBookingData() {
+      setIsLoading(true);
       try {
-        const b = await getBookingById(id!);
-        if (!isCancelled && b) {
-          setBooking(b);
+        const [detailRes, simpleRes] = await Promise.allSettled([
+          getBookingDetail(id!),
+          getBookingById(id!),
+        ]);
 
-          let serviceTitle = b.serviceTitle ?? "Serviço";
+        if (isCancelled) return;
+
+        const simple =
+          simpleRes.status === "fulfilled" ? simpleRes.value : null;
+        if (simple) setBooking(simple);
+
+        if (detailRes.status === "fulfilled" && detailRes.value) {
+          setEntry(mapBookingDetailToHistoryEntry(detailRes.value));
+          return;
+        }
+
+        if (simple) {
+          let serviceTitle = simple.serviceTitle ?? "Serviço";
           let companyName = "Prestador Agilis";
-          let imageUrl = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
-          let price = 120;
+          let imageUrl =
+            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800";
+          let price = 0;
           let category = "Geral";
 
-          if (b.serviceId) {
+          if (simple.serviceId) {
             try {
-              const s = await getServiceById(b.serviceId);
+              const s = await getServiceById(simple.serviceId);
               if (s) {
                 serviceTitle = s.title;
                 companyName = s.company ?? companyName;
@@ -77,30 +92,37 @@ export function RescheduleForm() {
                 price = s.price.inicial ?? price;
                 category = s.category ?? category;
               }
-            } catch {}
+            } catch {
+              // Mantém valores básicos
+            }
           }
 
-          const dateObj = new Date(b.scheduledAt);
+          const dateObj = new Date(simple.scheduledAt);
           const timeStr = !isNaN(dateObj.getTime())
-            ? dateObj.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+            ? dateObj.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "14:00";
           const formattedDate = !isNaN(dateObj.getTime())
             ? dateObj.toLocaleDateString("pt-BR")
-            : b.scheduledAt;
+            : simple.scheduledAt;
 
-          setEntry({
-            id: b.bookingId,
-            serviceName: serviceTitle,
-            imageUrl,
-            counterpartName: companyName,
-            counterpartRole: "prestador",
-            date: formattedDate,
-            time: timeStr,
-            price,
-            bookingFee: 10,
-            status: "agendado",
-            category,
-          });
+          if (!isCancelled) {
+            setEntry({
+              id: simple.bookingId,
+              serviceName: serviceTitle,
+              imageUrl,
+              counterpartName: companyName,
+              counterpartRole: "prestador",
+              date: formattedDate,
+              time: timeStr,
+              price,
+              bookingFee: 0,
+              status: "agendado",
+              category,
+            });
+          }
         }
       } catch (err) {
         console.warn("[Reschedule] Erro ao buscar agendamento pelo ID:", err);
@@ -131,17 +153,25 @@ export function RescheduleForm() {
       const scheduledAt = scheduledDate.toISOString();
 
       const clientId = booking?.clientId ?? currentUserId ?? "";
-      const serviceId = booking?.serviceId ?? entry?.id ?? "";
+      const serviceId = booking?.serviceId ?? "";
+
+      if (!serviceId) {
+        setErrorMessage(
+          "Não foi possível identificar o serviço para reagendamento."
+        );
+        setIsSubmitting(false);
+        return;
+      }
 
       // Cria o novo agendamento com o novo horário
-      if (serviceId) {
-        await createBooking({
-          clientId,
-          serviceId,
-          scheduledAt,
-          notes: reason.trim() ? `Reagendamento: ${reason.trim()}` : "Reagendamento de serviço",
-        });
-      }
+      await createBooking({
+        clientId,
+        serviceId,
+        scheduledAt,
+        notes: reason.trim()
+          ? `Reagendamento: ${reason.trim()}`
+          : "Reagendamento de serviço",
+      });
 
       // Cancela o agendamento anterior
       if (id) {
@@ -151,7 +181,10 @@ export function RescheduleForm() {
       setIsSuccess(true);
     } catch (err) {
       console.warn("[Reschedule] Erro ao processar reagendamento:", err);
-      const msg = err instanceof Error ? err.message : "Não foi possível concluir o reagendamento.";
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Não foi possível concluir o reagendamento.";
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
@@ -162,13 +195,38 @@ export function RescheduleForm() {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-        <p className="text-sm font-semibold text-foreground">Carregando agendamento...</p>
-        <p className="text-xs text-muted-foreground mt-0.5">Buscando detalhes do serviço</p>
+        <p className="text-sm font-semibold text-foreground">
+          Carregando agendamento...
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Buscando detalhes do serviço
+        </p>
       </div>
     );
   }
 
-  if (isSuccess && entry) {
+  if (!entry) {
+    return (
+      <div className="w-full max-w-2xl rounded-2xl border border-border bg-background p-8 text-center space-y-4">
+        <AlertCircle className="mx-auto size-8 text-muted-foreground" />
+        <p className="text-base font-semibold text-foreground">
+          Agendamento não encontrado
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Selecione um agendamento válido no seu histórico para reagendar.
+        </p>
+        <Button
+          type="button"
+          onClick={() => router.push("/history")}
+          className="rounded-xl cursor-pointer"
+        >
+          Voltar ao Histórico
+        </Button>
+      </div>
+    );
+  }
+
+  if (isSuccess) {
     return (
       <RescheduleSuccess
         entry={entry}
@@ -181,7 +239,7 @@ export function RescheduleForm() {
 
   return (
     <div className="w-full max-w-2xl space-y-6">
-      {entry && <RescheduleServiceCard entry={entry} />}
+      <RescheduleServiceCard entry={entry} />
 
       <form
         onSubmit={handleSubmit}
