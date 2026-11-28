@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
+  fetchUserNotifications,
+  markNotificationIdAsRead,
+  markNotificationIdsAsRead,
   type AppNotification,
-  mockAppNotifications,
-} from "@/lib/mocks/notifications";
+} from "@/lib/services/notifications-service";
 import { NotificationsHeader } from "./_components/notifications-header";
 import { NotificationsList } from "./_components/notifications-list";
 import { NotificationsSkeleton } from "./_components/notifications-skeleton";
@@ -17,6 +19,7 @@ interface NotificationsModalProps {
   onClose: () => void;
   notifications?: AppNotification[];
   onNotificationsChange?: (items: AppNotification[]) => void;
+  onRefreshRequest?: () => Promise<void> | void;
 }
 
 function groupByDate(notifications: AppNotification[]) {
@@ -35,12 +38,13 @@ export function NotificationsModal({
   onClose,
   notifications: initialPropsNotifications,
   onNotificationsChange,
+  onRefreshRequest,
 }: NotificationsModalProps) {
   const router = useRouter();
   const [notifications, setNotifications] = useState<AppNotification[]>(
-    initialPropsNotifications ?? mockAppNotifications,
+    initialPropsNotifications ?? [],
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -51,16 +55,27 @@ export function NotificationsModal({
     }
   }, [initialPropsNotifications]);
 
-  // Simular skeleton loading ao abrir
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 650);
-      return () => clearTimeout(timer);
+  const loadNotifications = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      if (onRefreshRequest) {
+        await onRefreshRequest();
+      } else {
+        const items = await fetchUserNotifications();
+        setNotifications(items);
+        onNotificationsChange?.(items);
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }, [isOpen]);
+  }, [onRefreshRequest, onNotificationsChange]);
+
+  // Carrega notificações reais ao abrir o modal
+  useEffect(() => {
+    if (isOpen && !initialPropsNotifications) {
+      void loadNotifications();
+    }
+  }, [isOpen, initialPropsNotifications, loadNotifications]);
 
   // Fechar com a tecla ESC
   useEffect(() => {
@@ -82,16 +97,17 @@ export function NotificationsModal({
 
   const groupedNotifications = groupByDate(filteredNotifications);
 
-  function handleRefresh() {
+  async function handleRefresh() {
     setIsRefreshing(true);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await loadNotifications();
+    } finally {
       setIsRefreshing(false);
-    }, 600);
+    }
   }
 
   function handleMarkAllAsRead() {
+    markNotificationIdsAsRead(notifications.map((n) => n.id));
     const updated = notifications.map((n) => ({ ...n, isRead: true }));
     setNotifications(updated);
     onNotificationsChange?.(updated);
@@ -99,6 +115,7 @@ export function NotificationsModal({
 
   function handleNotificationClick(item: AppNotification) {
     if (!item.isRead) {
+      markNotificationIdAsRead(item.id);
       const updated = notifications.map((n) =>
         n.id === item.id ? { ...n, isRead: true } : n,
       );

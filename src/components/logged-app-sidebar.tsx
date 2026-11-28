@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { mockAppNotifications, type AppNotification } from "@/lib/mocks/notifications";
+import {
+  fetchUserNotifications,
+  type AppNotification,
+} from "@/lib/services/notifications-service";
 import { NotificationsModal } from "@/components/notifications/notifications-modal";
 import {
   IconHome,
@@ -41,7 +44,21 @@ export function LoggedAppSidebar() {
   const currentCategory = searchParams.get("category");
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<AppNotification[]>(mockAppNotifications);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const items = await fetchUserNotifications();
+      setNotifications(items);
+    } catch (err) {
+      console.warn("[Sidebar] Falha ao carregar notificações:", err);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -123,6 +140,7 @@ export function LoggedAppSidebar() {
         onClose={() => setIsNotificationsOpen(false)}
         notifications={notifications}
         onNotificationsChange={setNotifications}
+        onRefreshRequest={loadNotifications}
       />
     </>
   );

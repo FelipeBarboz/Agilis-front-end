@@ -6,7 +6,7 @@ import {
   Info,
   AlertTriangle,
 } from "lucide-react";
-import type { NotificationType } from "@/lib/mocks/notifications";
+import type { NotificationType } from "@/lib/services/notifications-service";
 
 export const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
   appointment: Calendar,

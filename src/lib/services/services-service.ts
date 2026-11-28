@@ -93,6 +93,10 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string[]> = {
     "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
     "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=800",
   ],
+  tecnologia_tv: [
+    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
+    "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=800",
+  ],
   reparos: [
     "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800",
     "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800",
@@ -108,6 +112,27 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string[]> = {
   climatizacao: [
     "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800",
     "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800",
+  ],
+  seguranca: [
+    "https://images.unsplash.com/photo-1558002038-1055907df827?w=800",
+  ],
+  mudanca: [
+    "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=800",
+  ],
+  jardinagem: [
+    "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800",
+  ],
+  pet: [
+    "https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?w=800",
+  ],
+  vidracaria: [
+    "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=800",
+  ],
+  gas: [
+    "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800",
+  ],
+  lavanderia: [
+    "https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=800",
   ],
 };
 
@@ -285,9 +310,9 @@ export async function fetchServicesSearch(
     query.set("title", searchTerm);
   }
 
-  if (params.category && params.category !== "todos") {
-    // A API documenta categorias em maiúsculas (ex: LIMPEZA)
-    query.set("category", params.category.trim().toUpperCase());
+  if (params.category && params.category.trim().toLowerCase() !== "todos") {
+    // A API documenta categorias em maiúsculas (ex: LIMPEZA, TECNOLOGIA_TV)
+    query.set("category", normalizeCategory(params.category));
   }
 
   if (params.state && params.state.trim().length > 0) {
@@ -454,24 +479,51 @@ export async function getServiceById(
   const service = normalizeDetailToService(detail, fallbackCompany);
 
   const effectiveStoreId = storeIdOverride || detail.storeId || service.storeId;
-  if (effectiveStoreId) {
-    try {
-      const realImages = await fetchServiceImages(effectiveStoreId, id);
-      if (Array.isArray(realImages) && realImages.length > 0) {
-        // Se houver thumbnail na API e não estiver na lista de imagens, adiciona como primeira foto
-        const hasThumbnail = Boolean(detail.thumbnailUrl && detail.thumbnailUrl.trim().length > 0);
-        const alreadyHasThumb = hasThumbnail && realImages.some((img) => img.url === detail.thumbnailUrl);
-        const combinedImages = hasThumbnail && !alreadyHasThumb
-          ? [
-              { id: `thumb-${service.id}`, serviceId: service.id, url: detail.thumbnailUrl!.trim() },
-              ...realImages,
-            ]
-          : realImages;
-        service.images = combinedImages;
-      }
-    } catch (err) {
-      console.warn(`[Services] Erro ao sincronizar imagens do serviço ${id}:`, err);
-    }
+
+  const [realImages, priceTiers, coverageAreas] = await Promise.all([
+    effectiveStoreId
+      ? fetchServiceImages(effectiveStoreId, id).catch((err) => {
+          console.warn(`[Services] Erro ao sincronizar imagens do serviço ${id}:`, err);
+          return [] as ServiceImageDTO[];
+        })
+      : Promise.resolve([] as ServiceImageDTO[]),
+    fetchServicePriceTiers(id),
+    fetchServiceCoverageAreas(id),
+  ]);
+
+  if (Array.isArray(realImages) && realImages.length > 0) {
+    // Se houver thumbnail na API e não estiver na lista de imagens, adiciona como primeira foto
+    const hasThumbnail = Boolean(detail.thumbnailUrl && detail.thumbnailUrl.trim().length > 0);
+    const alreadyHasThumb = hasThumbnail && realImages.some((img) => img.url === detail.thumbnailUrl);
+    const combinedImages = hasThumbnail && !alreadyHasThumb
+      ? [
+          { id: `thumb-${service.id}`, serviceId: service.id, url: detail.thumbnailUrl!.trim() },
+          ...realImages,
+        ]
+      : realImages;
+    service.images = combinedImages;
+  }
+
+  if (priceTiers.length > 0) {
+    const sorted = [...priceTiers].sort(
+      (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)
+    );
+    service.packages = sorted.map((tier) => ({
+      label: tier.name,
+      description: tier.description || "",
+      price: Number(tier.price) || 0,
+    }));
+    const minPrice = Math.min(...sorted.map((t) => Number(t.price) || 0));
+    const maxPrice = Math.max(...sorted.map((t) => Number(t.price) || 0));
+    service.price = {
+      inicial: minPrice,
+      medio: sorted[Math.floor(sorted.length / 2)]?.price ?? minPrice,
+      alto: maxPrice,
+    };
+  }
+
+  if (coverageAreas.length > 0) {
+    service.coverageAreas = coverageAreas;
   }
 
   return service;
@@ -815,4 +867,110 @@ export async function fetchTrendingServices(limit = 15): Promise<Service[]> {
     console.warn("[Services] Falha ao buscar /api/v1/services/trending:", err);
     return [];
   }
+}
+
+export interface ServicePriceTierDTO {
+  id: string;
+  serviceId?: string;
+  name: string;
+  description: string;
+  price: number;
+  displayOrder?: number;
+}
+
+export interface ServicePriceTierInput {
+  name: string;
+  description: string;
+  price: number;
+}
+
+export interface ServiceCoverageAreaDTO {
+  id: string;
+  serviceId?: string;
+  city: string;
+  state: string;
+}
+
+export interface ServiceCoverageAreaInput {
+  city: string;
+  state: string;
+}
+
+/**
+ * Lista as faixas de preço de um serviço:
+ * GET /api/v1/services/{serviceId}/price-tiers
+ */
+export async function fetchServicePriceTiers(
+  serviceId: string
+): Promise<ServicePriceTierDTO[]> {
+  try {
+    const res = await api<ServicePriceTierDTO[]>(
+      `/api/v1/services/${encodeURIComponent(serviceId)}/price-tiers`
+    );
+    return Array.isArray(res) ? res : [];
+  } catch (err) {
+    console.warn(`[Services] Falha ao buscar faixas de preço de ${serviceId}:`, err);
+    return [];
+  }
+}
+
+/**
+ * Define ou atualiza as faixas de preço de um serviço:
+ * PUT /api/v1/services/{serviceId}/price-tiers
+ */
+export async function setServicePriceTiers(
+  serviceId: string,
+  tiers: ServicePriceTierInput[]
+): Promise<ServicePriceTierDTO[]> {
+  const sanitized = tiers.map((t) => ({
+    name: t.name.trim(),
+    description: t.description.trim(),
+    price: Number(t.price) || 0,
+  }));
+  return await api<ServicePriceTierDTO[]>(
+    `/api/v1/services/${encodeURIComponent(serviceId)}/price-tiers`,
+    {
+      method: "PUT",
+      body: JSON.stringify(sanitized),
+    }
+  );
+}
+
+/**
+ * Lista as áreas de cobertura de um serviço:
+ * GET /api/v1/services/{serviceId}/coverage-areas
+ */
+export async function fetchServiceCoverageAreas(
+  serviceId: string
+): Promise<ServiceCoverageAreaDTO[]> {
+  try {
+    const res = await api<ServiceCoverageAreaDTO[]>(
+      `/api/v1/services/${encodeURIComponent(serviceId)}/coverage-areas`
+    );
+    return Array.isArray(res) ? res : [];
+  } catch (err) {
+    console.warn(`[Services] Falha ao buscar áreas de cobertura de ${serviceId}:`, err);
+    return [];
+  }
+}
+
+/**
+ * Define ou atualiza as áreas de cobertura de um serviço:
+ * PUT /api/v1/services/{serviceId}/coverage-areas
+ */
+export async function setServiceCoverageAreas(
+  serviceId: string,
+  areas: ServiceCoverageAreaInput[]
+): Promise<ServiceCoverageAreaDTO[]> {
+  const sanitized = areas.map((a) => ({
+    city: a.city.trim(),
+    state: a.state.trim().toUpperCase(),
+  }));
+  return await api<ServiceCoverageAreaDTO[]>(
+    `/api/v1/services/${encodeURIComponent(serviceId)}/coverage-areas`,
+    {
+      method: "PUT",
+      body: JSON.stringify(sanitized),
+    }
+  );
 }

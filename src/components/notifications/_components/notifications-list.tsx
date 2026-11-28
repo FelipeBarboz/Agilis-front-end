@@ -1,4 +1,4 @@
-import type { AppNotification } from "@/lib/mocks/notifications";
+import type { AppNotification } from "@/lib/services/notifications-service";
 import { NotificationCard } from "./notification-card";
 
 interface NotificationsListProps {

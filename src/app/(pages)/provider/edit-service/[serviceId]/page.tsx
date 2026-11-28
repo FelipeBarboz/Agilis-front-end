@@ -11,6 +11,12 @@ import {
   deleteService,
   fetchServiceImages,
   deleteServiceImage,
+  fetchServicePriceTiers,
+  setServicePriceTiers,
+  fetchServiceCoverageAreas,
+  setServiceCoverageAreas,
+  type ServicePriceTierInput,
+  type ServiceCoverageAreaInput,
 } from "@/lib/services/services-service";
 import { getMyStores } from "@/lib/services/stores-service";
 import { getStoredUser } from "@/lib/auth/token-storage";
@@ -27,6 +33,8 @@ import {
   ServicePricingCard,
   type PriceType,
 } from "../../add-service/_components/service-pricing-card";
+import { ServicePriceTiersCard } from "../../add-service/_components/service-price-tiers-card";
+import { ServiceCoverageAreasCard } from "../../add-service/_components/service-coverage-areas-card";
 import { ServiceAdditionalPhotos } from "../../add-service/_components/service-additional-photos";
 import { ServiceFormActions } from "../../add-service/_components/service-form-actions";
 
@@ -76,6 +84,10 @@ export default function EditServicePage() {
     AdditionalPhotoItem[]
   >([]);
 
+  // Faixas de preço e áreas de cobertura
+  const [priceTiers, setPriceTiers] = useState<ServicePriceTierInput[]>([]);
+  const [coverageAreas, setCoverageAreas] = useState<ServiceCoverageAreaInput[]>([]);
+
   // Estados de feedback
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,12 +132,32 @@ export default function EditServicePage() {
 
         if (isMounted) setStoreId(resolvedStoreId);
 
-        const [data, gallery] = await Promise.all([
+        const [data, gallery, tiers, areas] = await Promise.all([
           getStoreServiceById(resolvedStoreId, serviceId),
           fetchServiceImages(resolvedStoreId, serviceId),
+          fetchServicePriceTiers(serviceId),
+          fetchServiceCoverageAreas(serviceId),
         ]);
 
         if (!isMounted) return;
+
+        if (Array.isArray(tiers) && tiers.length > 0) {
+          setPriceTiers(
+            [...tiers]
+              .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+              .map((t) => ({
+                name: t.name,
+                description: t.description || "",
+                price: Number(t.price) || 0,
+              }))
+          );
+        }
+
+        if (Array.isArray(areas) && areas.length > 0) {
+          setCoverageAreas(
+            areas.map((a) => ({ city: a.city, state: a.state }))
+          );
+        }
 
         setServiceName(data.title);
         setName(data.title);
@@ -237,6 +269,18 @@ export default function EditServicePage() {
         durationMinutes: parseInt(duration, 10) || 60,
         category,
       });
+
+      const validTiers = priceTiers.filter(
+        (t) => t.name.trim().length > 0 && t.price > 0
+      );
+      await Promise.all([
+        setServicePriceTiers(serviceId, validTiers).catch((err) =>
+          console.warn("[EditService] Erro ao atualizar faixas de preço:", err)
+        ),
+        setServiceCoverageAreas(serviceId, coverageAreas).catch((err) =>
+          console.warn("[EditService] Erro ao atualizar áreas de cobertura:", err)
+        ),
+      ]);
 
       setSuccess(true);
       setTimeout(() => {
@@ -417,6 +461,16 @@ export default function EditServicePage() {
             onPriceTypeChange={setPriceType}
             onPriceChange={setPrice}
             onDurationChange={setDuration}
+          />
+
+          <ServicePriceTiersCard
+            tiers={priceTiers}
+            onChange={setPriceTiers}
+          />
+
+          <ServiceCoverageAreasCard
+            areas={coverageAreas}
+            onChange={setCoverageAreas}
           />
 
           <ServiceAdditionalPhotos

@@ -105,7 +105,7 @@ export function ServiceInfo({ service }: ServiceInfoProps) {
       </div>
 
       {/* Destaques rápidos / Agilis highlights */}
-      <div className="pt-1">
+      <div className="flex flex-col gap-3 pt-1">
         <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/40 p-3 sm:p-4">
           <div className="flex items-center gap-2 text-primary">
             <Clock size={18} />
@@ -115,6 +115,25 @@ export function ServiceInfo({ service }: ServiceInfoProps) {
             {formatEstimatedDuration(service.durationMinutes)}
           </span>
         </div>
+
+        {service.coverageAreas && service.coverageAreas.length > 0 && (
+          <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/40 p-3 sm:p-4">
+            <div className="flex items-center gap-2 text-primary">
+              <MapPin size={16} />
+              <span className="text-xs font-bold text-foreground">Cidades atendidas</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {service.coverageAreas.map((area, idx) => (
+                <span
+                  key={area.id ?? `${area.city}-${area.state}-${idx}`}
+                  className="rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px] font-medium text-foreground"
+                >
+                  {area.city} - {area.state}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

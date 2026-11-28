@@ -412,7 +412,7 @@ export async function completeBooking(id: string): Promise<void> {
 
 /**
  * 11a. Declara atraso para agendamentos do dia (loja):
- * POST /api/v1/bookings/delays
+ * POST /api/v1/stores/{storeId}/delays
  */
 export async function declareDelay(
   payload: DeclareDelayPayload
@@ -435,10 +435,13 @@ export async function declareDelay(
     formattedPayload.reason = null;
   }
 
-  return await api<DeclareDelayResponse>("/api/v1/bookings/delays", {
-    method: "POST",
-    body: JSON.stringify(formattedPayload),
-  });
+  return await api<DeclareDelayResponse>(
+    `/api/v1/stores/${encodeURIComponent(payload.storeId)}/delays`,
+    {
+      method: "POST",
+      body: JSON.stringify(formattedPayload),
+    }
+  );
 }
 
 /**

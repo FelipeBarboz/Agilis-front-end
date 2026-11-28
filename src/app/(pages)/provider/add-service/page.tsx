@@ -15,7 +15,11 @@ import {
   createService,
   updateServiceThumbnail,
   addServiceImage,
+  setServicePriceTiers,
+  setServiceCoverageAreas,
   type CreateServicePayload,
+  type ServicePriceTierInput,
+  type ServiceCoverageAreaInput,
 } from "@/lib/services/services-service";
 import { AddServiceHeader } from "./_components/add-service-header";
 import { ServiceStoreUnitCard } from "./_components/service-store-unit-card";
@@ -25,6 +29,8 @@ import {
   ServicePricingCard,
   type PriceType,
 } from "./_components/service-pricing-card";
+import { ServicePriceTiersCard } from "./_components/service-price-tiers-card";
+import { ServiceCoverageAreasCard } from "./_components/service-coverage-areas-card";
 import { ServiceAdditionalPhotos } from "./_components/service-additional-photos";
 import { ServiceFormActions } from "./_components/service-form-actions";
 
@@ -83,6 +89,10 @@ function AddServiceForm() {
   // Fotos
   const [mainPhotoPreview, setMainPhotoPreview] = useState<string | null>(null);
   const [additionalPhotos, setAdditionalPhotos] = useState<string[]>([]);
+
+  // Faixas de preço e áreas de cobertura
+  const [priceTiers, setPriceTiers] = useState<ServicePriceTierInput[]>([]);
+  const [coverageAreas, setCoverageAreas] = useState<ServiceCoverageAreaInput[]>([]);
 
   // Feedback
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -319,6 +329,25 @@ function AddServiceForm() {
         }
       }
 
+      // Envia faixas de preço se houver
+      const validTiers = priceTiers.filter((t) => t.name.trim().length > 0 && t.price > 0);
+      if (validTiers.length > 0 && newServiceId) {
+        try {
+          await setServicePriceTiers(newServiceId, validTiers);
+        } catch (tierErr) {
+          console.warn("[AddService] Erro ao salvar faixas de preço:", tierErr);
+        }
+      }
+
+      // Envia áreas de cobertura se houver
+      if (coverageAreas.length > 0 && newServiceId) {
+        try {
+          await setServiceCoverageAreas(newServiceId, coverageAreas);
+        } catch (areaErr) {
+          console.warn("[AddService] Erro ao salvar áreas de cobertura:", areaErr);
+        }
+      }
+
       setSuccess(true);
       setTimeout(() => {
         router.push(`/store/store-profile?storeId=${encodeURIComponent(selectedStoreId)}`);
@@ -375,6 +404,16 @@ function AddServiceForm() {
             onPriceTypeChange={setPriceType}
             onPriceChange={setPrice}
             onDurationChange={setDuration}
+          />
+
+          <ServicePriceTiersCard
+            tiers={priceTiers}
+            onChange={setPriceTiers}
+          />
+
+          <ServiceCoverageAreasCard
+            areas={coverageAreas}
+            onChange={setCoverageAreas}
           />
 
           <ServiceAdditionalPhotos

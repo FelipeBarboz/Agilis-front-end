@@ -29,6 +29,7 @@ export type Service = {
   category: string;
   packages: ServicePackage[];
   images: { id: string; serviceId: string; url: string }[];
+  coverageAreas?: { id?: string; city: string; state: string }[];
 };
 
 export const mockServices: Service[] = [
@@ -848,15 +849,22 @@ export const mockServices: Service[] = [
 
 export const categories = [
   { id: "todos", label: "Todos" },
-  { id: "limpeza", label: "Limpeza" },
+  { id: "tecnologia_tv", label: "Tecnologia e TV" },
   { id: "eletrica", label: "Elétrica" },
+  { id: "limpeza", label: "Limpeza" },
   { id: "hidraulica", label: "Hidráulica" },
   { id: "pintura", label: "Pintura" },
-  { id: "tecnologia", label: "Tecnologia e TV" },
   { id: "reparos", label: "Reparos" },
   { id: "construcao", label: "Construção" },
   { id: "marcenaria", label: "Marcenaria" },
   { id: "climatizacao", label: "Climatização" },
+  { id: "seguranca", label: "Segurança" },
+  { id: "mudanca", label: "Mudança" },
+  { id: "jardinagem", label: "Jardinagem" },
+  { id: "pet", label: "Pet" },
+  { id: "vidracaria", label: "Vidraçaria" },
+  { id: "gas", label: "Gás" },
+  { id: "lavanderia", label: "Lavanderia" },
 ] as const;
 export type ServiceFilterType = "most_visited" | "top_rated" | "most_hired";
 

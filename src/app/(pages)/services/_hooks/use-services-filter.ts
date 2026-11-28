@@ -52,7 +52,8 @@ export function parseFiltersFromSearchParams(
   category: string;
   appliedFilters: Filters;
 } {
-  const category = params.get("category") ?? "todos";
+  const rawCategory = (params.get("category") ?? "todos").trim().toLowerCase();
+  const category = rawCategory === "tecnologia" ? "tecnologia_tv" : rawCategory;
   const search = params.get("q") ?? params.get("search") ?? "";
 
   const typeParam = params.get("type");
@@ -332,7 +333,12 @@ export function useServicesFilter() {
           const apiStores = await fetchStoresSearch({
             search,
             q: search,
-            category: category !== "todos" ? category : undefined,
+            category:
+              category !== "todos"
+                ? category === "tecnologia"
+                  ? "TECNOLOGIA_TV"
+                  : category.toUpperCase()
+                : undefined,
             state: appliedFilters.state || undefined,
             city: appliedFilters.city || undefined,
           });

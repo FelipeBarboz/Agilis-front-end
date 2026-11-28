@@ -125,7 +125,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       // Mantém mensagem padrão do status
     }
 
-    console.error(`[API ERROR ${res.status}] ${init.method ?? "GET"} ${url}:`, {
+    console.warn(`[API ERROR ${res.status}] ${init.method ?? "GET"} ${url}:`, {
       errorMessage,
       errorData,
     });

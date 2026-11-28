@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { AppNotification } from "@/lib/mocks/notifications";
+import type { AppNotification } from "@/lib/services/notifications-service";
 import { TYPE_ICONS, TYPE_COLORS } from "./notification-types";
 
 interface NotificationCardProps {
